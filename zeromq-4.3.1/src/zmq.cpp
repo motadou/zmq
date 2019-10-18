@@ -1,40 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-// "Tell them I was a writer.
-//  A maker of software.
-//  A humanist. A father.
-//  And many things.
-//  But above all, a writer.
-//  Thank You. :)"
-//  - Pieter Hintjens
-
 #include "precompiled.hpp"
 #define ZMQ_TYPE_UNSAFE
 
@@ -230,10 +193,12 @@ static zmq::socket_base_t *as_socket_base_t (void *s_)
 
 void *zmq_socket (void *ctx_, int type_)
 {
-    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) {
+    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) 
+    {
         errno = EFAULT;
         return NULL;
     }
+
     zmq::ctx_t *ctx = static_cast<zmq::ctx_t *> (ctx_);
     zmq::socket_base_t *s = ctx->create_socket (type_);
     return (void *) s;
@@ -325,8 +290,7 @@ int zmq_disconnect (void *s_, const char *addr_)
 
 // Sending functions.
 
-static inline int
-s_sendmsg (zmq::socket_base_t *s_, zmq_msg_t *msg_, int flags_)
+static inline int s_sendmsg (zmq::socket_base_t *s_, zmq_msg_t *msg_, int flags_)
 {
     size_t sz = zmq_msg_size (msg_);
     int rc = s_->send (reinterpret_cast<zmq::msg_t *> (msg_), flags_);
@@ -357,12 +321,15 @@ int zmq_send (void *s_, const void *buf_, size_t len_, int flags_)
         return -1;
 
     //  We explicitly allow a send from NULL, size zero
-    if (len_) {
+    if (len_) 
+    {
         assert (buf_);
         memcpy (zmq_msg_data (&msg), buf_, len_);
     }
+
     int rc = s_sendmsg (s, &msg, flags_);
-    if (unlikely (rc < 0)) {
+    if (unlikely (rc < 0)) 
+    {
         int err = errno;
         int rc2 = zmq_msg_close (&msg);
         errno_assert (rc2 == 0);
@@ -568,14 +535,12 @@ int zmq_msg_init (zmq_msg_t *msg_)
 
 int zmq_msg_init_size (zmq_msg_t *msg_, size_t size_)
 {
-    return (reinterpret_cast<zmq::msg_t *> (msg_))->init_size (size_);
+    return (reinterpret_cast<zmq::msg_t *>(msg_))->init_size(size_);
 }
 
-int zmq_msg_init_data (
-  zmq_msg_t *msg_, void *data_, size_t size_, zmq_free_fn *ffn_, void *hint_)
+int zmq_msg_init_data(zmq_msg_t *msg_, void *data_, size_t size_, zmq_free_fn *ffn_, void *hint_)
 {
-    return (reinterpret_cast<zmq::msg_t *> (msg_))
-      ->init_data (data_, size_, ffn_, hint_);
+    return (reinterpret_cast<zmq::msg_t *>(msg_))->init_data(data_, size_, ffn_, hint_);
 }
 
 int zmq_msg_send (zmq_msg_t *msg_, void *s_, int flags_)

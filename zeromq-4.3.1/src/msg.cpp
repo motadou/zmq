@@ -142,10 +142,7 @@ int zmq::msg_t::init_external_storage (content_t *content_,
     return 0;
 }
 
-int zmq::msg_t::init_data (void *data_,
-                           size_t size_,
-                           msg_free_fn *ffn_,
-                           void *hint_)
+int zmq::msg_t::init_data (void *data_, size_t size_, msg_free_fn *ffn_, void *hint_)
 {
     //  If data is NULL and size is not 0, a segfault
     //  would occur once the data is accessed
@@ -204,10 +201,10 @@ int zmq::msg_t::init_join ()
 
 int zmq::msg_t::init_leave ()
 {
-    _u.base.metadata = NULL;
-    _u.base.type = type_leave;
-    _u.base.flags = 0;
-    _u.base.group[0] = '\0';
+    _u.base.metadata   = NULL;
+    _u.base.type       = type_leave;
+    _u.base.flags      = 0;
+    _u.base.group[0]   = '\0';
     _u.base.routing_id = 0;
     return 0;
 }

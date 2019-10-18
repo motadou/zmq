@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef __ZMQ_REQ_HPP_INCLUDED__
 #define __ZMQ_REQ_HPP_INCLUDED__
 
@@ -42,7 +13,7 @@ class socket_base_t;
 
 class req_t : public dealer_t
 {
-  public:
+public:
     req_t (zmq::ctx_t *parent_, uint32_t tid_, int sid_);
     ~req_t ();
 
@@ -54,12 +25,12 @@ class req_t : public dealer_t
     int xsetsockopt (int option_, const void *optval_, size_t optvallen_);
     void xpipe_terminated (zmq::pipe_t *pipe_);
 
-  protected:
+protected:
     //  Receive only from the pipe the request was sent to, discarding
     //  frames from other pipes.
     int recv_reply_pipe (zmq::msg_t *msg_);
 
-  private:
+private:
     //  If true, request was already sent and reply wasn't received yet or
     //  was received partially.
     bool _receiving_reply;
@@ -89,7 +60,7 @@ class req_t : public dealer_t
 
 class req_session_t : public session_base_t
 {
-  public:
+public:
     req_session_t (zmq::io_thread_t *io_thread_,
                    bool connect_,
                    zmq::socket_base_t *socket_,
@@ -101,7 +72,7 @@ class req_session_t : public session_base_t
     int push_msg (msg_t *msg_);
     void reset ();
 
-  private:
+private:
     enum
     {
         bottom,

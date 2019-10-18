@@ -139,13 +139,11 @@ bool zmq::socket_base_t::is_thread_safe () const
     return _thread_safe;
 }
 
-zmq::socket_base_t *zmq::socket_base_t::create (int type_,
-                                                class ctx_t *parent_,
-                                                uint32_t tid_,
-                                                int sid_)
+zmq::socket_base_t *zmq::socket_base_t::create (int type_, class ctx_t *parent_, uint32_t tid_, int sid_)
 {
     socket_base_t *s = NULL;
-    switch (type_) {
+    switch (type_) 
+    {
         case ZMQ_PAIR:
             s = new (std::nothrow) pair_t (parent_, tid_, sid_);
             break;
@@ -1513,7 +1511,8 @@ void zmq::socket_base_t::timer_event (int)
 void zmq::socket_base_t::check_destroy ()
 {
     //  If the object was already marked as destroyed, finish the deallocation.
-    if (_destroyed) {
+    if (_destroyed) 
+    {
         //  Remove the socket from the reaper's poller.
         _poller->rm_fd (_handle);
 

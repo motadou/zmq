@@ -188,10 +188,14 @@ void zmq::dist_t::distribute (msg_t *msg_)
     //  Push copy of the message to each matching pipe.
     int failed = 0;
     for (pipes_t::size_type i = 0; i < _matching; ++i)
-        if (!write (_pipes[i], msg_)) {
+    {
+        if (!write(_pipes[i], msg_)) 
+        {
             ++failed;
-            --i; //  Retry last write because index will have been swapped
+            --i; // Retry last write because index will have been swapped
         }
+    }
+
     if (unlikely (failed))
         msg_->rm_refs (failed);
 
@@ -208,7 +212,8 @@ bool zmq::dist_t::has_out ()
 
 bool zmq::dist_t::write (pipe_t *pipe_, msg_t *msg_)
 {
-    if (!pipe_->write (msg_)) {
+    if (!pipe_->write (msg_)) 
+    {
         _pipes.swap (_pipes.index (pipe_), _matching - 1);
         _matching--;
         _pipes.swap (_pipes.index (pipe_), _active - 1);
@@ -217,8 +222,10 @@ bool zmq::dist_t::write (pipe_t *pipe_, msg_t *msg_)
         _eligible--;
         return false;
     }
+
     if (!(msg_->flags () & msg_t::more))
         pipe_->flush ();
+    
     return true;
 }
 

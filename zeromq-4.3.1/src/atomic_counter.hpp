@@ -1,70 +1,39 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef __ZMQ_ATOMIC_COUNTER_HPP_INCLUDED__
 #define __ZMQ_ATOMIC_COUNTER_HPP_INCLUDED__
 
 #include "stdint.hpp"
 #include "macros.hpp"
 
-#if defined ZMQ_FORCE_MUTEXES
-#define ZMQ_ATOMIC_COUNTER_MUTEX
+#if   defined ZMQ_FORCE_MUTEXES
+    #define ZMQ_ATOMIC_COUNTER_MUTEX
 #elif defined ZMQ_HAVE_ATOMIC_INTRINSICS
-#define ZMQ_ATOMIC_COUNTER_INTRINSIC
-#elif (defined __cplusplus && __cplusplus >= 201103L)                          \
-  || (defined _MSC_VER && _MSC_VER >= 1900)
-#define ZMQ_ATOMIC_COUNTER_CXX11
+    #define ZMQ_ATOMIC_COUNTER_INTRINSIC
+#elif (defined __cplusplus && __cplusplus >= 201103L) || (defined _MSC_VER && _MSC_VER >= 1900)
+    #define ZMQ_ATOMIC_COUNTER_CXX11
 #elif (defined __i386__ || defined __x86_64__) && defined __GNUC__
-#define ZMQ_ATOMIC_COUNTER_X86
+    #define ZMQ_ATOMIC_COUNTER_X86
 #elif defined __ARM_ARCH_7A__ && defined __GNUC__
-#define ZMQ_ATOMIC_COUNTER_ARM
+    #define ZMQ_ATOMIC_COUNTER_ARM
 #elif defined ZMQ_HAVE_WINDOWS
-#define ZMQ_ATOMIC_COUNTER_WINDOWS
-#elif (defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_NETBSD                     \
-       || defined ZMQ_HAVE_GNU)
-#define ZMQ_ATOMIC_COUNTER_ATOMIC_H
+    #define ZMQ_ATOMIC_COUNTER_WINDOWS
+#elif (defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_NETBSD || defined ZMQ_HAVE_GNU)
+    #define ZMQ_ATOMIC_COUNTER_ATOMIC_H
 #elif defined __tile__
-#define ZMQ_ATOMIC_COUNTER_TILE
+    #define ZMQ_ATOMIC_COUNTER_TILE
 #else
-#define ZMQ_ATOMIC_COUNTER_MUTEX
+    #define ZMQ_ATOMIC_COUNTER_MUTEX
 #endif
 
-#if defined ZMQ_ATOMIC_COUNTER_MUTEX
-#include "mutex.hpp"
+#if   defined ZMQ_ATOMIC_COUNTER_MUTEX
+    #include "mutex.hpp"
 #elif defined ZMQ_ATOMIC_COUNTER_CXX11
-#include <atomic>
+    #include <atomic>
 #elif defined ZMQ_ATOMIC_COUNTER_WINDOWS
-#include "windows.hpp"
+    #include "windows.hpp"
 #elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H
-#include <atomic.h>
+    #include <atomic.h>
 #elif defined ZMQ_ATOMIC_COUNTER_TILE
-#include <arch/atomic.h>
+    #include <arch/atomic.h>
 #endif
 
 namespace zmq
@@ -88,12 +57,12 @@ class __declspec(align (4)) atomic_counter_t
 class atomic_counter_t
 #endif
 {
-  public:
+public:
     typedef uint32_t integer_t;
 
-    inline atomic_counter_t (integer_t value_ = 0) ZMQ_NOEXCEPT
-        : _value (value_)
+    inline atomic_counter_t (integer_t value_ = 0) ZMQ_NOEXCEPT : _value (value_)
     {
+
     }
 
     //  Set counter _value (not thread-safe).
@@ -104,7 +73,7 @@ class atomic_counter_t
     {
         integer_t old_value;
 
-#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
+#if   defined ZMQ_ATOMIC_COUNTER_WINDOWS
         old_value = InterlockedExchangeAdd ((LONG *) &_value, increment_);
 #elif defined ZMQ_ATOMIC_COUNTER_INTRINSIC
         old_value = __atomic_fetch_add (&_value, increment_, __ATOMIC_ACQ_REL);
@@ -152,12 +121,10 @@ class atomic_counter_t
         integer_t old = InterlockedExchangeAdd ((LONG *) &_value, delta);
         return old - decrement_ != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_INTRINSIC
-        integer_t nv =
-          __atomic_sub_fetch (&_value, decrement_, __ATOMIC_ACQ_REL);
+        integer_t nv = __atomic_sub_fetch (&_value, decrement_, __ATOMIC_ACQ_REL);
         return nv != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_CXX11
-        integer_t old =
-          _value.fetch_sub (decrement_, std::memory_order_acq_rel);
+        integer_t old = _value.fetch_sub (decrement_, std::memory_order_acq_rel);
         return old - decrement_ != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H
         int32_t delta = -((int32_t) decrement_);
@@ -202,7 +169,7 @@ class atomic_counter_t
 
     inline integer_t get () const ZMQ_NOEXCEPT { return _value; }
 
-  private:
+private:
 #if defined ZMQ_ATOMIC_COUNTER_CXX11
     std::atomic<integer_t> _value;
 #else
@@ -217,6 +184,7 @@ class atomic_counter_t
     atomic_counter_t (const atomic_counter_t &);
     const atomic_counter_t &operator= (const atomic_counter_t &);
 #endif
+
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)                             \
   || (defined(__SUNPRO_C) && __SUNPRO_C >= 0x590)                              \
   || (defined(__SUNPRO_CC) && __SUNPRO_CC >= 0x590)

@@ -163,12 +163,12 @@ class msg_t
     //  rather than being reference-counted.
     enum
     {
-        msg_t_size = 64
+        msg_t_size   = 64
     };
+
     enum
     {
-        max_vsm_size =
-          msg_t_size - (sizeof (metadata_t *) + 3 + 16 + sizeof (uint32_t))
+        max_vsm_size = msg_t_size - (sizeof (metadata_t *) + 3 + 16 + sizeof (uint32_t))
     };
     enum
     {

@@ -270,18 +270,21 @@ int zmq::xpub_t::xsend (msg_t *msg_)
     bool msg_more = (msg_->flags () & msg_t::more) != 0;
 
     //  For the first part of multi-part message, find the matching pipes.
-    if (!_more) {
-        _subscriptions.match (static_cast<unsigned char *> (msg_->data ()),
-                              msg_->size (), mark_as_matching, this);
+    if (!_more) 
+    {
+        _subscriptions.match (static_cast<unsigned char *> (msg_->data ()), msg_->size (), mark_as_matching, this);
         // If inverted matching is used, reverse the selection now
-        if (options.invert_matching) {
+        if (options.invert_matching) 
+        {
             _dist.reverse_match ();
         }
     }
 
     int rc = -1; //  Assume we fail
-    if (_lossy || _dist.check_hwm ()) {
-        if (_dist.send_to_matching (msg_) == 0) {
+    if (_lossy || _dist.check_hwm ()) 
+    {
+        if (_dist.send_to_matching (msg_) == 0) 
+        {
             //  If we are at the end of multi-part message we can mark
             //  all the pipes as non-matching.
             if (!msg_more)
@@ -289,8 +292,12 @@ int zmq::xpub_t::xsend (msg_t *msg_)
             _more = msg_more;
             rc = 0; //  Yay, sent successfully
         }
-    } else
+    } 
+    else
+    {
         errno = EAGAIN;
+    }
+
     return rc;
 }
 

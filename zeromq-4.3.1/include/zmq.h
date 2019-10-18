@@ -1,40 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    *************************************************************************
-    NOTE to contributors. This file comprises the principal public contract
-    for ZeroMQ API users. Any change to this file supplied in a stable
-    release SHOULD not break existing applications.
-    In practice this means that the value of constants must not change, and
-    that old values may not be reused for new constants.
-    *************************************************************************
-*/
-
 #ifndef __ZMQ_H_INCLUDED__
 #define __ZMQ_H_INCLUDED__
 
@@ -265,8 +228,7 @@ typedef void(zmq_free_fn) (void *data_, void *hint_);
 
 ZMQ_EXPORT int zmq_msg_init (zmq_msg_t *msg_);
 ZMQ_EXPORT int zmq_msg_init_size (zmq_msg_t *msg_, size_t size_);
-ZMQ_EXPORT int zmq_msg_init_data (
-  zmq_msg_t *msg_, void *data_, size_t size_, zmq_free_fn *ffn_, void *hint_);
+ZMQ_EXPORT int zmq_msg_init_data (zmq_msg_t *msg_, void *data_, size_t size_, zmq_free_fn *ffn_, void *hint_);
 ZMQ_EXPORT int zmq_msg_send (zmq_msg_t *msg_, void *s_, int flags_);
 ZMQ_EXPORT int zmq_msg_recv (zmq_msg_t *msg_, void *s_, int flags_);
 ZMQ_EXPORT int zmq_msg_close (zmq_msg_t *msg_);
@@ -277,8 +239,7 @@ ZMQ_EXPORT size_t zmq_msg_size (const zmq_msg_t *msg_);
 ZMQ_EXPORT int zmq_msg_more (const zmq_msg_t *msg_);
 ZMQ_EXPORT int zmq_msg_get (const zmq_msg_t *msg_, int property_);
 ZMQ_EXPORT int zmq_msg_set (zmq_msg_t *msg_, int property_, int optval_);
-ZMQ_EXPORT const char *zmq_msg_gets (const zmq_msg_t *msg_,
-                                     const char *property_);
+ZMQ_EXPORT const char *zmq_msg_gets (const zmq_msg_t *msg_, const char *property_);
 
 /******************************************************************************/
 /*  0MQ socket definition.                                                    */
@@ -481,12 +442,11 @@ ZMQ_EXPORT int
 zmq_getsockopt (void *s_, int option_, void *optval_, size_t *optvallen_);
 ZMQ_EXPORT int zmq_bind (void *s_, const char *addr_);
 ZMQ_EXPORT int zmq_connect (void *s_, const char *addr_);
-ZMQ_EXPORT int zmq_unbind (void *s_, const char *addr_);
+ZMQ_EXPORT int zmq_unbind     (void *s_, const char *addr_);
 ZMQ_EXPORT int zmq_disconnect (void *s_, const char *addr_);
-ZMQ_EXPORT int zmq_send (void *s_, const void *buf_, size_t len_, int flags_);
-ZMQ_EXPORT int
-zmq_send_const (void *s_, const void *buf_, size_t len_, int flags_);
-ZMQ_EXPORT int zmq_recv (void *s_, void *buf_, size_t len_, int flags_);
+ZMQ_EXPORT int zmq_send       (void *s_, const void *buf_, size_t len_, int flags_);
+ZMQ_EXPORT int zmq_send_const (void *s_, const void *buf_, size_t len_, int flags_);
+ZMQ_EXPORT int zmq_recv       (void *s_, void *buf_, size_t len_, int flags_);
 ZMQ_EXPORT int zmq_socket_monitor (void *s_, const char *addr_, int events_);
 
 

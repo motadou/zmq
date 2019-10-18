@@ -8,7 +8,14 @@ int main(int argc, char * argv[])
     void * pSock = NULL;
     //使用tcp协议进行通信，需要连接的目标机器IP地址为192.168.1.2
     //通信使用的网络端口 为7766 
-    const char * pAddr = "tcp://192.168.9.103:7766";
+    const char * pAddr = "tcp://192.168.9.113:7766";
+
+
+    int major, minor, patch;
+    
+    zmq_version(&major, &minor, &patch);
+    
+    printf("当前ZMQ版本号为 %d.%d.%d\n", major, minor, patch);
 
     //创建context 
     if((pCtx = zmq_ctx_new()) == NULL)
@@ -21,14 +28,16 @@ int main(int argc, char * argv[])
         zmq_ctx_destroy(pCtx);
         return 0;
     }
+    
     int iSndTimeout = 5000;// millsecond
     //设置接收超时 
-    if(zmq_setsockopt(pSock, ZMQ_RCVTIMEO, &iSndTimeout, sizeof(iSndTimeout)) < 0)
+    if (zmq_setsockopt(pSock, ZMQ_RCVTIMEO, &iSndTimeout, sizeof(iSndTimeout)) < 0)
     {
         zmq_close(pSock);
         zmq_ctx_destroy(pCtx);
         return 0;
     }
+
     //连接目标IP192.168.1.2，端口7766 
     if(zmq_connect(pSock, pAddr) < 0)
     {
@@ -36,6 +45,7 @@ int main(int argc, char * argv[])
         zmq_ctx_destroy(pCtx);
         return 0;
     }
+
     //循环发送消息 
     while(1)
     {
