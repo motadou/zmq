@@ -124,7 +124,7 @@ void zmq::worker_poller_base_t::stop_worker ()
 void zmq::worker_poller_base_t::start ()
 {
     zmq_assert (get_load () > 0);
-    _ctx.start_thread (_worker, worker_routine, this);
+    _ctx.start_thread(_worker, worker_routine, this);
 }
 
 void zmq::worker_poller_base_t::check_thread ()

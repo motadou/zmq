@@ -515,23 +515,28 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
     //  Parse endpoint_uri_ string.
     std::string protocol;
     std::string address;
-    if (parse_uri (endpoint_uri_, protocol, address)
-        || check_protocol (protocol)) {
+    if (parse_uri (endpoint_uri_, protocol, address) || check_protocol (protocol)) 
+    {
         return -1;
     }
 
-    if (protocol == protocol_name::inproc) {
+    if (protocol == protocol_name::inproc) 
+    {
         const endpoint_t endpoint = {this, options};
         rc = register_endpoint (endpoint_uri_, endpoint);
-        if (rc == 0) {
+        
+        if (rc == 0) 
+        {
             connect_pending (endpoint_uri_, this);
             _last_endpoint.assign (endpoint_uri_);
             options.connected = true;
         }
+        
         return rc;
     }
 
-    if (protocol == "pgm" || protocol == "epgm" || protocol == "norm") {
+    if (protocol == "pgm" || protocol == "epgm" || protocol == "norm") 
+    {
         //  For convenience's sake, bind can be used interchangeable with
         //  connect for PGM, EPGM, NORM transports.
         rc = connect (endpoint_uri_);
@@ -602,28 +607,27 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
         return -1;
     }
 
-    if (protocol == protocol_name::tcp) {
-        tcp_listener_t *listener =
-          new (std::nothrow) tcp_listener_t (io_thread, this, options);
+    if (protocol == protocol_name::tcp) 
+    {
+        tcp_listener_t *listener = new (std::nothrow) tcp_listener_t (io_thread, this, options);
         alloc_assert (listener);
-        rc = listener->set_address (address.c_str ());
-        if (rc != 0) {
+        rc = listener->set_address(address.c_str());
+        if (rc != 0) 
+        {
             LIBZMQ_DELETE (listener);
             event_bind_failed (address, zmq_errno ());
             return -1;
         }
 
         // Save last endpoint URI
-        listener->get_address (_last_endpoint);
+        listener->get_address(_last_endpoint);
 
-        add_endpoint (_last_endpoint.c_str (), static_cast<own_t *> (listener),
-                      NULL);
+        add_endpoint(_last_endpoint.c_str (), static_cast<own_t *> (listener), NULL);
         options.connected = true;
         return 0;
     }
 
-#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS                     \
-  && !defined ZMQ_HAVE_VXWORKS
+#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS && !defined ZMQ_HAVE_VXWORKS
     if (protocol == protocol_name::ipc) {
         ipc_listener_t *listener =
           new (std::nothrow) ipc_listener_t (io_thread, this, options);
@@ -644,6 +648,7 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
         return 0;
     }
 #endif
+
 #if defined ZMQ_HAVE_TIPC
     if (protocol == protocol_name::tipc) {
         tipc_listener_t *listener =
@@ -664,6 +669,7 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
         return 0;
     }
 #endif
+
 #if defined ZMQ_HAVE_VMCI
     if (protocol == protocol_name::vmci) {
         vmci_listener_t *listener =

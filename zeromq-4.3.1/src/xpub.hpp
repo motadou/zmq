@@ -17,8 +17,9 @@ class io_thread_t;
 
 class xpub_t : public socket_base_t
 {
-  public:
+public:
     xpub_t (zmq::ctx_t *parent_, uint32_t tid_, int sid_);
+    
     ~xpub_t ();
 
     //  Implementations of virtual functions from socket_base_t.

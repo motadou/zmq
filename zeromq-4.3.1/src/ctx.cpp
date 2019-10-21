@@ -198,34 +198,49 @@ int zmq::ctx_t::shutdown ()
 int zmq::ctx_t::set (int option_, int optval_)
 {
     int rc = 0;
-    if (option_ == ZMQ_MAX_SOCKETS && optval_ >= 1
-        && optval_ == clipped_maxsocket (optval_)) {
+    
+    if (option_ == ZMQ_MAX_SOCKETS && optval_ >= 1 && optval_ == clipped_maxsocket (optval_)) 
+    {
         scoped_lock_t locker (_opt_sync);
         _max_sockets = optval_;
-    } else if (option_ == ZMQ_IO_THREADS && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_IO_THREADS && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _io_thread_count = optval_;
-    } else if (option_ == ZMQ_IPV6 && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_IPV6 && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _ipv6 = (optval_ != 0);
-    } else if (option_ == ZMQ_BLOCKY && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_BLOCKY && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _blocky = (optval_ != 0);
-    } else if (option_ == ZMQ_MAX_MSGSZ && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_MAX_MSGSZ && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _max_msgsz = optval_ < INT_MAX ? optval_ : INT_MAX;
-    } else if (option_ == ZMQ_ZERO_COPY_RECV && optval_ >= 0) {
+    }
+    else if (option_ == ZMQ_ZERO_COPY_RECV && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _zero_copy = (optval_ != 0);
-    } else {
+    } 
+    else 
+    {
         rc = thread_ctx_t::set (option_, optval_);
     }
+
     return rc;
 }
 
 int zmq::ctx_t::get (int option_)
 {
     int rc = 0;
+
     if (option_ == ZMQ_MAX_SOCKETS)
         rc = _max_sockets;
     else if (option_ == ZMQ_SOCKET_LIMIT)
@@ -240,11 +255,15 @@ int zmq::ctx_t::get (int option_)
         rc = _max_msgsz;
     else if (option_ == ZMQ_MSG_T_SIZE)
         rc = sizeof (zmq_msg_t);
-    else if (option_ == ZMQ_ZERO_COPY_RECV) {
+    else if (option_ == ZMQ_ZERO_COPY_RECV) 
+    {
         rc = _zero_copy;
-    } else {
+    } 
+    else 
+    {
         rc = thread_ctx_t::get (option_);
     }
+
     return rc;
 }
 
@@ -257,26 +276,31 @@ bool zmq::ctx_t::start ()
     const int mazmq = _max_sockets;
     const int ios = _io_thread_count;
     _opt_sync.unlock ();
+    
     int slot_count = mazmq + ios + term_and_reaper_threads_count;
-    try {
+    try 
+    {
         _slots.reserve (slot_count);
         _empty_slots.reserve (slot_count - term_and_reaper_threads_count);
     }
-    catch (const std::bad_alloc &) {
+    catch (const std::bad_alloc &) 
+    {
         errno = ENOMEM;
         return false;
     }
-    _slots.resize (term_and_reaper_threads_count);
+    _slots.resize(term_and_reaper_threads_count);
 
     //  Initialise the infrastructure for zmq_ctx_term thread.
     _slots[term_tid] = &_term_mailbox;
 
     //  Create the reaper thread.
     _reaper = new (std::nothrow) reaper_t (this, reaper_tid);
-    if (!_reaper) {
+    if (!_reaper) 
+    {
         errno = ENOMEM;
         goto fail_cleanup_slots;
     }
+    
     if (!_reaper->get_mailbox ()->valid ())
         goto fail_cleanup_reaper;
     _slots[reaper_tid] = _reaper->get_mailbox ();
@@ -285,25 +309,28 @@ bool zmq::ctx_t::start ()
     //  Create I/O thread objects and launch them.
     _slots.resize (slot_count, NULL);
 
-    for (int i = term_and_reaper_threads_count;
-         i != ios + term_and_reaper_threads_count; i++) {
+    for (int i = term_and_reaper_threads_count; i != ios + term_and_reaper_threads_count; i++) 
+    {
         io_thread_t *io_thread = new (std::nothrow) io_thread_t (this, i);
-        if (!io_thread) {
+        if (!io_thread) 
+        {
             errno = ENOMEM;
             goto fail_cleanup_reaper;
         }
-        if (!io_thread->get_mailbox ()->valid ()) {
+
+        if (!io_thread->get_mailbox ()->valid ()) 
+        {
             delete io_thread;
             goto fail_cleanup_reaper;
         }
         _io_threads.push_back (io_thread);
         _slots[i] = io_thread->get_mailbox ();
-        io_thread->start ();
+        io_thread->start();
     }
 
     //  In the unused part of the slot array, create a list of empty slots.
-    for (int32_t i = static_cast<int32_t> (_slots.size ()) - 1;
-         i >= static_cast<int32_t> (ios) + term_and_reaper_threads_count; i--) {
+    for (int32_t i = static_cast<int32_t> (_slots.size ()) - 1; i >= static_cast<int32_t> (ios) + term_and_reaper_threads_count; i--) 
+    {
         _empty_slots.push_back (i);
     }
 
@@ -322,21 +349,25 @@ fail_cleanup_slots:
 
 zmq::socket_base_t *zmq::ctx_t::create_socket (int type_)
 {
-    scoped_lock_t locker (_slot_sync);
+    scoped_lock_t locker(_slot_sync);
 
-    if (unlikely (_starting)) {
-        if (!start ())
+    /// Æô¶¯ÍøÂçÏß³ÌIO_THREAD
+    if (unlikely (_starting)) 
+    {
+        if (!start())
             return NULL;
     }
 
     //  Once zmq_ctx_term() was called, we can't create new sockets.
-    if (_terminating) {
+    if (_terminating) 
+    {
         errno = ETERM;
         return NULL;
     }
 
     //  If max_sockets limit was reached, return error.
-    if (_empty_slots.empty ()) {
+    if (_empty_slots.empty ()) 
+    {
         errno = EMFILE;
         return NULL;
     }
@@ -350,12 +381,13 @@ zmq::socket_base_t *zmq::ctx_t::create_socket (int type_)
 
     //  Create the socket and register its mailbox.
     socket_base_t *s = socket_base_t::create (type_, this, slot, sid);
-    if (!s) {
+    if (!s) 
+    {
         _empty_slots.push_back (slot);
         return NULL;
     }
     _sockets.push_back (s);
-    _slots[slot] = s->get_mailbox ();
+    _slots[slot] = s->get_mailbox();
 
     return s;
 }
@@ -383,21 +415,18 @@ zmq::object_t *zmq::ctx_t::get_reaper ()
     return _reaper;
 }
 
-zmq::thread_ctx_t::thread_ctx_t () :
-    _thread_priority (ZMQ_THREAD_PRIORITY_DFLT),
-    _thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT)
+zmq::thread_ctx_t::thread_ctx_t () : _thread_priority (ZMQ_THREAD_PRIORITY_DFLT), _thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT)
 {
+
 }
 
-void zmq::thread_ctx_t::start_thread (thread_t &thread_,
-                                      thread_fn *tfn_,
-                                      void *arg_) const
+void zmq::thread_ctx_t::start_thread (thread_t &thread_, thread_fn *tfn_, void *arg_) const
 {
     static unsigned int nthreads_started = 0;
 
-    thread_.setSchedulingParameters (_thread_priority, _thread_sched_policy,
-                                     _thread_affinity_cpus);
-    thread_.start (tfn_, arg_);
+    thread_.setSchedulingParameters(_thread_priority, _thread_sched_policy, _thread_affinity_cpus);
+    thread_.start(tfn_, arg_);
+
 #ifndef ZMQ_HAVE_ANDROID
     std::ostringstream s;
     if (!_thread_name_prefix.empty ())
@@ -405,55 +434,78 @@ void zmq::thread_ctx_t::start_thread (thread_t &thread_,
     s << "ZMQbg/" << nthreads_started;
     thread_.setThreadName (s.str ().c_str ());
 #endif
+
     nthreads_started++;
 }
 
 int zmq::thread_ctx_t::set (int option_, int optval_)
 {
     int rc = 0;
-    if (option_ == ZMQ_THREAD_SCHED_POLICY && optval_ >= 0) {
+    if (option_ == ZMQ_THREAD_SCHED_POLICY && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _thread_sched_policy = optval_;
-    } else if (option_ == ZMQ_THREAD_AFFINITY_CPU_ADD && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_THREAD_AFFINITY_CPU_ADD && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _thread_affinity_cpus.insert (optval_);
-    } else if (option_ == ZMQ_THREAD_AFFINITY_CPU_REMOVE && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_THREAD_AFFINITY_CPU_REMOVE && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
-        if (0 == _thread_affinity_cpus.erase (optval_)) {
+        if (0 == _thread_affinity_cpus.erase (optval_)) 
+        {
             errno = EINVAL;
             rc = -1;
         }
-    } else if (option_ == ZMQ_THREAD_NAME_PREFIX && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_THREAD_NAME_PREFIX && optval_ >= 0) 
+    {
         std::ostringstream s;
         s << optval_;
         scoped_lock_t locker (_opt_sync);
         _thread_name_prefix = s.str ();
-    } else if (option_ == ZMQ_THREAD_PRIORITY && optval_ >= 0) {
+    } 
+    else if (option_ == ZMQ_THREAD_PRIORITY && optval_ >= 0) 
+    {
         scoped_lock_t locker (_opt_sync);
         _thread_priority = optval_;
-    } else {
+    } 
+    else 
+    {
         errno = EINVAL;
         rc = -1;
     }
+
     return rc;
 }
 
 int zmq::thread_ctx_t::get (int option_)
 {
     int rc = 0;
-    if (option_ == ZMQ_THREAD_PRIORITY) {
+
+    if (option_ == ZMQ_THREAD_PRIORITY) 
+    {
         scoped_lock_t locker (_opt_sync);
         rc = _thread_priority;
-    } else if (option_ == ZMQ_THREAD_SCHED_POLICY) {
+    } 
+    else if (option_ == ZMQ_THREAD_SCHED_POLICY) 
+    {
         scoped_lock_t locker (_opt_sync);
         rc = _thread_sched_policy;
-    } else if (option_ == ZMQ_THREAD_NAME_PREFIX) {
+    } 
+    else if (option_ == ZMQ_THREAD_NAME_PREFIX) 
+    {
         scoped_lock_t locker (_opt_sync);
-        rc = atoi (_thread_name_prefix.c_str ());
-    } else {
+        rc = atoi(_thread_name_prefix.c_str());
+    } 
+    else 
+    {
         errno = EINVAL;
         rc = -1;
     }
+
     return rc;
 }
 
@@ -470,40 +522,45 @@ zmq::io_thread_t *zmq::ctx_t::choose_io_thread (uint64_t affinity_)
     //  Find the I/O thread with minimum load.
     int min_load = -1;
     io_thread_t *selected_io_thread = NULL;
-    for (io_threads_t::size_type i = 0; i != _io_threads.size (); i++) {
-        if (!affinity_ || (affinity_ & (uint64_t (1) << i))) {
+
+    for (io_threads_t::size_type i = 0; i != _io_threads.size (); i++) 
+    {
+        if (!affinity_ || (affinity_ & (uint64_t (1) << i)))
+        {
             int load = _io_threads[i]->get_load ();
-            if (selected_io_thread == NULL || load < min_load) {
+            if (selected_io_thread == NULL || load < min_load) 
+            {
                 min_load = load;
                 selected_io_thread = _io_threads[i];
             }
         }
     }
+
     return selected_io_thread;
 }
 
-int zmq::ctx_t::register_endpoint (const char *addr_,
-                                   const endpoint_t &endpoint_)
+int zmq::ctx_t::register_endpoint(const char * addr_, const endpoint_t & endpoint_)
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    const bool inserted =
-      _endpoints.ZMQ_MAP_INSERT_OR_EMPLACE (std::string (addr_), endpoint_)
-        .second;
-    if (!inserted) {
+    const bool inserted = _endpoints.ZMQ_MAP_INSERT_OR_EMPLACE (std::string(addr_), endpoint_).second;
+
+    if (!inserted) 
+    {
         errno = EADDRINUSE;
         return -1;
     }
+
     return 0;
 }
 
-int zmq::ctx_t::unregister_endpoint (const std::string &addr_,
-                                     socket_base_t *socket_)
+int zmq::ctx_t::unregister_endpoint (const std::string &addr_, socket_base_t *socket_)
 {
     scoped_lock_t locker (_endpoints_sync);
 
     const endpoints_t::iterator it = _endpoints.find (addr_);
-    if (it == _endpoints.end () || it->second.socket != socket_) {
+    if (it == _endpoints.end () || it->second.socket != socket_) 
+    {
         errno = ENOENT;
         return -1;
     }
@@ -518,9 +575,8 @@ void zmq::ctx_t::unregister_endpoints (socket_base_t *socket_)
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    for (endpoints_t::iterator it = _endpoints.begin (),
-                               end = _endpoints.end ();
-         it != end;) {
+    for (endpoints_t::iterator it = _endpoints.begin (), end = _endpoints.end (); it != end;) 
+    {
         if (it->second.socket == socket_)
 #if __cplusplus >= 201103L
             it = _endpoints.erase (it);
