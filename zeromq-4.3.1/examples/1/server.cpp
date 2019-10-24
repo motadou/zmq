@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
     }
     //绑定地址 tcp://*:7766 
     //也就是使用tcp协议进行通信，使用网络端口 7766
-    if(zmq_bind(pSock, pAddr) < 0)
+    if (zmq_bind(pSock, pAddr) < 0)
     {
         zmq_close(pSock);
         zmq_ctx_destroy(pCtx);

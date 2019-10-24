@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "precompiled.hpp"
 #include "ip.hpp"
 #include "err.hpp"
@@ -88,7 +59,8 @@ zmq::fd_t zmq::open_socket (int domain_, int type_, int protocol_)
 #else
     const fd_t s = socket (domain_, type_, protocol_);
 #endif
-    if (s == retired_fd) {
+    if (s == retired_fd) 
+    {
 #ifdef ZMQ_HAVE_WINDOWS
         errno = wsa_error_to_errno (WSAGetLastError ());
 #endif
@@ -176,8 +148,7 @@ int zmq::get_peer_ip_address (fd_t sockfd_, std::string &ip_addr_)
 #endif
 
     char host[NI_MAXHOST];
-    rc = getnameinfo (reinterpret_cast<struct sockaddr *> (&ss), addrlen, host,
-                      sizeof host, NULL, 0, NI_NUMERICHOST);
+    rc = getnameinfo (reinterpret_cast<struct sockaddr *> (&ss), addrlen, host, sizeof host, NULL, 0, NI_NUMERICHOST);
     if (rc != 0)
         return 0;
 
@@ -195,8 +166,7 @@ int zmq::get_peer_ip_address (fd_t sockfd_, std::string &ip_addr_)
 
 void zmq::set_ip_type_of_service (fd_t s_, int iptos_)
 {
-    int rc = setsockopt (s_, IPPROTO_IP, IP_TOS,
-                         reinterpret_cast<char *> (&iptos_), sizeof (iptos_));
+    int rc = setsockopt (s_, IPPROTO_IP, IP_TOS, reinterpret_cast<char *> (&iptos_), sizeof (iptos_));
 
 #ifdef ZMQ_HAVE_WINDOWS
     wsa_assert (rc != SOCKET_ERROR);
@@ -240,8 +210,7 @@ int zmq::set_nosigpipe (fd_t s_)
 void zmq::bind_to_device (fd_t s_, std::string &bound_device_)
 {
 #ifdef ZMQ_HAVE_SO_BINDTODEVICE
-    int rc = setsockopt (s_, SOL_SOCKET, SO_BINDTODEVICE,
-                         bound_device_.c_str (), bound_device_.length ());
+    int rc = setsockopt(s_, SOL_SOCKET, SO_BINDTODEVICE, bound_device_.c_str (), bound_device_.length ());
 
 #ifdef ZMQ_HAVE_WINDOWS
     wsa_assert (rc != SOCKET_ERROR);
@@ -327,23 +296,29 @@ int zmq::make_fdpair (fd_t *r_, fd_t *w_)
 {
 #if defined ZMQ_HAVE_EVENTFD
     int flags = 0;
+
 #if defined ZMQ_HAVE_EVENTFD_CLOEXEC
     //  Setting this option result in sane behaviour when exec() functions
     //  are used. Old sockets are closed and don't block TCP ports, avoid
     //  leaks, etc.
     flags |= EFD_CLOEXEC;
 #endif
+
     fd_t fd = eventfd (0, flags);
-    if (fd == -1) {
+    if (fd == -1) 
+    {
         errno_assert (errno == ENFILE || errno == EMFILE);
         *w_ = *r_ = -1;
         return -1;
-    } else {
+    } 
+    else 
+    {
         *w_ = *r_ = fd;
         return 0;
     }
 
 #elif defined ZMQ_HAVE_WINDOWS
+
 #if !defined _WIN32_WCE && !defined ZMQ_HAVE_WINDOWS_UWP
     //  Windows CE does not manage security attributes
     SECURITY_DESCRIPTOR sd;
@@ -372,7 +347,8 @@ int zmq::make_fdpair (fd_t *r_, fd_t *w_)
     //  Otherwise use Mutex implementation.
     int event_signaler_port = 5905;
 
-    if (signaler_port == event_signaler_port) {
+    if (signaler_port == event_signaler_port) 
+    {
 #if !defined _WIN32_WCE && !defined ZMQ_HAVE_WINDOWS_UWP
         sync =
           CreateEventW (&sa, FALSE, TRUE, L"Global\\zmq-signaler-port-sync");
@@ -548,9 +524,9 @@ int zmq::make_fdpair (fd_t *r_, fd_t *w_)
     //  create the socket pair manually.
     struct sockaddr_in lcladdr;
     memset (&lcladdr, 0, sizeof lcladdr);
-    lcladdr.sin_family = AF_INET;
+    lcladdr.sin_family      = AF_INET;
     lcladdr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
-    lcladdr.sin_port = 0;
+    lcladdr.sin_port        = 0;
 
     int listener = open_socket (AF_INET, SOCK_STREAM, 0);
     errno_assert (listener != -1);

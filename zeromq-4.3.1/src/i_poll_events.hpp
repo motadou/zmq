@@ -19,6 +19,7 @@ struct i_poll_events
     // Called when timer expires.
     virtual void timer_event (int id_) = 0;
 };
+
 }
 
 #endif

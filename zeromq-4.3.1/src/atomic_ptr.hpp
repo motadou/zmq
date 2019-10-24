@@ -3,36 +3,36 @@
 
 #include "macros.hpp"
 
-#if defined ZMQ_FORCE_MUTEXES
-#define ZMQ_ATOMIC_PTR_MUTEX
+#if   defined ZMQ_FORCE_MUTEXES
+    #define ZMQ_ATOMIC_PTR_MUTEX
 #elif defined ZMQ_HAVE_ATOMIC_INTRINSICS
-#define ZMQ_ATOMIC_PTR_INTRINSIC
+    #define ZMQ_ATOMIC_PTR_INTRINSIC
 #elif (defined __cplusplus && __cplusplus >= 201103L) || (defined _MSC_VER && _MSC_VER >= 1900)
-#define ZMQ_ATOMIC_PTR_CXX11
+    #define ZMQ_ATOMIC_PTR_CXX11
 #elif (defined __i386__ || defined __x86_64__) && defined __GNUC__
-#define ZMQ_ATOMIC_PTR_X86
+    #define ZMQ_ATOMIC_PTR_X86
 #elif defined __ARM_ARCH_7A__ && defined __GNUC__
-#define ZMQ_ATOMIC_PTR_ARM
+    #define ZMQ_ATOMIC_PTR_ARM
 #elif defined __tile__
-#define ZMQ_ATOMIC_PTR_TILE
+    #define ZMQ_ATOMIC_PTR_TILE
 #elif defined ZMQ_HAVE_WINDOWS
-#define ZMQ_ATOMIC_PTR_WINDOWS
+    #define ZMQ_ATOMIC_PTR_WINDOWS
 #elif (defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_NETBSD || defined ZMQ_HAVE_GNU)
-#define ZMQ_ATOMIC_PTR_ATOMIC_H
+    #define ZMQ_ATOMIC_PTR_ATOMIC_H
 #else
-#define ZMQ_ATOMIC_PTR_MUTEX
+    #define ZMQ_ATOMIC_PTR_MUTEX
 #endif
 
-#if defined ZMQ_ATOMIC_PTR_MUTEX
-#include "mutex.hpp"
+#if   defined ZMQ_ATOMIC_PTR_MUTEX
+    #include "mutex.hpp"
 #elif defined ZMQ_ATOMIC_PTR_CXX11
-#include <atomic>
+    #include <atomic>
 #elif defined ZMQ_ATOMIC_PTR_WINDOWS
-#include "windows.hpp"
+    #include "windows.hpp"
 #elif defined ZMQ_ATOMIC_PTR_ATOMIC_H
-#include <atomic.h>
+    #include <atomic.h>
 #elif defined ZMQ_ATOMIC_PTR_TILE
-#include <arch/atomic.h>
+    #include <arch/atomic.h>
 #endif
 
 namespace zmq

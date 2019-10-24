@@ -30,10 +30,10 @@
     #error None of the ZMQ_IOTHREAD_POLLER_USE_* macros defined
 #endif
 
-#if (defined ZMQ_POLL_BASED_ON_SELECT + defined ZMQ_POLL_BASED_ON_POLL) > 1
-#error More than one of the ZMQ_POLL_BASED_ON_* macros defined
+#if   (defined ZMQ_POLL_BASED_ON_SELECT + defined ZMQ_POLL_BASED_ON_POLL) > 1
+    #error More than one of the ZMQ_POLL_BASED_ON_* macros defined
 #elif (defined ZMQ_POLL_BASED_ON_SELECT + defined ZMQ_POLL_BASED_ON_POLL) == 0
-#error None of the ZMQ_POLL_BASED_ON_* macros defined
+    #error None of the ZMQ_POLL_BASED_ON_* macros defined
 #endif
 
 #endif

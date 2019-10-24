@@ -22,25 +22,21 @@ public:
     
     ~xpub_t ();
 
+public:
     //  Implementations of virtual functions from socket_base_t.
-    void xattach_pipe (zmq::pipe_t *pipe_,
-                       bool subscribe_to_all_ = false,
-                       bool locally_initiated_ = false);
-    int xsend (zmq::msg_t *msg_);
-    bool xhas_out ();
-    int xrecv (zmq::msg_t *msg_);
-    bool xhas_in ();
-    void xread_activated (zmq::pipe_t *pipe_);
-    void xwrite_activated (zmq::pipe_t *pipe_);
-    int xsetsockopt (int option_, const void *optval_, size_t optvallen_);
-    void xpipe_terminated (zmq::pipe_t *pipe_);
+    void xattach_pipe(zmq::pipe_t *pipe_, bool subscribe_to_all_ = false, bool locally_initiated_ = false);
+    int  xsend(zmq::msg_t *msg_);
+    bool xhas_out();
+    int  xrecv(zmq::msg_t *msg_);
+    bool xhas_in();
+    void xread_activated(zmq::pipe_t *pipe_);
+    void xwrite_activated(zmq::pipe_t *pipe_);
+    int  xsetsockopt(int option_, const void *optval_, size_t optvallen_);
+    void xpipe_terminated(zmq::pipe_t *pipe_);
 
-  private:
-    //  Function to be applied to the trie to send all the subscriptions
-    //  upstream.
-    static void send_unsubscription (zmq::mtrie_t::prefix_t data_,
-                                     size_t size_,
-                                     xpub_t *self_);
+private:
+    //  Function to be applied to the trie to send all the subscriptions upstream.
+    static void send_unsubscription (zmq::mtrie_t::prefix_t data_, size_t size_, xpub_t *self_);
 
     //  Function to be applied to each matching pipes.
     static void mark_as_matching (zmq::pipe_t *pipe_, xpub_t *arg_);
@@ -82,8 +78,8 @@ public:
 
     //  List of pending (un)subscriptions, ie. those that were already
     //  applied to the trie, but not yet received by the user.
-    std::deque<blob_t> _pending_data;
-    std::deque<metadata_t *> _pending_metadata;
+    std::deque<blob_t>        _pending_data;
+    std::deque<metadata_t *>  _pending_metadata;
     std::deque<unsigned char> _pending_flags;
 
     xpub_t (const xpub_t &);

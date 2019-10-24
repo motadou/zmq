@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "precompiled.hpp"
 #include <new>
 #include <string>
@@ -139,7 +110,7 @@ bool zmq::socket_base_t::is_thread_safe () const
     return _thread_safe;
 }
 
-zmq::socket_base_t *zmq::socket_base_t::create (int type_, class ctx_t *parent_, uint32_t tid_, int sid_)
+zmq::socket_base_t *zmq::socket_base_t::create(int type_, class ctx_t *parent_, uint32_t tid_, int sid_)
 {
     socket_base_t *s = NULL;
     switch (type_) 
@@ -392,13 +363,12 @@ void zmq::socket_base_t::attach_pipe (pipe_t *pipe_,
     }
 }
 
-int zmq::socket_base_t::setsockopt (int option_,
-                                    const void *optval_,
-                                    size_t optvallen_)
+int zmq::socket_base_t::setsockopt(int option_, const void *optval_, size_t optvallen_)
 {
     scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
 
-    if (unlikely (_ctx_terminated)) {
+    if (unlikely (_ctx_terminated)) 
+    {
         errno = ETERM;
         return -1;
     }
@@ -497,9 +467,9 @@ void zmq::socket_base_t::remove_signaler (signaler_t *s_)
     (static_cast<mailbox_safe_t *> (_mailbox))->remove_signaler (s_);
 }
 
-int zmq::socket_base_t::bind (const char *endpoint_uri_)
+int zmq::socket_base_t::bind(const char *endpoint_uri_)
 {
-    scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
+    scoped_optional_lock_t sync_lock(_thread_safe ? &_sync : NULL);
 
     if (unlikely (_ctx_terminated)) {
         errno = ETERM;
@@ -545,7 +515,8 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
         return rc;
     }
 
-    if (protocol == protocol_name::udp) {
+    if (protocol == protocol_name::udp) 
+    {
         if (!(options.type == ZMQ_DGRAM || options.type == ZMQ_DISH)) {
             errno = ENOCOMPATPROTO;
             return -1;
@@ -599,17 +570,17 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
         return 0;
     }
 
-    //  Remaining transports require to be run in an I/O thread, so at this
-    //  point we'll choose one.
-    io_thread_t *io_thread = choose_io_thread (options.affinity);
-    if (!io_thread) {
+    //  Remaining transports require to be run in an I/O thread, so at this point we'll choose one.
+    io_thread_t *io_thread = choose_io_thread(options.affinity);
+    if (!io_thread) 
+    {
         errno = EMTHREAD;
         return -1;
     }
 
     if (protocol == protocol_name::tcp) 
     {
-        tcp_listener_t *listener = new (std::nothrow) tcp_listener_t (io_thread, this, options);
+        tcp_listener_t *listener = new (std::nothrow) tcp_listener_t(io_thread, this, options);
         alloc_assert (listener);
         rc = listener->set_address(address.c_str());
         if (rc != 0) 
@@ -622,8 +593,9 @@ int zmq::socket_base_t::bind (const char *endpoint_uri_)
         // Save last endpoint URI
         listener->get_address(_last_endpoint);
 
-        add_endpoint(_last_endpoint.c_str (), static_cast<own_t *> (listener), NULL);
+        add_endpoint(_last_endpoint.c_str (), static_cast<own_t *> (listener), NULL); // 会向选定的线程发送plug命令，然后在线程中将描述符添加到epoll中
         options.connected = true;
+
         return 0;
     }
 
@@ -818,7 +790,8 @@ int zmq::socket_base_t::connect (const char *endpoint_uri_)
     alloc_assert (paddr);
 
     //  Resolve address (if needed by the protocol)
-    if (protocol == protocol_name::tcp) {
+    if (protocol == protocol_name::tcp) 
+    {
         //  Do some basic sanity checks on tcp:// address syntax
         //  - hostname starts with digit or letter, with embedded '-' or '.'
         //  - IPv6 address may contain hex chars and colons.
@@ -830,8 +803,8 @@ int zmq::socket_base_t::connect (const char *endpoint_uri_)
         //  Following code is quick and dirty check to catch obvious errors,
         //  without trying to be fully accurate.
         const char *check = address.c_str ();
-        if (isalnum (*check) || isxdigit (*check) || *check == '['
-            || *check == ':') {
+        if (isalnum (*check) || isxdigit (*check) || *check == '[' || *check == ':') 
+        {
             check++;
             while (isalnum (*check) || isxdigit (*check) || *check == '.'
                    || *check == '-' || *check == ':' || *check == '%'
@@ -860,9 +833,9 @@ int zmq::socket_base_t::connect (const char *endpoint_uri_)
         //  Defer resolution until a socket is opened
         paddr->resolved.tcp_addr = NULL;
     }
-#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS                     \
-  && !defined ZMQ_HAVE_VXWORKS
-    else if (protocol == protocol_name::ipc) {
+    #if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS && !defined ZMQ_HAVE_VXWORKS
+    else if (protocol == protocol_name::ipc) 
+    {
         paddr->resolved.ipc_addr = new (std::nothrow) ipc_address_t ();
         alloc_assert (paddr->resolved.ipc_addr);
         int rc = paddr->resolved.ipc_addr->resolve (address.c_str ());
@@ -871,7 +844,7 @@ int zmq::socket_base_t::connect (const char *endpoint_uri_)
             return -1;
         }
     }
-#endif
+    #endif
 
     if (protocol == protocol_name::udp) {
         if (options.type != ZMQ_RADIO) {
@@ -939,26 +912,23 @@ int zmq::socket_base_t::connect (const char *endpoint_uri_)
 #endif
 
     //  Create session.
-    session_base_t *session =
-      session_base_t::create (io_thread, true, this, options, paddr);
+    session_base_t *session = session_base_t::create(io_thread, true, this, options, paddr);
     errno_assert (session);
 
     //  PGM does not support subscription forwarding; ask for all data to be
     //  sent to this pipe. (same for NORM, currently?)
-    const bool subscribe_to_all = protocol == "pgm" || protocol == "epgm"
-                                  || protocol == "norm"
-                                  || protocol == protocol_name::udp;
+    const bool subscribe_to_all = protocol == "pgm" || protocol == "epgm" || protocol == "norm" || protocol == protocol_name::udp;
     pipe_t *newpipe = NULL;
 
-    if (options.immediate != 1 || subscribe_to_all) {
+    if (options.immediate != 1 || subscribe_to_all) 
+    {
         //  Create a bi-directional pipe.
         object_t *parents[2] = {this, session};
         pipe_t *new_pipes[2] = {NULL, NULL};
 
         const bool conflate = get_effective_conflate_option (options);
 
-        int hwms[2] = {conflate ? -1 : options.sndhwm,
-                       conflate ? -1 : options.rcvhwm};
+        int  hwms[2]      = {conflate ? -1 : options.sndhwm, conflate ? -1 : options.rcvhwm};
         bool conflates[2] = {conflate, conflate};
         rc = pipepair (parents, new_pipes, hwms, conflates);
         errno_assert (rc == 0);
@@ -1005,17 +975,17 @@ std::string zmq::socket_base_t::resolve_tcp_addr (std::string endpoint_uri_,
     return endpoint_uri_;
 }
 
-void zmq::socket_base_t::add_endpoint (const char *endpoint_uri_,
-                                       own_t *endpoint_,
-                                       pipe_t *pipe_)
+void zmq::socket_base_t::add_endpoint (const char *endpoint_uri_, own_t *endpoint_, pipe_t *pipe_)
 {
     //  Activate the session. Make it a child of this socket.
     launch_child (endpoint_);
-    _endpoints.ZMQ_MAP_INSERT_OR_EMPLACE (std::string (endpoint_uri_),
-                                          endpoint_pipe_t (endpoint_, pipe_));
+
+    _endpoints.ZMQ_MAP_INSERT_OR_EMPLACE (std::string (endpoint_uri_), endpoint_pipe_t (endpoint_, pipe_));
 
     if (pipe_ != NULL)
-        pipe_->set_endpoint_uri (endpoint_uri_);
+    {
+        pipe_->set_endpoint_uri(endpoint_uri_);
+    }
 }
 
 int zmq::socket_base_t::term_endpoint (const char *endpoint_uri_)
@@ -1086,20 +1056,23 @@ int zmq::socket_base_t::send (msg_t *msg_, int flags_)
     scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
 
     //  Check whether the library haven't been shut down yet.
-    if (unlikely (_ctx_terminated)) {
+    if (unlikely (_ctx_terminated)) 
+    {
         errno = ETERM;
         return -1;
     }
 
     //  Check whether message passed to the function is valid.
-    if (unlikely (!msg_ || !msg_->check ())) {
+    if (unlikely (!msg_ || !msg_->check ())) 
+    {
         errno = EFAULT;
         return -1;
     }
 
     //  Process pending commands, if any.
     int rc = process_commands (0, true);
-    if (unlikely (rc != 0)) {
+    if (unlikely (rc != 0)) 
+    {
         return -1;
     }
 

@@ -119,7 +119,7 @@ int zmq::dist_t::send_to_matching (msg_t *msg_)
     bool msg_more = (msg_->flags () & msg_t::more) != 0;
 
     //  Push the message to matching pipes.
-    distribute (msg_);
+    distribute(msg_);
 
     //  If multipart message is fully sent, activate all the eligible pipes.
     if (!msg_more)
@@ -152,9 +152,8 @@ void zmq::dist_t::distribute (msg_t *msg_)
         return;
     }
 
-    //  Add matching-1 references to the message. We already hold one reference,
-    //  that's why -1.
-    msg_->add_refs (static_cast<int> (_matching) - 1);
+    //  Add matching-1 references to the message. We already hold one reference, that's why -1.
+    msg_->add_refs(static_cast<int>(_matching) - 1);
 
     //  Push copy of the message to each matching pipe.
     int failed = 0;

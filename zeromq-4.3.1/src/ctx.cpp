@@ -267,7 +267,7 @@ int zmq::ctx_t::get (int option_)
     return rc;
 }
 
-bool zmq::ctx_t::start ()
+bool zmq::ctx_t::start()
 {
     //  Initialise the array of mailboxes. Additional two slots are for
     //  zmq_ctx_term thread and reaper thread.
@@ -276,7 +276,7 @@ bool zmq::ctx_t::start ()
     const int mazmq = _max_sockets;
     const int ios = _io_thread_count;
     _opt_sync.unlock ();
-    
+
     int slot_count = mazmq + ios + term_and_reaper_threads_count;
     try 
     {
@@ -300,10 +300,13 @@ bool zmq::ctx_t::start ()
         errno = ENOMEM;
         goto fail_cleanup_slots;
     }
-    
-    if (!_reaper->get_mailbox ()->valid ())
+
+    if (!_reaper->get_mailbox()->valid())
+    {
         goto fail_cleanup_reaper;
-    _slots[reaper_tid] = _reaper->get_mailbox ();
+    }
+
+    _slots[reaper_tid] = _reaper->get_mailbox();
     _reaper->start ();
 
     //  Create I/O thread objects and launch them.
@@ -311,14 +314,14 @@ bool zmq::ctx_t::start ()
 
     for (int i = term_and_reaper_threads_count; i != ios + term_and_reaper_threads_count; i++) 
     {
-        io_thread_t *io_thread = new (std::nothrow) io_thread_t (this, i);
+        io_thread_t *io_thread = new (std::nothrow) io_thread_t(this, i);
         if (!io_thread) 
         {
             errno = ENOMEM;
             goto fail_cleanup_reaper;
         }
 
-        if (!io_thread->get_mailbox ()->valid ()) 
+        if (!io_thread->get_mailbox()->valid ()) 
         {
             delete io_thread;
             goto fail_cleanup_reaper;
@@ -352,7 +355,7 @@ zmq::socket_base_t *zmq::ctx_t::create_socket (int type_)
     scoped_lock_t locker(_slot_sync);
 
     /// Æô¶¯ÍøÂçÏß³ÌIO_THREAD
-    if (unlikely (_starting)) 
+    if (unlikely(_starting)) 
     {
         if (!start())
             return NULL;
@@ -511,10 +514,10 @@ int zmq::thread_ctx_t::get (int option_)
 
 void zmq::ctx_t::send_command (uint32_t tid_, const command_t &command_)
 {
-    _slots[tid_]->send (command_);
+    _slots[tid_]->send(command_);
 }
 
-zmq::io_thread_t *zmq::ctx_t::choose_io_thread (uint64_t affinity_)
+zmq::io_thread_t *zmq::ctx_t::choose_io_thread(uint64_t affinity_)
 {
     if (_io_threads.empty ())
         return NULL;

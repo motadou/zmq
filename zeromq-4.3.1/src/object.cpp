@@ -168,7 +168,7 @@ void zmq::object_t::destroy_socket (socket_base_t *socket_)
 
 zmq::io_thread_t *zmq::object_t::choose_io_thread (uint64_t affinity_)
 {
-    return _ctx->choose_io_thread (affinity_);
+    return _ctx->choose_io_thread(affinity_);
 }
 
 void zmq::object_t::send_stop ()
@@ -188,8 +188,8 @@ void zmq::object_t::send_plug (own_t *destination_, bool inc_seqnum_)
 
     command_t cmd;
     cmd.destination = destination_;
-    cmd.type = command_t::plug;
-    send_command (cmd);
+    cmd.type        = command_t::plug;
+    send_command(cmd);
 }
 
 void zmq::object_t::send_own (own_t *destination_, own_t *object_)
@@ -208,15 +208,13 @@ void zmq::object_t::send_attach (session_base_t * destination_, i_engine *engine
         destination_->inc_seqnum ();
 
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::attach;
+    cmd.destination        = destination_;
+    cmd.type               = command_t::attach;
     cmd.args.attach.engine = engine_;
     send_command (cmd);
 }
 
-void zmq::object_t::send_bind (own_t *destination_,
-                               pipe_t *pipe_,
-                               bool inc_seqnum_)
+void zmq::object_t::send_bind (own_t *destination_, pipe_t *pipe_, bool inc_seqnum_)
 {
     if (inc_seqnum_)
         destination_->inc_seqnum ();
@@ -332,7 +330,8 @@ void zmq::object_t::send_reaped ()
 {
     command_t cmd;
     cmd.destination = _ctx->get_reaper ();
-    cmd.type = command_t::reaped;
+    cmd.type        = command_t::reaped;
+
     send_command (cmd);
 }
 
@@ -444,5 +443,5 @@ void zmq::object_t::process_seqnum ()
 
 void zmq::object_t::send_command (command_t &cmd_)
 {
-    _ctx->send_command (cmd_.destination->get_tid (), cmd_);
+    _ctx->send_command(cmd_.destination->get_tid (), cmd_);
 }

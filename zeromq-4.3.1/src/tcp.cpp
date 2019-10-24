@@ -241,8 +241,7 @@ int zmq::tcp_write (fd_t s_, const void *data_, size_t size_)
     //  Several errors are OK. When speculative write is being done we may not
     //  be able to write a single byte from the socket. Also, SIGSTOP issued
     //  by a debugging tool can result in EINTR error.
-    if (nbytes == -1
-        && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR))
+    if (nbytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR))
         return 0;
 
     //  Signalise peer failure.

@@ -92,7 +92,7 @@ struct i_poll_events;
 // concept.
 class poller_base_t
 {
-  public:
+public:
     poller_base_t ();
     virtual ~poller_base_t ();
 
@@ -101,7 +101,7 @@ class poller_base_t
     void add_timer (int timeout_, zmq::i_poll_events *sink_, int id_);
     void cancel_timer (zmq::i_poll_events *sink_, int id_);
 
-  protected:
+protected:
     //  Called by individual poller implementations to manage the load.
     void adjust_load (int amount_);
 
@@ -109,7 +109,7 @@ class poller_base_t
     //  to wait to match the next timer or 0 meaning "no timers".
     uint64_t execute_timers ();
 
-  private:
+private:
     //  Clock instance private to this I/O thread.
     clock_t _clock;
 
@@ -126,10 +126,12 @@ class poller_base_t
     //  registered.
     atomic_counter_t _load;
 
+private:
     poller_base_t (const poller_base_t &);
     const poller_base_t &operator= (const poller_base_t &);
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 //  Base class for a poller with a single worker thread.
 class worker_poller_base_t : public poller_base_t
 {
@@ -144,11 +146,11 @@ protected:
     //  via an assertion.
     //  Should be called by the add_fd, removed_fd, set_*, reset_* functions
     //  to ensure correct usage.
-    void check_thread ();
+    void check_thread();
 
     //  Stops the worker thread. Should be called from the destructor of the
     //  leaf class.
-    void stop_worker ();
+    void stop_worker();
 
 private:
     //  Main worker thread routine.

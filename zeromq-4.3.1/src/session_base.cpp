@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "precompiled.hpp"
 #include "macros.hpp"
 #include "session_base.hpp"
@@ -50,58 +21,39 @@
 #include "radio.hpp"
 #include "dish.hpp"
 
-zmq::session_base_t *zmq::session_base_t::create (class io_thread_t *io_thread_,
-                                                  bool active_,
-                                                  class socket_base_t *socket_,
-                                                  const options_t &options_,
-                                                  address_t *addr_)
+zmq::session_base_t * zmq::session_base_t::create (class io_thread_t *io_thread_, bool active_, class socket_base_t *socket_, const options_t &options_, address_t *addr_)
 {
     session_base_t *s = NULL;
-    switch (options_.type) {
-        case ZMQ_REQ:
-            s = new (std::nothrow)
-              req_session_t (io_thread_, active_, socket_, options_, addr_);
-            break;
-        case ZMQ_RADIO:
-            s = new (std::nothrow)
-              radio_session_t (io_thread_, active_, socket_, options_, addr_);
-            break;
-        case ZMQ_DISH:
-            s = new (std::nothrow)
-              dish_session_t (io_thread_, active_, socket_, options_, addr_);
-            break;
-        case ZMQ_DEALER:
-        case ZMQ_REP:
-        case ZMQ_ROUTER:
-        case ZMQ_PUB:
-        case ZMQ_XPUB:
-        case ZMQ_SUB:
-        case ZMQ_XSUB:
-        case ZMQ_PUSH:
-        case ZMQ_PULL:
-        case ZMQ_PAIR:
-        case ZMQ_STREAM:
-        case ZMQ_SERVER:
-        case ZMQ_CLIENT:
-        case ZMQ_GATHER:
-        case ZMQ_SCATTER:
-        case ZMQ_DGRAM:
-            s = new (std::nothrow)
-              session_base_t (io_thread_, active_, socket_, options_, addr_);
-            break;
-        default:
-            errno = EINVAL;
-            return NULL;
+
+    switch (options_.type) 
+    {
+        case ZMQ_REQ     : s = new (std::nothrow) req_session_t(io_thread_, active_, socket_, options_, addr_);     break;
+        case ZMQ_RADIO   : s = new (std::nothrow) radio_session_t(io_thread_, active_, socket_, options_, addr_);   break;
+        case ZMQ_DISH    : s = new (std::nothrow) dish_session_t(io_thread_, active_, socket_, options_, addr_);    break;
+        case ZMQ_DEALER  :
+        case ZMQ_REP     :
+        case ZMQ_ROUTER  :
+        case ZMQ_PUB     :
+        case ZMQ_XPUB    :
+        case ZMQ_SUB     :
+        case ZMQ_XSUB    :
+        case ZMQ_PUSH    :
+        case ZMQ_PULL    :
+        case ZMQ_PAIR    :
+        case ZMQ_STREAM  :
+        case ZMQ_SERVER  :
+        case ZMQ_CLIENT  :
+        case ZMQ_GATHER  :
+        case ZMQ_SCATTER :
+        case ZMQ_DGRAM   : s = new (std::nothrow) session_base_t(io_thread_, active_, socket_, options_, addr_);    break;
+        default          : errno = EINVAL; return NULL;
     }
+
     alloc_assert (s);
     return s;
 }
 
-zmq::session_base_t::session_base_t (class io_thread_t *io_thread_,
-                                     bool active_,
-                                     class socket_base_t *socket_,
-                                     const options_t &options_,
-                                     address_t *addr_) :
+zmq::session_base_t::session_base_t (class io_thread_t *io_thread_, bool active_, class socket_base_t *socket_, const options_t &options_, address_t *addr_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     _active (active_),
@@ -115,9 +67,10 @@ zmq::session_base_t::session_base_t (class io_thread_t *io_thread_,
     _has_linger_timer (false),
     _addr (addr_)
 {
+
 }
 
-const char *zmq::session_base_t::get_endpoint () const
+const char *zmq::session_base_t::get_endpoint() const
 {
     return _engine->get_endpoint ();
 }
@@ -128,14 +81,17 @@ zmq::session_base_t::~session_base_t ()
     zmq_assert (!_zap_pipe);
 
     //  If there's still a pending linger timer, remove it.
-    if (_has_linger_timer) {
+    if (_has_linger_timer) 
+    {
         cancel_timer (linger_timer_id);
         _has_linger_timer = false;
     }
 
     //  Close the engine.
     if (_engine)
-        _engine->terminate ();
+    {
+        _engine->terminate();
+    }
 
     LIBZMQ_DELETE (_addr);
 }

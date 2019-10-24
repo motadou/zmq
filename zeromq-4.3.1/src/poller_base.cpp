@@ -42,17 +42,21 @@ zmq::poller_base_t::~poller_base_t ()
     zmq_assert (get_load () == 0);
 }
 
-int zmq::poller_base_t::get_load () const
+int zmq::poller_base_t::get_load() const
 {
-    return _load.get ();
+    return _load.get();
 }
 
 void zmq::poller_base_t::adjust_load (int amount_)
 {
     if (amount_ > 0)
-        _load.add (amount_);
+    {
+        _load.add(amount_);
+    }
     else if (amount_ < 0)
-        _load.sub (-amount_);
+    {
+        _load.sub(-amount_);
+    }
 }
 
 void zmq::poller_base_t::add_timer (int timeout_, i_poll_events *sink_, int id_)

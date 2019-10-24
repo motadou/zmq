@@ -54,14 +54,11 @@ class ctx_t;
 class msg_t;
 class pipe_t;
 
-class socket_base_t : public own_t,
-                      public array_item_t<>,
-                      public i_poll_events,
-                      public i_pipe_events
+class socket_base_t : public own_t, public array_item_t<>, public i_poll_events, public i_pipe_events
 {
     friend class reaper_t;
 
-  public:
+public:
     //  Returns false if object is not a socket.
     bool check_tag () const;
 
@@ -69,8 +66,7 @@ class socket_base_t : public own_t,
     bool is_thread_safe () const;
 
     //  Create a socket of a specified type.
-    static socket_base_t *
-    create (int type_, zmq::ctx_t *parent_, uint32_t tid_, int sid_);
+    static socket_base_t * create (int type_, zmq::ctx_t *parent_, uint32_t tid_, int sid_);
 
     //  Returns the mailbox associated with this socket.
     i_mailbox *get_mailbox () const;
@@ -80,16 +76,16 @@ class socket_base_t : public own_t,
     void stop ();
 
     //  Interface for communication with the API layer.
-    int setsockopt (int option_, const void *optval_, size_t optvallen_);
-    int getsockopt (int option_, void *optval_, size_t *optvallen_);
-    int bind (const char *endpoint_uri_);
-    int connect (const char *endpoint_uri_);
-    int term_endpoint (const char *endpoint_uri_);
-    int send (zmq::msg_t *msg_, int flags_);
-    int recv (zmq::msg_t *msg_, int flags_);
+    int  setsockopt (int option_, const void *optval_, size_t optvallen_);
+    int  getsockopt (int option_, void *optval_, size_t *optvallen_);
+    int  bind (const char *endpoint_uri_);
+    int  connect (const char *endpoint_uri_);
+    int  term_endpoint (const char *endpoint_uri_);
+    int  send (zmq::msg_t *msg_, int flags_);
+    int  recv (zmq::msg_t *msg_, int flags_);
     void add_signaler (signaler_t *s_);
     void remove_signaler (signaler_t *s_);
-    int close ();
+    int  close ();
 
     //  These functions are used by the polling mechanism to determine
     //  which events are to be reported from this socket.
@@ -265,8 +261,7 @@ class socket_base_t : public own_t,
 
     void update_pipe_options (int option_);
 
-    std::string resolve_tcp_addr (std::string endpoint_uri_,
-                                  const char *tcp_address_);
+    std::string resolve_tcp_addr (std::string endpoint_uri_, const char *tcp_address_);
 
     //  Socket's mailbox object.
     i_mailbox *_mailbox;

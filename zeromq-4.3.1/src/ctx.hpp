@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2017 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef __ZMQ_CTX_HPP_INCLUDED__
 #define __ZMQ_CTX_HPP_INCLUDED__
 
@@ -57,13 +28,13 @@ class pipe_t;
 //  for synchronisation, handshaking or similar.
 struct endpoint_t
 {
-    socket_base_t *socket;
-    options_t options;
+    socket_base_t * socket;
+    options_t       options;
 };
 
 class thread_ctx_t
 {
-  public:
+public:
     thread_ctx_t ();
 
     //  Start a new thread with proper scheduling parameters.
@@ -72,24 +43,22 @@ class thread_ctx_t
     int set (int option_, int optval_);
     int get (int option_);
 
-  protected:
+protected:
     //  Synchronisation of access to context options.
     mutex_t _opt_sync;
 
-  private:
+private:
     //  Thread parameters.
-    int _thread_priority;
-    int _thread_sched_policy;
+    int           _thread_priority;
+    int           _thread_sched_policy;
     std::set<int> _thread_affinity_cpus;
-    std::string _thread_name_prefix;
+    std::string   _thread_name_prefix;
 };
 
-//  Context object encapsulates all the global state associated with
-//  the library.
-
+//  Context object encapsulates all the global state associated with the library.
 class ctx_t : public thread_ctx_t
 {
-  public:
+public:
     //  Create the context object.
     ctx_t ();
 
@@ -135,9 +104,7 @@ class ctx_t : public thread_ctx_t
     int unregister_endpoint (const std::string &addr_, socket_base_t *socket_);
     void unregister_endpoints (zmq::socket_base_t *socket_);
     endpoint_t find_endpoint (const char *addr_);
-    void pend_connection (const std::string &addr_,
-                          const endpoint_t &endpoint_,
-                          pipe_t **pipes_);
+    void pend_connection (const std::string &addr_, const endpoint_t &endpoint_, pipe_t **pipes_);
     void connect_pending (const char *addr_, zmq::socket_base_t *bind_socket_);
 
 #ifdef ZMQ_HAVE_VMCI
@@ -147,7 +114,7 @@ class ctx_t : public thread_ctx_t
 
     enum
     {
-        term_tid = 0,
+        term_tid   = 0,
         reaper_tid = 1
     };
 
@@ -155,14 +122,14 @@ class ctx_t : public thread_ctx_t
 
     bool valid () const;
 
-  private:
+private:
     bool start ();
 
     struct pending_connection_t
     {
-        endpoint_t endpoint;
-        pipe_t *connect_pipe;
-        pipe_t *bind_pipe;
+        endpoint_t   endpoint;
+        pipe_t     * connect_pipe;
+        pipe_t     * bind_pipe;
     };
 
     //  Used to check whether the object is a context.
@@ -209,8 +176,7 @@ class ctx_t : public thread_ctx_t
     endpoints_t _endpoints;
 
     // List of inproc connection endpoints pending a bind
-    typedef std::multimap<std::string, pending_connection_t>
-      pending_connections_t;
+    typedef std::multimap<std::string, pending_connection_t> pending_connections_t;
     pending_connections_t _pending_connections;
 
     //  Synchronisation of access to the list of inproc endpoints.
@@ -249,11 +215,8 @@ class ctx_t : public thread_ctx_t
         connect_side,
         bind_side
     };
-    void
-    connect_inproc_sockets (zmq::socket_base_t *bind_socket_,
-                            options_t &bind_options_,
-                            const pending_connection_t &pending_connection_,
-                            side side_);
+    
+    void connect_inproc_sockets (zmq::socket_base_t *bind_socket_, options_t &bind_options_, const pending_connection_t &pending_connection_, side side_);
 
 #ifdef ZMQ_HAVE_VMCI
     int _vmci_fd;

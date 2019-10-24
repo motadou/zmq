@@ -27,33 +27,37 @@ namespace zmq
 // prevent two queue chunks from occupying the same CPU cache line on
 // architectures where cache lines are <= 64 bytes (e.g. most things
 // except POWER).
+
 template <typename T, int N, size_t ALIGN = 64> class yqueue_t
 #else
 template <typename T, int N> class yqueue_t
 #endif
 {
-  public:
+public:
     //  Create the queue.
     inline yqueue_t ()
     {
-        _begin_chunk = allocate_chunk ();
+        _begin_chunk = allocate_chunk();
         alloc_assert (_begin_chunk);
-        _begin_pos = 0;
-        _back_chunk = NULL;
-        _back_pos = 0;
-        _end_chunk = _begin_chunk;
-        _end_pos = 0;
+        _begin_pos   = 0;
+        _back_chunk  = NULL;
+        _back_pos    = 0;
+        _end_chunk   = _begin_chunk;
+        _end_pos     = 0;
     }
 
     //  Destroy the queue.
     inline ~yqueue_t ()
     {
-        while (true) {
-            if (_begin_chunk == _end_chunk) {
+        while (true) 
+        {
+            if (_begin_chunk == _end_chunk) 
+            {
                 free (_begin_chunk);
                 break;
             }
-            chunk_t *o = _begin_chunk;
+
+            chunk_t *o   = _begin_chunk;
             _begin_chunk = _begin_chunk->next;
             free (o);
         }
@@ -74,22 +78,26 @@ template <typename T, int N> class yqueue_t
     inline void push ()
     {
         _back_chunk = _end_chunk;
-        _back_pos = _end_pos;
+        _back_pos   = _end_pos;
 
         if (++_end_pos != N)
             return;
 
         chunk_t *sc = _spare_chunk.xchg (NULL);
-        if (sc) {
+        if (sc) 
+        {
             _end_chunk->next = sc;
             sc->prev = _end_chunk;
-        } else {
+        }
+        else 
+        {
             _end_chunk->next = allocate_chunk ();
             alloc_assert (_end_chunk->next);
             _end_chunk->next->prev = _end_chunk;
         }
+
         _end_chunk = _end_chunk->next;
-        _end_pos = 0;
+        _end_pos   = 0;
     }
 
     //  Removes element from the back end of the queue. In other words
@@ -103,9 +111,12 @@ template <typename T, int N> class yqueue_t
     {
         //  First, move 'back' one position backwards.
         if (_back_pos)
+        {
             --_back_pos;
-        else {
-            _back_pos = N - 1;
+        }
+        else 
+        {
+            _back_pos   = N - 1;
             _back_chunk = _back_chunk->prev;
         }
 
@@ -114,9 +125,12 @@ template <typename T, int N> class yqueue_t
         //  would require free and atomic operation per chunk deallocated
         //  instead of a simple free.
         if (_end_pos)
+        {
             --_end_pos;
-        else {
-            _end_pos = N - 1;
+        }
+        else
+        {
+            _end_pos   = N - 1;
             _end_chunk = _end_chunk->prev;
             free (_end_chunk->next);
             _end_chunk->next = NULL;
@@ -126,11 +140,12 @@ template <typename T, int N> class yqueue_t
     //  Removes an element from the front end of the queue.
     inline void pop ()
     {
-        if (++_begin_pos == N) {
-            chunk_t *o = _begin_chunk;
-            _begin_chunk = _begin_chunk->next;
+        if (++_begin_pos == N) 
+        {
+            chunk_t * o        = _begin_chunk;
+            _begin_chunk       = _begin_chunk->next;
             _begin_chunk->prev = NULL;
-            _begin_pos = 0;
+            _begin_pos         = 0;
 
             //  'o' has been more recently used than _spare_chunk,
             //  so for cache reasons we'll get rid of the spare and
@@ -140,13 +155,13 @@ template <typename T, int N> class yqueue_t
         }
     }
 
-  private:
+private:
     //  Individual memory chunk to hold N elements.
     struct chunk_t
     {
-        T values[N];
-        chunk_t *prev;
-        chunk_t *next;
+        T         values[N];
+        chunk_t * prev;
+        chunk_t * next;
     };
 
     inline chunk_t *allocate_chunk ()
@@ -177,10 +192,12 @@ template <typename T, int N> class yqueue_t
     //  us from having to call malloc/free.
     atomic_ptr_t<chunk_t> _spare_chunk;
 
+private:
     //  Disable copying of yqueue.
     yqueue_t (const yqueue_t &);
     const yqueue_t &operator= (const yqueue_t &);
 };
+
 }
 
 #endif

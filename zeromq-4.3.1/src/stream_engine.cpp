@@ -338,7 +338,7 @@ void zmq::stream_engine_t::in_event ()
     while (_insize > 0) {
         rc = _decoder->decode (_inpos, _insize, processed);
         zmq_assert (processed <= _insize);
-        _inpos += processed;
+        _inpos  += processed;
         _insize -= processed;
         if (rc == 0 || rc == -1)
             break;

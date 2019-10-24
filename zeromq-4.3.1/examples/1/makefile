@@ -1,7 +1,9 @@
 HOME := /home/kevintian/objs/zeromq-4.3.1
 #LIB :=/usr/local/lib/libzmq.a
-LIB:=/usr/local/lib/x86_64-linux-gnu/libzmq.a
-INC :=/usr/local/include
+#LIB :=/usr/local/lib/x86_64-linux-gnu/libzmq.a
+LIB :=${HOME}/build/lib/libzmq.a
+#INC :=/usr/local/include
+INC := ${HOME}/include
 
 all:client server
 

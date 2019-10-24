@@ -1,4 +1,5 @@
 #include "precompiled.hpp"
+
 #if defined ZMQ_IOTHREAD_POLLER_USE_EPOLL
 #include "epoll.hpp"
 
@@ -27,10 +28,11 @@ zmq::epoll_t::epoll_t (const zmq::thread_ctx_t &ctx_) : worker_poller_base_t (ct
     //  Setting this option result in sane behaviour when exec() functions
     //  are used. Old sockets are closed and don't block TCP ports, avoid
     //  leaks, etc.
-    _epoll_fd = epoll_create1 (EPOLL_CLOEXEC);
+    _epoll_fd = epoll_create1(EPOLL_CLOEXEC);
 #else
-    _epoll_fd = epoll_create (1);
+    _epoll_fd = epoll_create(1);
 #endif
+
     errno_assert (_epoll_fd != epoll_retired_fd);
 }
 
@@ -51,7 +53,7 @@ zmq::epoll_t::~epoll_t ()
     }
 }
 
-zmq::epoll_t::handle_t zmq::epoll_t::add_fd (fd_t fd_, i_poll_events *events_)
+zmq::epoll_t::handle_t zmq::epoll_t::add_fd(fd_t fd_, i_poll_events *events_)
 {
     check_thread ();
     poll_entry_t *pe = new (std::nothrow) poll_entry_t;
@@ -66,7 +68,7 @@ zmq::epoll_t::handle_t zmq::epoll_t::add_fd (fd_t fd_, i_poll_events *events_)
     pe->ev.data.ptr = pe;
     pe->events      = events_;
 
-    int rc = epoll_ctl (_epoll_fd, EPOLL_CTL_ADD, fd_, &pe->ev);
+    int rc = epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd_, &pe->ev);
     errno_assert (rc != -1);
 
     //  Increase the load metric of the thread.
@@ -141,7 +143,7 @@ void zmq::epoll_t::loop ()
     while (true) 
     {
         //  Execute any due timers.
-        int timeout = static_cast<int> (execute_timers ());
+        int timeout = static_cast<int>(execute_timers());
 
         if (get_load () == 0) 
         {

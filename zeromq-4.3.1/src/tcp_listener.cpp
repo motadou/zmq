@@ -31,15 +31,14 @@
 #include <ioctl.h>
 #endif
 
-zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_,
-                                     socket_base_t *socket_,
-                                     const options_t &options_) :
+zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_, socket_base_t *socket_, const options_t &options_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     _s (retired_fd),
     _handle (static_cast<handle_t> (NULL)),
     _socket (socket_)
 {
+
 }
 
 zmq::tcp_listener_t::~tcp_listener_t ()
@@ -65,13 +64,13 @@ void zmq::tcp_listener_t::process_term (int linger_)
 
 void zmq::tcp_listener_t::in_event ()
 {
-    fd_t fd = accept ();
+    fd_t fd = accept();
 
     //  If connection was reset by the peer in the meantime, just ignore it.
     //  TODO: Handle specific errors like ENFILE/EMFILE etc.
     if (fd == retired_fd) 
     {
-        _socket->event_accept_failed (_endpoint, zmq_errno ());
+        _socket->event_accept_failed(_endpoint, zmq_errno ());
         return;
     }
 
@@ -90,15 +89,15 @@ void zmq::tcp_listener_t::in_event ()
 
     //  Choose I/O thread to run connecter in. Given that we are already
     //  running in an I/O thread, there must be at least one available.
-    io_thread_t *io_thread = choose_io_thread (options.affinity);
-    zmq_assert (io_thread);
+    io_thread_t *io_thread = choose_io_thread(options.affinity);
+    zmq_assert(io_thread);
 
     //  Create and launch a session object.
-    session_base_t *session = session_base_t::create (io_thread, false, _socket, options, NULL);
-    errno_assert (session);
-    session->inc_seqnum ();
-    launch_child (session);
-    send_attach (session, engine, false);
+    session_base_t *session = session_base_t::create(io_thread, false, _socket, options, NULL);
+    errno_assert(session);
+    session->inc_seqnum();
+    launch_child(session);  // 发送给IO线程，加入到IO线程中去
+    send_attach(session, engine, false);
     _socket->event_accepted (_endpoint, fd);
 }
 
@@ -145,7 +144,8 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
 
     _address.to_string (_endpoint);
 
-    if (options.use_fd != -1) {
+    if (options.use_fd != -1) 
+    {
         _s = options.use_fd;
         _socket->event_listening (_endpoint, _s);
         return 0;
@@ -155,15 +155,16 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     _s = open_socket (_address.family (), SOCK_STREAM, IPPROTO_TCP);
 
     //  IPv6 address family not supported, try automatic downgrade to IPv4.
-    if (_s == zmq::retired_fd && _address.family () == AF_INET6
-        && errno == EAFNOSUPPORT && options.ipv6) {
+    if (_s == zmq::retired_fd && _address.family () == AF_INET6 && errno == EAFNOSUPPORT && options.ipv6) 
+    {
         rc = _address.resolve (addr_, true, false);
         if (rc != 0)
             return rc;
         _s = open_socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
 
-    if (_s == retired_fd) {
+    if (_s == retired_fd) 
+    {
         return -1;
     }
     make_socket_noninheritable (_s);
@@ -188,18 +189,17 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     //  Set the socket buffer limits for the underlying socket.
     if (options.sndbuf >= 0)
         set_tcp_send_buffer (_s, options.sndbuf);
+
     if (options.rcvbuf >= 0)
         set_tcp_receive_buffer (_s, options.rcvbuf);
 
     //  Allow reusing of the address.
     int flag = 1;
 #ifdef ZMQ_HAVE_WINDOWS
-    rc = setsockopt (_s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
-                     reinterpret_cast<const char *> (&flag), sizeof (int));
+    rc = setsockopt (_s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char *> (&flag), sizeof (int));
     wsa_assert (rc != SOCKET_ERROR);
 #elif defined ZMQ_HAVE_VXWORKS
-    rc =
-      setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, (char *) &flag, sizeof (int));
+    rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, (char *) &flag, sizeof (int));
     errno_assert (rc == 0);
 #else
     rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
@@ -213,7 +213,8 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     rc = bind (_s, _address.addr (), _address.addrlen ());
 #endif
 #ifdef ZMQ_HAVE_WINDOWS
-    if (rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) 
+    {
         errno = wsa_error_to_errno (WSAGetLastError ());
         goto error;
     }
@@ -225,7 +226,8 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     //  Listen for incoming connections.
     rc = listen (_s, options.backlog);
 #ifdef ZMQ_HAVE_WINDOWS
-    if (rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) 
+    {
         errno = wsa_error_to_errno (WSAGetLastError ());
         goto error;
     }

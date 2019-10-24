@@ -154,51 +154,72 @@ void zmq::xpub_t::xwrite_activated (pipe_t *pipe_)
     _dist.activated (pipe_);
 }
 
-int zmq::xpub_t::xsetsockopt (int option_,
-                              const void *optval_,
-                              size_t optvallen_)
+int zmq::xpub_t::xsetsockopt (int option_, const void *optval_, size_t optvallen_)
 {
-    if (option_ == ZMQ_XPUB_VERBOSE || option_ == ZMQ_XPUB_VERBOSER
-        || option_ == ZMQ_XPUB_NODROP || option_ == ZMQ_XPUB_MANUAL) {
-        if (optvallen_ != sizeof (int)
-            || *static_cast<const int *> (optval_) < 0) {
+    if (option_ == ZMQ_XPUB_VERBOSE || option_ == ZMQ_XPUB_VERBOSER || option_ == ZMQ_XPUB_NODROP || option_ == ZMQ_XPUB_MANUAL) 
+    {
+        if (optvallen_ != sizeof (int) || *static_cast<const int *> (optval_) < 0) 
+        {
             errno = EINVAL;
             return -1;
         }
-        if (option_ == ZMQ_XPUB_VERBOSE) {
+        
+        if (option_ == ZMQ_XPUB_VERBOSE) 
+        {
             _verbose_subs = (*static_cast<const int *> (optval_) != 0);
             _verbose_unsubs = false;
-        } else if (option_ == ZMQ_XPUB_VERBOSER) {
+        } 
+        else if (option_ == ZMQ_XPUB_VERBOSER) 
+        {
             _verbose_subs = (*static_cast<const int *> (optval_) != 0);
             _verbose_unsubs = _verbose_subs;
-        } else if (option_ == ZMQ_XPUB_NODROP)
+        } 
+        else if (option_ == ZMQ_XPUB_NODROP)
+        {
             _lossy = (*static_cast<const int *> (optval_) == 0);
+        }
         else if (option_ == ZMQ_XPUB_MANUAL)
+        {
             _manual = (*static_cast<const int *> (optval_) != 0);
-    } else if (option_ == ZMQ_SUBSCRIBE && _manual) {
+        }
+    }
+    else if (option_ == ZMQ_SUBSCRIBE && _manual) 
+    {
         if (_last_pipe != NULL)
-            _subscriptions.add ((unsigned char *) optval_, optvallen_,
-                                _last_pipe);
-    } else if (option_ == ZMQ_UNSUBSCRIBE && _manual) {
+        {
+            _subscriptions.add((unsigned char *)optval_, optvallen_, _last_pipe);
+        }
+    } 
+    else if (option_ == ZMQ_UNSUBSCRIBE && _manual) 
+    {
         if (_last_pipe != NULL)
-            _subscriptions.rm ((unsigned char *) optval_, optvallen_,
-                               _last_pipe);
-    } else if (option_ == ZMQ_XPUB_WELCOME_MSG) {
+        {
+            _subscriptions.rm((unsigned char *)optval_, optvallen_, _last_pipe);
+        }
+    } 
+    else if (option_ == ZMQ_XPUB_WELCOME_MSG) 
+    {
         _welcome_msg.close ();
 
-        if (optvallen_ > 0) {
+        if (optvallen_ > 0) 
+        {
             int rc = _welcome_msg.init_size (optvallen_);
             errno_assert (rc == 0);
 
-            unsigned char *data =
-              static_cast<unsigned char *> (_welcome_msg.data ());
+            unsigned char *data = static_cast<unsigned char *> (_welcome_msg.data ());
             memcpy (data, optval_, optvallen_);
-        } else
-            _welcome_msg.init ();
-    } else {
+        } 
+        else
+        {
+            _welcome_msg.init();
+        }
+    } 
+    else 
+    {
         errno = EINVAL;
         return -1;
     }
+    
     return 0;
 }
 
@@ -234,14 +255,14 @@ void zmq::xpub_t::mark_as_matching (pipe_t *pipe_, xpub_t *self_)
     self_->_dist.match (pipe_);
 }
 
-int zmq::xpub_t::xsend (msg_t *msg_)
+int zmq::xpub_t::xsend(msg_t *msg_)
 {
     bool msg_more = (msg_->flags () & msg_t::more) != 0;
 
     //  For the first part of multi-part message, find the matching pipes.
-    if (!_more) 
+    if (!_more)
     {
-        _subscriptions.match (static_cast<unsigned char *> (msg_->data ()), msg_->size (), mark_as_matching, this);
+        _subscriptions.match (static_cast<unsigned char *>(msg_->data ()), msg_->size(), mark_as_matching, this);
         // If inverted matching is used, reverse the selection now
         if (options.invert_matching) 
         {

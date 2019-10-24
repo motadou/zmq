@@ -65,9 +65,7 @@ struct iovec
 #endif
 
 //  Compile time check whether msg_t fits into zmq_msg_t.
-typedef char
-  check_msg_t_size[sizeof (zmq::msg_t) == sizeof (zmq_msg_t) ? 1 : -1];
-
+typedef char check_msg_t_size[sizeof (zmq::msg_t) == sizeof (zmq_msg_t) ? 1 : -1];
 
 void zmq_version (int *major_, int *minor_, int *patch_)
 {
@@ -75,7 +73,6 @@ void zmq_version (int *major_, int *minor_, int *patch_)
     *minor_ = ZMQ_VERSION_MINOR;
     *patch_ = ZMQ_VERSION_PATCH;
 }
-
 
 const char *zmq_strerror (int errnum_)
 {
@@ -87,25 +84,27 @@ int zmq_errno (void)
     return errno;
 }
 
-
 //  New context API
-
 void *zmq_ctx_new (void)
 {
     //  We do this before the ctx constructor since its embedded mailbox_t
     //  object needs the network to be up and running (at least on Windows).
-    if (!zmq::initialize_network ()) {
+    if (!zmq::initialize_network ()) 
+    {
         return NULL;
     }
 
     //  Create 0MQ context.
-    zmq::ctx_t *ctx = new (std::nothrow) zmq::ctx_t;
-    if (ctx) {
-        if (!ctx->valid ()) {
+    zmq::ctx_t *ctx = new (std::nothrow)zmq::ctx_t;
+    if (ctx) 
+    {
+        if (!ctx->valid()) 
+        {
             delete ctx;
             return NULL;
         }
     }
+
     return ctx;
 }
 
@@ -183,11 +182,14 @@ int zmq_ctx_destroy (void *ctx_)
 
 static zmq::socket_base_t *as_socket_base_t (void *s_)
 {
-    zmq::socket_base_t *s = static_cast<zmq::socket_base_t *> (s_);
-    if (!s_ || !s->check_tag ()) {
+    zmq::socket_base_t *s = static_cast<zmq::socket_base_t *>(s_);
+   
+    if (!s_ || !s->check_tag ()) 
+    {
         errno = ENOTSOCK;
         return NULL;
     }
+
     return s;
 }
 
@@ -213,14 +215,13 @@ int zmq_close (void *s_)
     return 0;
 }
 
-int zmq_setsockopt (void *s_,
-                    int option_,
-                    const void *optval_,
-                    size_t optvallen_)
+int zmq_setsockopt (void *s_, int option_, const void *optval_, size_t optvallen_)
 {
     zmq::socket_base_t *s = as_socket_base_t (s_);
+    
     if (!s)
         return -1;
+
     return s->setsockopt (option_, optval_, optvallen_);
 }
 
@@ -261,7 +262,8 @@ int zmq_bind (void *s_, const char *addr_)
     zmq::socket_base_t *s = as_socket_base_t (s_);
     if (!s)
         return -1;
-    return s->bind (addr_);
+    
+    return s->bind(addr_);
 }
 
 int zmq_connect (void *s_, const char *addr_)
@@ -269,7 +271,8 @@ int zmq_connect (void *s_, const char *addr_)
     zmq::socket_base_t *s = as_socket_base_t (s_);
     if (!s)
         return -1;
-    return s->connect (addr_);
+
+    return s->connect(addr_);
 }
 
 int zmq_unbind (void *s_, const char *addr_)
@@ -292,8 +295,8 @@ int zmq_disconnect (void *s_, const char *addr_)
 
 static inline int s_sendmsg (zmq::socket_base_t *s_, zmq_msg_t *msg_, int flags_)
 {
-    size_t sz = zmq_msg_size (msg_);
-    int rc = s_->send (reinterpret_cast<zmq::msg_t *> (msg_), flags_);
+    size_t sz = zmq_msg_size(msg_);
+    int rc = s_->send(reinterpret_cast<zmq::msg_t *>(msg_), flags_);
     if (unlikely (rc < 0))
         return -1;
 
@@ -316,6 +319,7 @@ int zmq_send (void *s_, const void *buf_, size_t len_, int flags_)
     zmq::socket_base_t *s = as_socket_base_t (s_);
     if (!s)
         return -1;
+
     zmq_msg_t msg;
     if (zmq_msg_init_size (&msg, len_))
         return -1;
@@ -530,10 +534,10 @@ int zmq_recviov (void *s_, iovec *a_, size_t *count_, int flags_)
 
 int zmq_msg_init (zmq_msg_t *msg_)
 {
-    return (reinterpret_cast<zmq::msg_t *> (msg_))->init ();
+    return (reinterpret_cast<zmq::msg_t *>(msg_))->init();
 }
 
-int zmq_msg_init_size (zmq_msg_t *msg_, size_t size_)
+int zmq_msg_init_size(zmq_msg_t *msg_, size_t size_)
 {
     return (reinterpret_cast<zmq::msg_t *>(msg_))->init_size(size_);
 }
@@ -543,20 +547,22 @@ int zmq_msg_init_data(zmq_msg_t *msg_, void *data_, size_t size_, zmq_free_fn *f
     return (reinterpret_cast<zmq::msg_t *>(msg_))->init_data(data_, size_, ffn_, hint_);
 }
 
-int zmq_msg_send (zmq_msg_t *msg_, void *s_, int flags_)
+int zmq_msg_send(zmq_msg_t *msg_, void *s_, int flags_)
 {
-    zmq::socket_base_t *s = as_socket_base_t (s_);
+    zmq::socket_base_t *s = as_socket_base_t(s_);
     if (!s)
         return -1;
-    return s_sendmsg (s, msg_, flags_);
+
+    return s_sendmsg(s, msg_, flags_);
 }
 
-int zmq_msg_recv (zmq_msg_t *msg_, void *s_, int flags_)
+int zmq_msg_recv(zmq_msg_t *msg_, void *s_, int flags_)
 {
-    zmq::socket_base_t *s = as_socket_base_t (s_);
+    zmq::socket_base_t *s = as_socket_base_t(s_);
     if (!s)
         return -1;
-    return s_recvmsg (s, msg_, flags_);
+
+    return s_recvmsg(s, msg_, flags_);
 }
 
 int zmq_msg_close (zmq_msg_t *msg_)
