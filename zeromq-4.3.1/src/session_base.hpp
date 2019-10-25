@@ -17,13 +17,9 @@ struct address_t;
 
 class session_base_t : public own_t, public io_object_t, public i_pipe_events
 {
-  public:
+public:
     //  Create a session of the particular type.
-    static session_base_t *create (zmq::io_thread_t *io_thread_,
-                                   bool active_,
-                                   zmq::socket_base_t *socket_,
-                                   const options_t &options_,
-                                   address_t *addr_);
+    static session_base_t *create (zmq::io_thread_t *io_thread_, bool active_, zmq::socket_base_t *socket_, const options_t &options_, address_t *addr_);
 
     //  To be used once only, when creating the session.
     void attach_pipe (zmq::pipe_t *pipe_);
@@ -65,24 +61,18 @@ class session_base_t : public own_t, public io_object_t, public i_pipe_events
     socket_base_t *get_socket ();
     const char *get_endpoint () const;
 
-  protected:
-    session_base_t (zmq::io_thread_t *io_thread_,
-                    bool active_,
-                    zmq::socket_base_t *socket_,
-                    const options_t &options_,
-                    address_t *addr_);
+protected:
+    session_base_t (zmq::io_thread_t *io_thread_, bool active_, zmq::socket_base_t *socket_, const options_t &options_, address_t *addr_);
+
     virtual ~session_base_t ();
 
-  private:
+private:
     void start_connecting (bool wait_);
 
-    typedef own_t *(session_base_t::*connecter_factory_fun_t) (
-      io_thread_t *io_thread, bool wait_);
-    typedef std::pair<const std::string, connecter_factory_fun_t>
-      connecter_factory_entry_t;
+    typedef own_t *(session_base_t::*connecter_factory_fun_t) (io_thread_t *io_thread, bool wait_);
+    typedef std::pair<const std::string, connecter_factory_fun_t> connecter_factory_entry_t;
     static connecter_factory_entry_t _connecter_factories[];
-    typedef std::map<std::string, connecter_factory_fun_t>
-      connecter_factory_map_t;
+    typedef std::map<std::string, connecter_factory_fun_t> connecter_factory_map_t;
     static connecter_factory_map_t _connecter_factories_map;
 
     own_t *create_connecter_vmci (io_thread_t *io_thread_, bool wait_);
@@ -90,13 +80,10 @@ class session_base_t : public own_t, public io_object_t, public i_pipe_events
     own_t *create_connecter_ipc (io_thread_t *io_thread_, bool wait_);
     own_t *create_connecter_tcp (io_thread_t *io_thread_, bool wait_);
 
-    typedef void (session_base_t::*start_connecting_fun_t) (
-      io_thread_t *io_thread);
-    typedef std::pair<const std::string, start_connecting_fun_t>
-      start_connecting_entry_t;
+    typedef void (session_base_t::*start_connecting_fun_t)(io_thread_t *io_thread);
+    typedef std::pair<const std::string, start_connecting_fun_t> start_connecting_entry_t;
     static start_connecting_entry_t _start_connecting_entries[];
-    typedef std::map<std::string, start_connecting_fun_t>
-      start_connecting_map_t;
+    typedef std::map<std::string, start_connecting_fun_t> start_connecting_map_t;
     static start_connecting_map_t _start_connecting_map;
 
     void start_connecting_pgm (io_thread_t *io_thread_);
@@ -160,9 +147,11 @@ class session_base_t : public own_t, public io_object_t, public i_pipe_events
     //  Protocol and address to use when connecting.
     address_t *_addr;
 
+private:
     session_base_t (const session_base_t &);
     const session_base_t &operator= (const session_base_t &);
 };
+
 }
 
 #endif

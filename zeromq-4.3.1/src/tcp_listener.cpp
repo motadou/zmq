@@ -62,7 +62,8 @@ void zmq::tcp_listener_t::process_term (int linger_)
     own_t::process_term (linger_);
 }
 
-void zmq::tcp_listener_t::in_event ()
+// 该对象是TCP的Listen描述符，产生的accept事件。接收新的连接，然后将其加入到IO线程中
+void zmq::tcp_listener_t::in_event()
 {
     fd_t fd = accept();
 

@@ -28,14 +28,14 @@ public:
 
 private:
     //  Handlers for incoming commands.
-    void process_plug ();
-    void process_term (int linger_);
+    void process_plug();
+    void process_term(int linger_);
 
     //  Handlers for I/O events.
-    void in_event ();
+    void in_event();
 
     //  Close the listening socket.
-    void close ();
+    void close();
 
     //  Accept the new connection. Returns the file descriptor of the
     //  newly created connection. The function may return retired_fd

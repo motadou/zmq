@@ -31,7 +31,7 @@ class mechanism_t;
 
 class stream_engine_t : public io_object_t, public i_engine
 {
-  public:
+public:
     enum error_reason_t
     {
         protocol_error,
@@ -39,11 +39,11 @@ class stream_engine_t : public io_object_t, public i_engine
         timeout_error
     };
 
-    stream_engine_t (fd_t fd_,
-                     const options_t &options_,
-                     const std::string &endpoint_);
+    stream_engine_t(fd_t fd_, const options_t &options_, const std::string &endpoint_);
+   
     ~stream_engine_t ();
 
+public:
     //  i_engine interface implementation.
     void plug (zmq::io_thread_t *io_thread_, zmq::session_base_t *session_);
     void terminate ();

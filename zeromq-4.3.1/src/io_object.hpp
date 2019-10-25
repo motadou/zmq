@@ -46,12 +46,14 @@ public:
     void out_event ();
     void timer_event (int id_);
 
-  private:
+private:
     poller_t *_poller;
 
+private:
     io_object_t (const io_object_t &);
     const io_object_t &operator= (const io_object_t &);
 };
+
 }
 
 #endif

@@ -346,14 +346,14 @@ void zmq::session_base_t::process_attach (i_engine *engine_)
     zmq_assert (engine_ != NULL);
 
     //  Create the pipe if it does not exist yet.
-    if (!_pipe && !is_terminating ()) {
+    if (!_pipe && !is_terminating ()) 
+    {
         object_t *parents[2] = {this, _socket};
         pipe_t *pipes[2] = {NULL, NULL};
 
         const bool conflate = get_effective_conflate_option (options);
 
-        int hwms[2] = {conflate ? -1 : options.rcvhwm,
-                       conflate ? -1 : options.sndhwm};
+        int hwms[2] = { conflate ? -1 : options.rcvhwm, conflate ? -1 : options.sndhwm};
         bool conflates[2] = {conflate, conflate};
         int rc = pipepair (parents, pipes, hwms, conflates);
         errno_assert (rc == 0);
@@ -366,7 +366,7 @@ void zmq::session_base_t::process_attach (i_engine *engine_)
         _pipe = pipes[0];
 
         //  Ask socket to plug into the remote end of the pipe.
-        send_bind (_socket, pipes[1]);
+        send_bind(_socket, pipes[1]);
     }
 
     //  Plug in the engine.

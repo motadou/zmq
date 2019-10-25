@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     //  创建连接至服务端的套接字
     printf("正在收集气象信息...\n");
     void *subscriber = zmq_socket(context, ZMQ_SUB);
-    zmq_connect(subscriber, "tcp://192.168.9.100:5556");
+    zmq_connect(subscriber, "tcp://127.0.0.1:5556");
 
     //  设置订阅信息，默认为纽约，邮编10001
     const char *filter = (argc > 1) ? argv[1] : "10001 ";
