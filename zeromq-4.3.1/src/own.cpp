@@ -52,13 +52,13 @@ void zmq::own_t::process_seqnum ()
 void zmq::own_t::launch_child (own_t *object_)
 {
     //  Specify the owner of the object.
-    object_->set_owner (this);
+    object_->set_owner(this);
 
     //  Plug the object into the I/O thread.
-    send_plug (object_);
+    send_plug(object_);
 
     //  Take ownership of the object.
-    send_own (this, object_);
+    send_own(this, object_);
 }
 
 void zmq::own_t::term_child (own_t *object_)

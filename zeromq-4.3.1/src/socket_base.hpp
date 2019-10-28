@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef __ZMQ_SOCKET_BASE_HPP_INCLUDED__
 #define __ZMQ_SOCKET_BASE_HPP_INCLUDED__
 
@@ -59,14 +30,15 @@ class socket_base_t : public own_t, public array_item_t<>, public i_poll_events,
     friend class reaper_t;
 
 public:
+    //  Create a socket of a specified type.
+    static socket_base_t * create(int type_, zmq::ctx_t * parent_, uint32_t tid_, int sid_);
+
+public:
     //  Returns false if object is not a socket.
     bool check_tag () const;
 
     //  Returns whether the socket is thread-safe.
     bool is_thread_safe () const;
-
-    //  Create a socket of a specified type.
-    static socket_base_t * create (int type_, zmq::ctx_t *parent_, uint32_t tid_, int sid_);
 
     //  Returns the mailbox associated with this socket.
     i_mailbox *get_mailbox () const;
@@ -118,8 +90,7 @@ public:
 
     void event_connected (const std::string &endpoint_uri_, zmq::fd_t fd_);
     void event_connect_delayed (const std::string &endpoint_uri_, int err_);
-    void event_connect_retried (const std::string &endpoint_uri_,
-                                int interval_);
+    void event_connect_retried (const std::string &endpoint_uri_, int interval_);
     void event_listening (const std::string &endpoint_uri_, zmq::fd_t fd_);
     void event_bind_failed (const std::string &endpoint_uri_, int err_);
     void event_accepted (const std::string &endpoint_uri_, zmq::fd_t fd_);
@@ -127,37 +98,28 @@ public:
     void event_closed (const std::string &endpoint_uri_, zmq::fd_t fd_);
     void event_close_failed (const std::string &endpoint_uri_, int err_);
     void event_disconnected (const std::string &endpoint_uri_, zmq::fd_t fd_);
-    void event_handshake_failed_no_detail (const std::string &endpoint_uri_,
-                                           int err_);
-    void event_handshake_failed_protocol (const std::string &endpoint_uri_,
-                                          int err_);
-    void event_handshake_failed_auth (const std::string &endpoint_uri_,
-                                      int err_);
+    void event_handshake_failed_no_detail (const std::string &endpoint_uri_, int err_);
+    void event_handshake_failed_protocol (const std::string &endpoint_uri_, int err_);
+    void event_handshake_failed_auth (const std::string &endpoint_uri_, int err_);
     void event_handshake_succeeded (const std::string &endpoint_uri_, int err_);
 
     //  Query the state of a specific peer. The default implementation
     //  always returns an ENOTSUP error.
-    virtual int get_peer_state (const void *routing_id_,
-                                size_t routing_id_size_) const;
+    virtual int get_peer_state (const void *routing_id_, size_t routing_id_size_) const;
 
-  protected:
-    socket_base_t (zmq::ctx_t *parent_,
-                   uint32_t tid_,
-                   int sid_,
-                   bool thread_safe_ = false);
+protected:
+    socket_base_t (zmq::ctx_t *parent_, uint32_t tid_, int sid_, bool thread_safe_ = false);
+
     virtual ~socket_base_t ();
 
     //  Concrete algorithms for the x- methods are to be defined by
     //  individual socket types.
-    virtual void xattach_pipe (zmq::pipe_t *pipe_,
-                               bool subscribe_to_all_ = false,
-                               bool locally_initiated_ = false) = 0;
+    virtual void xattach_pipe (zmq::pipe_t *pipe_, bool subscribe_to_all_ = false, bool locally_initiated_ = false) = 0;
 
     //  The default implementation assumes there are no specific socket
     //  options for the particular socket type. If not so, override this
     //  method.
-    virtual int
-    xsetsockopt (int option_, const void *optval_, size_t optvallen_);
+    virtual int xsetsockopt (int option_, const void *optval_, size_t optvallen_);
 
     //  The default implementation assumes that send is not supported.
     virtual bool xhas_out ();
@@ -180,21 +142,18 @@ public:
     //  Delay actual destruction of the socket.
     void process_destroy ();
 
-  private:
+private:
     // test if event should be sent and then dispatch it
     void event (const std::string &endpoint_uri_, intptr_t value_, int type_);
 
     // Socket event data dispatch
-    void monitor_event (int event_,
-                        intptr_t value_,
-                        const std::string &endpoint_uri_) const;
+    void monitor_event (int event_, intptr_t value_, const std::string &endpoint_uri_) const;
 
     // Monitor socket cleanup
     void stop_monitor (bool send_monitor_stopped_event_ = true);
 
     //  Creates new endpoint ID and adds the endpoint to the map.
-    void
-    add_endpoint (const char *endpoint_uri_, own_t *endpoint_, pipe_t *pipe_);
+    void add_endpoint(const char *endpoint_uri_, own_t *endpoint_, pipe_t *pipe_);
 
     //  Map of open endpoints.
     typedef std::pair<own_t *, pipe_t *> endpoint_pipe_t;
@@ -204,12 +163,12 @@ public:
     //  Map of open inproc endpoints.
     class inprocs_t
     {
-      public:
+    public:
         void emplace (const char *endpoint_uri_, pipe_t *pipe_);
         int erase_pipes (const std::string &endpoint_uri_str_);
         void erase_pipe (pipe_t *pipe_);
 
-      private:
+    private:
         typedef std::multimap<std::string, pipe_t *> map_t;
         map_t _inprocs;
     };
@@ -235,29 +194,26 @@ public:
     bool _destroyed;
 
     //  Parse URI string.
-    static int
-    parse_uri (const char *uri_, std::string &protocol_, std::string &path_);
+    static int parse_uri(const char *uri_, std::string &protocol_, std::string &path_);
 
     //  Check whether transport protocol, as specified in connect or
     //  bind, is available and compatible with the socket type.
-    int check_protocol (const std::string &protocol_) const;
+    int check_protocol(const std::string &protocol_) const;
 
     //  Register the pipe with this socket.
-    void attach_pipe (zmq::pipe_t *pipe_,
-                      bool subscribe_to_all_ = false,
-                      bool locally_initiated_ = false);
+    void attach_pipe(zmq::pipe_t *pipe_, bool subscribe_to_all_ = false, bool locally_initiated_ = false);
 
     //  Processes commands sent to this socket (if any). If timeout is -1,
     //  returns only after at least one command was processed.
     //  If throttle argument is true, commands are processed at most once
     //  in a predefined time period.
-    int process_commands (int timeout_, bool throttle_);
+    int process_commands(int timeout_, bool throttle_);
 
     //  Handlers for incoming commands.
-    void process_stop ();
-    void process_bind (zmq::pipe_t *pipe_);
-    void process_term (int linger_);
-    void process_term_endpoint (std::string *endpoint_);
+    void process_stop();
+    void process_bind(zmq::pipe_t *pipe_);
+    void process_term(int linger_);
+    void process_term_endpoint(std::string *endpoint_);
 
     void update_pipe_options (int option_);
 

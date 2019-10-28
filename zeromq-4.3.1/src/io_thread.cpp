@@ -12,8 +12,8 @@ zmq::io_thread_t::io_thread_t (ctx_t *ctx_, uint32_t tid_) : object_t (ctx_, tid
 
     if (_mailbox.get_fd () != retired_fd) 
     {
-        _mailbox_handle = _poller->add_fd(_mailbox.get_fd (), this);
-        _poller->set_pollin (_mailbox_handle);
+        _mailbox_handle = _poller->add_fd(_mailbox.get_fd(), this);
+        _poller->set_pollin(_mailbox_handle);
     }
 }
 
@@ -28,7 +28,7 @@ void zmq::io_thread_t::start()
     _poller->start ();
 }
 
-void zmq::io_thread_t::stop ()
+void zmq::io_thread_t::stop()
 {
     send_stop ();
 }
@@ -38,12 +38,12 @@ zmq::mailbox_t *zmq::io_thread_t::get_mailbox ()
     return &_mailbox;
 }
 
-int zmq::io_thread_t::get_load ()
+int zmq::io_thread_t::get_load()
 {
-    return _poller->get_load ();
+    return _poller->get_load();
 }
 
-void zmq::io_thread_t::in_event ()
+void zmq::io_thread_t::in_event()
 {
     //  TODO: Do we want to limit number of commands I/O thread can process in a single go?
     command_t cmd;
@@ -52,7 +52,10 @@ void zmq::io_thread_t::in_event ()
     while (rc == 0 || errno == EINTR) 
     {
         if (rc == 0)
-            cmd.destination->process_command (cmd);
+        {
+            cmd.destination->process_command(cmd);
+        }
+
         rc = _mailbox.recv (&cmd, 0);
     }
 

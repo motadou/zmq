@@ -24,7 +24,7 @@ zmq::mailbox_t::~mailbox_t ()
 
 zmq::fd_t zmq::mailbox_t::get_fd () const
 {
-    return _signaler.get_fd ();
+    return _signaler.get_fd();
 }
 
 void zmq::mailbox_t::send(const command_t &cmd_)
@@ -40,7 +40,7 @@ void zmq::mailbox_t::send(const command_t &cmd_)
     }
 }
 
-int zmq::mailbox_t::recv (command_t *cmd_, int timeout_)
+int zmq::mailbox_t::recv(command_t *cmd_, int timeout_)
 {
     //  Try to get the command straight away.
     if (_active) 
@@ -61,7 +61,7 @@ int zmq::mailbox_t::recv (command_t *cmd_, int timeout_)
     }
 
     //  Receive the signal.
-    rc = _signaler.recv_failable ();
+    rc = _signaler.recv_failable();
     if (rc == -1) 
     {
         errno_assert (errno == EAGAIN);
@@ -72,7 +72,7 @@ int zmq::mailbox_t::recv (command_t *cmd_, int timeout_)
     _active = true;
 
     //  Get a command.
-    const bool ok = _cpipe.read (cmd_);
+    const bool ok = _cpipe.read(cmd_);
     zmq_assert (ok);
     return 0;
 }

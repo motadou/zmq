@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
         errno = 0;
         //循环等待接收到来的消息，当超过5秒没有接到消息时，
         //zmq_recv函数返回错误信息 ，并使用zmq_strerror函数进行错误定位 
-        if(zmq_recv(pSock, szMsg, sizeof(szMsg), 0) < 0)
+        if (zmq_recv(pSock, szMsg, sizeof(szMsg), 0) < 0)
         {
             printf("error = %s\n", zmq_strerror(errno));
             continue;

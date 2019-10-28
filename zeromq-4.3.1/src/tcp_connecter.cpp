@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "precompiled.hpp"
 #include <new>
 #include <string>
@@ -43,7 +14,6 @@
 #include "tcp_address.hpp"
 #include "session_base.hpp"
 
-#if !defined ZMQ_HAVE_WINDOWS
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -52,23 +22,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
-#ifdef ZMQ_HAVE_VXWORKS
-#include <sockLib.h>
-#endif
-#ifdef ZMQ_HAVE_OPENVMS
-#include <ioctl.h>
-#endif
-#endif
 
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#endif
-
-zmq::tcp_connecter_t::tcp_connecter_t (class io_thread_t *io_thread_,
-                                       class session_base_t *session_,
-                                       const options_t &options_,
-                                       address_t *addr_,
-                                       bool delayed_start_) :
+zmq::tcp_connecter_t::tcp_connecter_t(class io_thread_t *io_thread_, class session_base_t *session_, const options_t &options_, address_t *addr_, bool delayed_start_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     _addr (addr_),
@@ -97,7 +52,7 @@ zmq::tcp_connecter_t::~tcp_connecter_t ()
     zmq_assert (_s == retired_fd);
 }
 
-void zmq::tcp_connecter_t::process_plug ()
+void zmq::tcp_connecter_t::process_plug()
 {
     if (_delayed_start)
         add_reconnect_timer ();
@@ -105,19 +60,22 @@ void zmq::tcp_connecter_t::process_plug ()
         start_connecting ();
 }
 
-void zmq::tcp_connecter_t::process_term (int linger_)
+void zmq::tcp_connecter_t::process_term(int linger_)
 {
-    if (_connect_timer_started) {
+    if (_connect_timer_started) 
+    {
         cancel_timer (connect_timer_id);
         _connect_timer_started = false;
     }
 
-    if (_reconnect_timer_started) {
+    if (_reconnect_timer_started) 
+    {
         cancel_timer (reconnect_timer_id);
         _reconnect_timer_started = false;
     }
 
-    if (_handle) {
+    if (_handle) 
+    {
         rm_handle ();
     }
 
@@ -137,25 +95,26 @@ void zmq::tcp_connecter_t::in_event ()
 
 void zmq::tcp_connecter_t::out_event ()
 {
-    if (_connect_timer_started) {
+    if (_connect_timer_started) 
+    {
         cancel_timer (connect_timer_id);
         _connect_timer_started = false;
     }
 
     rm_handle ();
 
-    const fd_t fd = connect ();
+    const fd_t fd = connect();
 
     //  Handle the error condition by attempt to reconnect.
-    if (fd == retired_fd || !tune_socket (fd)) {
+    if (fd == retired_fd || !tune_socket (fd)) 
+    {
         close ();
         add_reconnect_timer ();
         return;
     }
 
     //  Create the engine object for this connection.
-    stream_engine_t *engine =
-      new (std::nothrow) stream_engine_t (fd, options, _endpoint);
+    stream_engine_t *engine = new (std::nothrow) stream_engine_t (fd, options, _endpoint);
     alloc_assert (engine);
 
     //  Attach the engine to the corresponding session object.
@@ -173,15 +132,19 @@ void zmq::tcp_connecter_t::rm_handle ()
     _handle = static_cast<handle_t> (NULL);
 }
 
-void zmq::tcp_connecter_t::timer_event (int id_)
+void zmq::tcp_connecter_t::timer_event(int id_)
 {
     zmq_assert (id_ == reconnect_timer_id || id_ == connect_timer_id);
-    if (id_ == connect_timer_id) {
+
+    if (id_ == connect_timer_id) 
+    {
         _connect_timer_started = false;
-        rm_handle ();
-        close ();
+        rm_handle();
+        close();
         add_reconnect_timer ();
-    } else if (id_ == reconnect_timer_id) {
+    } 
+    else if (id_ == reconnect_timer_id) 
+    {
         _reconnect_timer_started = false;
         start_connecting ();
     }
@@ -193,13 +156,14 @@ void zmq::tcp_connecter_t::start_connecting ()
     const int rc = open ();
 
     //  Connect may succeed in synchronous manner.
-    if (rc == 0) {
+    if (rc == 0) 
+    {
         _handle = add_fd (_s);
         out_event ();
     }
-
     //  Connection establishment may be delayed. Poll for its completion.
-    else if (rc == -1 && errno == EINPROGRESS) {
+    else if (rc == -1 && errno == EINPROGRESS) 
+    {
         _handle = add_fd (_s);
         set_pollout (_handle);
         _socket->event_connect_delayed (_endpoint, zmq_errno ());
@@ -207,9 +171,9 @@ void zmq::tcp_connecter_t::start_connecting ()
         //  add userspace connect timeout
         add_connect_timer ();
     }
-
     //  Handle any other error condition by eventual reconnect.
-    else {
+    else 
+    {
         if (_s != retired_fd)
             close ();
         add_reconnect_timer ();
@@ -218,7 +182,8 @@ void zmq::tcp_connecter_t::start_connecting ()
 
 void zmq::tcp_connecter_t::add_connect_timer ()
 {
-    if (options.connect_timeout > 0) {
+    if (options.connect_timeout > 0) 
+    {
         add_timer (options.connect_timeout, connect_timer_id);
         _connect_timer_started = true;
     }
@@ -226,7 +191,8 @@ void zmq::tcp_connecter_t::add_connect_timer ()
 
 void zmq::tcp_connecter_t::add_reconnect_timer ()
 {
-    if (options.reconnect_ivl != -1) {
+    if (options.reconnect_ivl != -1) 
+    {
         const int interval = get_new_reconnect_ivl ();
         add_timer (interval, reconnect_timer_id);
         _socket->event_connect_retried (_endpoint, interval);
@@ -237,16 +203,14 @@ void zmq::tcp_connecter_t::add_reconnect_timer ()
 int zmq::tcp_connecter_t::get_new_reconnect_ivl ()
 {
     //  The new interval is the current interval + random value.
-    const int interval =
-      _current_reconnect_ivl + generate_random () % options.reconnect_ivl;
+    const int interval = _current_reconnect_ivl + generate_random () % options.reconnect_ivl;
 
     //  Only change the current reconnect interval  if the maximum reconnect
     //  interval was set and if it's larger than the reconnect interval.
-    if (options.reconnect_ivl_max > 0
-        && options.reconnect_ivl_max > options.reconnect_ivl)
+    if (options.reconnect_ivl_max > 0 && options.reconnect_ivl_max > options.reconnect_ivl)
         //  Calculate the next interval
-        _current_reconnect_ivl =
-          std::min (_current_reconnect_ivl * 2, options.reconnect_ivl_max);
+        _current_reconnect_ivl = std::min (_current_reconnect_ivl * 2, options.reconnect_ivl_max);
+
     return interval;
 }
 
@@ -255,15 +219,16 @@ int zmq::tcp_connecter_t::open ()
     zmq_assert (_s == retired_fd);
 
     //  Resolve the address
-    if (_addr->resolved.tcp_addr != NULL) {
+    if (_addr->resolved.tcp_addr != NULL) 
+    {
         LIBZMQ_DELETE (_addr->resolved.tcp_addr);
     }
 
     _addr->resolved.tcp_addr = new (std::nothrow) tcp_address_t ();
     alloc_assert (_addr->resolved.tcp_addr);
-    int rc = _addr->resolved.tcp_addr->resolve (_addr->address.c_str (), false,
-                                                options.ipv6);
-    if (rc != 0) {
+    int rc = _addr->resolved.tcp_addr->resolve (_addr->address.c_str (), false, options.ipv6);
+    if (rc != 0) 
+    {
         LIBZMQ_DELETE (_addr->resolved.tcp_addr);
         return -1;
     }
@@ -274,18 +239,19 @@ int zmq::tcp_connecter_t::open ()
     _s = open_socket (tcp_addr->family (), SOCK_STREAM, IPPROTO_TCP);
 
     //  IPv6 address family not supported, try automatic downgrade to IPv4.
-    if (_s == zmq::retired_fd && tcp_addr->family () == AF_INET6
-        && errno == EAFNOSUPPORT && options.ipv6) {
-        rc = _addr->resolved.tcp_addr->resolve (_addr->address.c_str (), false,
-                                                false);
-        if (rc != 0) {
+    if (_s == zmq::retired_fd && tcp_addr->family () == AF_INET6 && errno == EAFNOSUPPORT && options.ipv6) 
+    {
+        rc = _addr->resolved.tcp_addr->resolve (_addr->address.c_str (), false, false);
+        if (rc != 0) 
+        {
             LIBZMQ_DELETE (_addr->resolved.tcp_addr);
             return -1;
         }
         _s = open_socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
 
-    if (_s == retired_fd) {
+    if (_s == retired_fd) 
+    {
         return -1;
     }
 
@@ -300,10 +266,11 @@ int zmq::tcp_connecter_t::open ()
 
     // Bind the socket to a device if applicable
     if (!options.bound_device.empty ())
-        bind_to_device (_s, options.bound_device);
+        bind_to_device(_s, options.bound_device);
 
+    // 设置异步属性，进行异步连接
     // Set the socket to non-blocking mode so that we get async connect().
-    unblock_socket (_s);
+    unblock_socket(_s);
 
     // Set the socket to loopback fastpath if configured.
     if (options.loopback_fastpath)
@@ -347,14 +314,12 @@ int zmq::tcp_connecter_t::open ()
             return -1;
     }
 
-        //  Connect to the remote peer.
-#if defined ZMQ_HAVE_VXWORKS
-    rc = ::connect (_s, (sockaddr *) tcp_addr->addr (), tcp_addr->addrlen ());
-#else
+    //  Connect to the remote peer.
     rc = ::connect (_s, tcp_addr->addr (), tcp_addr->addrlen ());
-#endif
+
     //  Connect was successful immediately.
-    if (rc == 0) {
+    if (rc == 0) 
+    {
         return 0;
     }
 
@@ -377,43 +342,33 @@ zmq::fd_t zmq::tcp_connecter_t::connect ()
 {
     //  Async connect has finished. Check whether an error occurred
     int err = 0;
-#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_VXWORKS
-    int len = sizeof err;
-#else
-    socklen_t len = sizeof err;
-#endif
 
-    const int rc = getsockopt (_s, SOL_SOCKET, SO_ERROR,
-                               reinterpret_cast<char *> (&err), &len);
+    socklen_t len = sizeof err;
+
+    const int rc = getsockopt (_s, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *> (&err), &len);
+
+    printf("%s %s %d %d\n", __FILE__, __FUNCTION__, __LINE__, rc);
 
     //  Assert if the error was caused by 0MQ bug.
     //  Networking problems are OK. No need to assert.
-#ifdef ZMQ_HAVE_WINDOWS
-    zmq_assert (rc == 0);
-    if (err != 0) {
-        if (err == WSAEBADF || err == WSAENOPROTOOPT || err == WSAENOTSOCK
-            || err == WSAENOBUFS) {
-            wsa_assert_no (err);
-        }
-        return retired_fd;
-    }
-#else
+
     //  Following code should handle both Berkeley-derived socket
     //  implementations and Solaris.
     if (rc == -1)
+    {
         err = errno;
-    if (err != 0) {
+    }
+
+    if (err != 0) 
+    {
         errno = err;
 #if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
-        errno_assert (errno != EBADF && errno != ENOPROTOOPT
-                      && errno != ENOTSOCK && errno != ENOBUFS);
+        errno_assert (errno != EBADF && errno != ENOPROTOOPT && errno != ENOTSOCK && errno != ENOBUFS);
 #else
-        errno_assert (errno != ENOPROTOOPT && errno != ENOTSOCK
-                      && errno != ENOBUFS);
+        errno_assert (errno != ENOPROTOOPT && errno != ENOTSOCK && errno != ENOBUFS);
 #endif
         return retired_fd;
     }
-#endif
 
     //  Return the newly connected socket.
     const fd_t result = _s;

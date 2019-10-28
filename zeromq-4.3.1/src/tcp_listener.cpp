@@ -99,7 +99,8 @@ void zmq::tcp_listener_t::in_event()
     session->inc_seqnum();
     launch_child(session);  // 发送给IO线程，加入到IO线程中去
     send_attach(session, engine, false);
-    _socket->event_accepted (_endpoint, fd);
+
+    _socket->event_accepted(_endpoint, fd);
 }
 
 void zmq::tcp_listener_t::close ()
@@ -266,7 +267,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 #if defined ZMQ_HAVE_SOCK_CLOEXEC && defined HAVE_ACCEPT4
     fd_t sock = ::accept4(_s, reinterpret_cast<struct sockaddr *> (&ss), &ss_len, SOCK_CLOEXEC);
 #else
-    fd_t sock = ::accept (_s, reinterpret_cast<struct sockaddr *> (&ss), &ss_len);
+    fd_t sock = ::accept(_s, reinterpret_cast<struct sockaddr *> (&ss), &ss_len);
 #endif
 
     if (sock == retired_fd) 

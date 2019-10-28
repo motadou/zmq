@@ -94,12 +94,14 @@ class poller_base_t
 {
 public:
     poller_base_t ();
+    
     virtual ~poller_base_t ();
 
+public:
     // Methods from the poller concept.
-    int get_load () const;
-    void add_timer (int timeout_, zmq::i_poll_events *sink_, int id_);
-    void cancel_timer (zmq::i_poll_events *sink_, int id_);
+    int  get_load() const;
+    void add_timer(int timeout_, zmq::i_poll_events *sink_, int id_);
+    void cancel_timer(zmq::i_poll_events *sink_, int id_);
 
 protected:
     //  Called by individual poller implementations to manage the load.
@@ -122,8 +124,7 @@ private:
     typedef std::multimap<uint64_t, timer_info_t> timers_t;
     timers_t _timers;
 
-    //  Load of the poller. Currently the number of file descriptors
-    //  registered.
+    //  Load of the poller. Currently the number of file descriptors registered.
     atomic_counter_t _load;
 
 private:

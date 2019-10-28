@@ -56,6 +56,7 @@ private:
     //  I/O multiplexing is performed using a poller object.
     poller_t *_poller;
 
+private:
     io_thread_t (const io_thread_t &);
 
     const io_thread_t &operator= (const io_thread_t &);

@@ -20,19 +20,18 @@
 #include "msg.hpp"
 #include "random.hpp"
 
-#ifdef ZMQ_HAVE_VMCI
-#include <vmci_sockets.h>
-#endif
-
 #define ZMQ_CTX_TAG_VALUE_GOOD 0xabadcafe
 #define ZMQ_CTX_TAG_VALUE_BAD 0xdeadbeef
 
 int clipped_maxsocket (int max_requested_)
 {
-    if (max_requested_ >= zmq::poller_t::max_fds ()
-        && zmq::poller_t::max_fds () != -1)
+    printf("%s %s %d %d %d\n", __FILE__, __FUNCTION__, __LINE__, zmq::poller_t::max_fds(), max_requested_);
+
+    if (max_requested_ >= zmq::poller_t::max_fds() && zmq::poller_t::max_fds() != -1)
+    {
         // -1 because we need room for the reaper mailbox.
-        max_requested_ = zmq::poller_t::max_fds () - 1;
+        max_requested_ = zmq::poller_t::max_fds() - 1;
+    }
 
     return max_requested_;
 }
@@ -42,9 +41,9 @@ zmq::ctx_t::ctx_t () :
     _starting (true),
     _terminating (false),
     _reaper (NULL),
-    _max_sockets (clipped_maxsocket (ZMQ_MAX_SOCKETS_DFLT)),
-    _max_msgsz (INT_MAX),
-    _io_thread_count (ZMQ_IO_THREADS_DFLT),
+    _max_sockets(clipped_maxsocket(ZMQ_MAX_SOCKETS_DFLT)),
+    _max_msgsz(INT_MAX),
+    _io_thread_count(ZMQ_IO_THREADS_DFLT),
     _blocky (true),
     _ipv6 (false),
     _zero_copy (true)
@@ -52,13 +51,9 @@ zmq::ctx_t::ctx_t () :
 #ifdef HAVE_FORK
     _pid = getpid ();
 #endif
-#ifdef ZMQ_HAVE_VMCI
-    _vmci_fd = -1;
-    _vmci_family = -1;
-#endif
 
-    //  Initialise crypto library, if needed.
-    zmq::random_open ();
+    // Initialise crypto library, if needed.
+    zmq::random_open();
 }
 
 bool zmq::ctx_t::check_tag ()
@@ -109,8 +104,8 @@ int zmq::ctx_t::terminate ()
 
     // Connect up any pending inproc connections, otherwise we will hang
     pending_connections_t copy = _pending_connections;
-    for (pending_connections_t::iterator p = copy.begin (), end = copy.end ();
-         p != end; ++p) {
+    for (pending_connections_t::iterator p = copy.begin (), end = copy.end (); p != end; ++p) 
+    {
         zmq::socket_base_t *s = create_socket (ZMQ_PAIR);
         // create_socket might fail eg: out of memory/sockets limit reached
         zmq_assert (s);
@@ -180,7 +175,8 @@ int zmq::ctx_t::shutdown ()
 {
     scoped_lock_t locker (_slot_sync);
 
-    if (!_starting && !_terminating) {
+    if (!_starting && !_terminating) 
+    {
         _terminating = true;
 
         //  Send stop command to sockets so that any blocking calls
@@ -274,14 +270,17 @@ bool zmq::ctx_t::start()
     _opt_sync.lock ();
     const int term_and_reaper_threads_count = 2;
     const int mazmq = _max_sockets;
-    const int ios = _io_thread_count;
+    const int ios   = _io_thread_count;
     _opt_sync.unlock ();
 
     int slot_count = mazmq + ios + term_and_reaper_threads_count;
+
+    printf("%s %s %d == %d %d %d ======\n", __FILE__, __FUNCTION__, __LINE__, slot_count, mazmq, ios);
+
     try 
     {
-        _slots.reserve (slot_count);
-        _empty_slots.reserve (slot_count - term_and_reaper_threads_count);
+        _slots.reserve(slot_count);
+        _empty_slots.reserve(slot_count - term_and_reaper_threads_count);
     }
     catch (const std::bad_alloc &) 
     {
@@ -312,10 +311,11 @@ bool zmq::ctx_t::start()
     //  Create I/O thread objects and launch them.
     _slots.resize (slot_count, NULL);
 
+    // 开始创建IOS线程，并启动它们
     for (int i = term_and_reaper_threads_count; i != ios + term_and_reaper_threads_count; i++) 
     {
         io_thread_t *io_thread = new (std::nothrow) io_thread_t(this, i);
-        if (!io_thread) 
+        if (!io_thread)
         {
             errno = ENOMEM;
             goto fail_cleanup_reaper;
@@ -326,8 +326,9 @@ bool zmq::ctx_t::start()
             delete io_thread;
             goto fail_cleanup_reaper;
         }
-        _io_threads.push_back (io_thread);
-        _slots[i] = io_thread->get_mailbox ();
+
+        _io_threads.push_back(io_thread);
+        _slots[i] = io_thread->get_mailbox();
         io_thread->start();
     }
 
@@ -350,7 +351,7 @@ fail_cleanup_slots:
     return false;
 }
 
-zmq::socket_base_t *zmq::ctx_t::create_socket (int type_)
+zmq::socket_base_t *zmq::ctx_t::create_socket(int type_)
 {
     scoped_lock_t locker(_slot_sync);
 
@@ -380,16 +381,16 @@ zmq::socket_base_t *zmq::ctx_t::create_socket (int type_)
     _empty_slots.pop_back ();
 
     //  Generate new unique socket ID.
-    int sid = (static_cast<int> (max_socket_id.add (1))) + 1;
+    int sid = (static_cast<int>(max_socket_id.add(1))) + 1;
 
     //  Create the socket and register its mailbox.
-    socket_base_t *s = socket_base_t::create (type_, this, slot, sid);
+    socket_base_t *s = socket_base_t::create(type_, this, slot, sid);
     if (!s) 
     {
         _empty_slots.push_back (slot);
         return NULL;
     }
-    _sockets.push_back (s);
+    _sockets.push_back(s);
     _slots[slot] = s->get_mailbox();
 
     return s;

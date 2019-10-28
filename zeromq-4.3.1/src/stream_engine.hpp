@@ -53,11 +53,11 @@ public:
     const char *get_endpoint () const;
 
     //  i_poll_events interface implementation.
-    void in_event ();
-    void out_event ();
-    void timer_event (int id_);
+    void in_event();
+    void out_event();
+    void timer_event(int id_);
 
-  private:
+private:
     //  Unplug the engine from the session.
     void unplug ();
 
@@ -68,17 +68,16 @@ public:
     bool handshake ();
 
     //  Receive the greeting from the peer.
-    int receive_greeting ();
+    int  receive_greeting ();
     void receive_greeting_versioned ();
 
     typedef bool (stream_engine_t::*handshake_fun_t) ();
-    static handshake_fun_t select_handshake_fun (bool unversioned,
-                                                 unsigned char revision);
+    static handshake_fun_t select_handshake_fun (bool unversioned, unsigned char revision);
 
-    bool handshake_v1_0_unversioned ();
-    bool handshake_v1_0 ();
-    bool handshake_v2_0 ();
-    bool handshake_v3_0 ();
+    bool handshake_v1_0_unversioned();
+    bool handshake_v1_0();
+    bool handshake_v2_0();
+    bool handshake_v3_0();
 
     int routing_id_msg (msg_t *msg_);
     int process_routing_id_msg (msg_t *msg_);
@@ -98,10 +97,7 @@ public:
 
     void mechanism_ready ();
 
-    size_t add_property (unsigned char *ptr_,
-                         const char *name_,
-                         const void *value_,
-                         size_t value_len_);
+    size_t add_property(unsigned char *ptr_, const char *name_, const void *value_, size_t value_len_);
 
     void set_handshake_timer ();
 
@@ -211,6 +207,7 @@ public:
 
     std::string _peer_address;
 
+private:
     stream_engine_t (const stream_engine_t &);
     const stream_engine_t &operator= (const stream_engine_t &);
 };

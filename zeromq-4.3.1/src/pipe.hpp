@@ -22,10 +22,7 @@ class pipe_t;
 //  terminates straight away.
 //  If conflate is true, only the most recently arrived message could be
 //  read (older messages are discarded)
-int pipepair (zmq::object_t *parents_[2],
-              zmq::pipe_t *pipes_[2],
-              int hwms_[2],
-              bool conflate_[2]);
+int pipepair (zmq::object_t *parents_[2], zmq::pipe_t *pipes_[2], int hwms_[2], bool conflate_[2]);
 
 struct i_pipe_events
 {
@@ -41,10 +38,7 @@ struct i_pipe_events
 //  The array of inbound pipes (1), the array of outbound pipes (2) and
 //  the generic array of pipes to be deallocated (3).
 
-class pipe_t : public object_t,
-               public array_item_t<1>,
-               public array_item_t<2>,
-               public array_item_t<3>
+class pipe_t : public object_t, public array_item_t<1>, public array_item_t<2>, public array_item_t<3>
 {
     //  This allows pipepair to create pipe objects.
     friend int pipepair (zmq::object_t *parents_[2],
@@ -120,12 +114,12 @@ private:
     typedef ypipe_base_t<msg_t> upipe_t;
 
     //  Command handlers.
-    void process_activate_read ();
-    void process_activate_write (uint64_t msgs_read_);
-    void process_hiccup (void *pipe_);
-    void process_pipe_term ();
-    void process_pipe_term_ack ();
-    void process_pipe_hwm (int inhwm_, int outhwm_);
+    void process_activate_read();
+    void process_activate_write(uint64_t msgs_read_);
+    void process_hiccup(void *pipe_);
+    void process_pipe_term();
+    void process_pipe_term_ack();
+    void process_pipe_hwm(int inhwm_, int outhwm_);
 
     //  Handler for delimiter read from the pipe.
     void process_delimiter ();

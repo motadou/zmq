@@ -149,7 +149,8 @@ zmq::fd_t zmq::signaler_t::get_fd () const
 void zmq::signaler_t::send ()
 {
 #if defined HAVE_FORK
-    if (unlikely (pid != getpid ())) {
+    if (unlikely (pid != getpid ())) 
+    {
         //printf("Child process %d signaler_t::send returning without sending #1\n", getpid());
         return; // do not send anything in forked child context
     }
@@ -157,7 +158,7 @@ void zmq::signaler_t::send ()
 
 #if defined ZMQ_HAVE_EVENTFD
     const uint64_t inc = 1;
-    ssize_t sz = write (_w, &inc, sizeof (inc));
+    ssize_t sz = write(_w, &inc, sizeof (inc));
     errno_assert (sz == sizeof (inc));
 #else
     unsigned char dummy = 0;
@@ -166,13 +167,14 @@ void zmq::signaler_t::send ()
         ssize_t nbytes = ::send (_w, &dummy, sizeof (dummy), 0);
         if (unlikely (nbytes == -1 && errno == EINTR))
             continue;
-#if defined(HAVE_FORK)
-        if (unlikely (pid != getpid ())) {
+        #if defined(HAVE_FORK)
+        if (unlikely (pid != getpid ())) 
+        {
             //printf("Child process %d signaler_t::send returning without sending #2\n", getpid());
             errno = EINTR;
             break;
         }
-#endif
+        #endif
         zmq_assert (nbytes == sizeof dummy);
 
         break;
@@ -183,7 +185,8 @@ void zmq::signaler_t::send ()
 int zmq::signaler_t::wait (int timeout_)
 {
 #ifdef HAVE_FORK
-    if (unlikely (pid != getpid ())) {
+    if (unlikely (pid != getpid ())) 
+    {
         // we have forked and the file descriptor is closed. Emulate an interrupt
         // response.
         //printf("Child process %d signaler_t::wait returning simulating interrupt #1\n", getpid());

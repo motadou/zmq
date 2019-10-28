@@ -46,6 +46,7 @@ int main(int argc, char * argv[])
         static int i = 0;
         char szMsg[1024] = {0};
         snprintf(szMsg, sizeof(szMsg), "hello world : %3d", i++);
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
         printf("Enter to send...\n");
         if (zmq_send(pSock, szMsg, sizeof(szMsg), 0) < 0)
         {

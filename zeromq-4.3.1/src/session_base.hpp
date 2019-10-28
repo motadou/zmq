@@ -2,7 +2,6 @@
 #define __ZMQ_SESSION_BASE_HPP_INCLUDED__
 
 #include <stdarg.h>
-
 #include "own.hpp"
 #include "io_object.hpp"
 #include "pipe.hpp"
@@ -19,16 +18,16 @@ class session_base_t : public own_t, public io_object_t, public i_pipe_events
 {
 public:
     //  Create a session of the particular type.
-    static session_base_t *create (zmq::io_thread_t *io_thread_, bool active_, zmq::socket_base_t *socket_, const options_t &options_, address_t *addr_);
+    static session_base_t * create(zmq::io_thread_t *io_thread_, bool active_, zmq::socket_base_t *socket_, const options_t &options_, address_t *addr_);
 
     //  To be used once only, when creating the session.
     void attach_pipe (zmq::pipe_t *pipe_);
 
     //  Following functions are the interface exposed towards the engine.
-    virtual void reset ();
-    void flush ();
-    void rollback ();
-    void engine_error (zmq::stream_engine_t::error_reason_t reason_);
+    virtual void reset();
+    void flush();
+    void rollback();
+    void engine_error(zmq::stream_engine_t::error_reason_t reason_);
 
     //  i_pipe_events interface implementation.
     void read_activated (zmq::pipe_t *pipe_);
@@ -77,8 +76,8 @@ private:
 
     own_t *create_connecter_vmci (io_thread_t *io_thread_, bool wait_);
     own_t *create_connecter_tipc (io_thread_t *io_thread_, bool wait_);
-    own_t *create_connecter_ipc (io_thread_t *io_thread_, bool wait_);
-    own_t *create_connecter_tcp (io_thread_t *io_thread_, bool wait_);
+    own_t *create_connecter_ipc  (io_thread_t *io_thread_, bool wait_);
+    own_t *create_connecter_tcp  (io_thread_t *io_thread_, bool wait_);
 
     typedef void (session_base_t::*start_connecting_fun_t)(io_thread_t *io_thread);
     typedef std::pair<const std::string, start_connecting_fun_t> start_connecting_entry_t;

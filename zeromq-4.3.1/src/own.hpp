@@ -18,7 +18,7 @@ class io_thread_t;
 
 class own_t : public object_t
 {
-  public:
+public:
     //  Note that the owner is unspecified in the constructor.
     //  It'll be supplied later on when the object is plugged in.
 

@@ -183,10 +183,10 @@ ZMQ_EXPORT void zmq_version (int *major_, int *minor_, int *patch_);
 #define ZMQ_THREAD_NAME_PREFIX 9
 
 /*  Default for new contexts                                                  */
-#define ZMQ_IO_THREADS_DFLT 1
-#define ZMQ_MAX_SOCKETS_DFLT 1023
-#define ZMQ_THREAD_PRIORITY_DFLT -1
-#define ZMQ_THREAD_SCHED_POLICY_DFLT -1
+#define ZMQ_IO_THREADS_DFLT             1       // 默认IO线程的数量
+#define ZMQ_MAX_SOCKETS_DFLT            1023    // 默认允许的最大文件描述符
+#define ZMQ_THREAD_PRIORITY_DFLT        -1     
+#define ZMQ_THREAD_SCHED_POLICY_DFLT    -1
 
 ZMQ_EXPORT void *zmq_ctx_new (void);
 ZMQ_EXPORT int zmq_ctx_term (void *context_);

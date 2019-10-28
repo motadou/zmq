@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "precompiled.hpp"
 #include <new>
 #include <stddef.h>
@@ -38,10 +9,7 @@
 #include "ypipe.hpp"
 #include "ypipe_conflate.hpp"
 
-int zmq::pipepair (class object_t *parents_[2],
-                   class pipe_t *pipes_[2],
-                   int hwms_[2],
-                   bool conflate_[2])
+int zmq::pipepair(class object_t *parents_[2], class pipe_t *pipes_[2], int hwms_[2], bool conflate_[2])
 {
     //   Creates two pipe objects. These objects are connected by two ypipes,
     //   each to pass messages in one direction.
@@ -63,15 +31,13 @@ int zmq::pipepair (class object_t *parents_[2],
         upipe2 = new (std::nothrow) upipe_normal_t ();
     alloc_assert (upipe2);
 
-    pipes_[0] = new (std::nothrow)
-      pipe_t (parents_[0], upipe1, upipe2, hwms_[1], hwms_[0], conflate_[0]);
+    pipes_[0] = new (std::nothrow) pipe_t (parents_[0], upipe1, upipe2, hwms_[1], hwms_[0], conflate_[0]);
     alloc_assert (pipes_[0]);
-    pipes_[1] = new (std::nothrow)
-      pipe_t (parents_[1], upipe2, upipe1, hwms_[0], hwms_[1], conflate_[1]);
+    pipes_[1] = new (std::nothrow) pipe_t (parents_[1], upipe2, upipe1, hwms_[0], hwms_[1], conflate_[1]);
     alloc_assert (pipes_[1]);
 
-    pipes_[0]->set_peer (pipes_[1]);
-    pipes_[1]->set_peer (pipes_[0]);
+    pipes_[0]->set_peer(pipes_[1]);
+    pipes_[1]->set_peer(pipes_[0]);
 
     return 0;
 }
@@ -232,16 +198,21 @@ bool zmq::pipe_t::check_write ()
     return true;
 }
 
-bool zmq::pipe_t::write (msg_t *msg_)
+bool zmq::pipe_t::write(msg_t *msg_)
 {
-    if (unlikely (!check_write ()))
+    if (unlikely(!check_write()))
+    {
         return false;
+    }
 
     const bool more = (msg_->flags () & msg_t::more) != 0;
     const bool is_routing_id = msg_->is_routing_id ();
-    _out_pipe->write (*msg_, more);
+    _out_pipe->write(*msg_, more);
+
     if (!more && !is_routing_id)
+    {
         _msgs_written++;
+    }
 
     return true;
 }

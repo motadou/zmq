@@ -195,14 +195,14 @@ static zmq::socket_base_t *as_socket_base_t (void *s_)
 
 void *zmq_socket (void *ctx_, int type_)
 {
-    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) 
+    if (!ctx_ || !(static_cast<zmq::ctx_t *>(ctx_))->check_tag()) 
     {
         errno = EFAULT;
         return NULL;
     }
 
-    zmq::ctx_t *ctx = static_cast<zmq::ctx_t *> (ctx_);
-    zmq::socket_base_t *s = ctx->create_socket (type_);
+    zmq::ctx_t         * ctx = static_cast<zmq::ctx_t *>(ctx_);
+    zmq::socket_base_t * s   = ctx->create_socket(type_);
     return (void *) s;
 }
 
@@ -266,9 +266,9 @@ int zmq_bind (void *s_, const char *addr_)
     return s->bind(addr_);
 }
 
-int zmq_connect (void *s_, const char *addr_)
+int zmq_connect(void *s_, const char *addr_)
 {
-    zmq::socket_base_t *s = as_socket_base_t (s_);
+    zmq::socket_base_t *s = as_socket_base_t(s_);
     if (!s)
         return -1;
 
@@ -416,12 +416,13 @@ int zmq_sendiov (void *s_, iovec *a_, size_t count_, int flags_)
 
 static int s_recvmsg (zmq::socket_base_t *s_, zmq_msg_t *msg_, int flags_)
 {
-    int rc = s_->recv (reinterpret_cast<zmq::msg_t *> (msg_), flags_);
+    int rc = s_->recv(reinterpret_cast<zmq::msg_t *>(msg_), flags_);
     if (unlikely (rc < 0))
         return -1;
 
     //  Truncate returned size to INT_MAX to avoid overflow to negative values
-    size_t sz = zmq_msg_size (msg_);
+    size_t sz = zmq_msg_size(msg_);
+
     return static_cast<int> (sz < INT_MAX ? sz : INT_MAX);
 }
 
@@ -437,12 +438,14 @@ int zmq_recv (void *s_, void *buf_, size_t len_, int flags_)
     zmq::socket_base_t *s = as_socket_base_t (s_);
     if (!s)
         return -1;
+    
     zmq_msg_t msg;
     int rc = zmq_msg_init (&msg);
     errno_assert (rc == 0);
 
     int nbytes = s_recvmsg (s, &msg, flags_);
-    if (unlikely (nbytes < 0)) {
+    if (unlikely (nbytes < 0)) 
+    {
         int err = errno;
         rc = zmq_msg_close (&msg);
         errno_assert (rc == 0);
@@ -451,10 +454,11 @@ int zmq_recv (void *s_, void *buf_, size_t len_, int flags_)
     }
 
     //  An oversized message is silently truncated.
-    size_t to_copy = size_t (nbytes) < len_ ? size_t (nbytes) : len_;
+    size_t to_copy = (size_t(nbytes) < len_)? size_t (nbytes) : len_;
 
     //  We explicitly allow a null buffer argument if len is zero
-    if (to_copy) {
+    if (to_copy) 
+    {
         assert (buf_);
         memcpy (buf_, zmq_msg_data (&msg), to_copy);
     }

@@ -21,15 +21,15 @@ public:
 
     ~signaler_t ();
 
+public:
     // Returns the socket/file descriptor
     // May return retired_fd if the signaler could not be initialized.
-    fd_t get_fd () const;
-    void send ();
-    int wait (int timeout_);
-    void recv ();
-    int recv_failable ();
-
-    bool valid () const;
+    fd_t get_fd() const;
+    void send();
+    int  wait(int timeout_);
+    void recv();
+    int  recv_failable();
+    bool valid() const;
 
 #ifdef HAVE_FORK
     // close the file descriptors in a forked child process so that they
@@ -44,6 +44,7 @@ private:
     fd_t _w;
     fd_t _r;
 
+private:
     //  Disable copying of signaler_t object.
     signaler_t (const signaler_t &);
     const signaler_t &operator= (const signaler_t &);

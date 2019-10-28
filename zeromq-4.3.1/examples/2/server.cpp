@@ -12,11 +12,11 @@ int main (void)
     //  准备上下文和PUB套接字
     void *context   = zmq_init(1);
     void *publisher = zmq_socket(context, ZMQ_PUB);
-    zmq_bind (publisher, "tcp://*:5556");
-    zmq_bind (publisher, "ipc://weather.ipc");
+    zmq_bind(publisher, "tcp://*:5556");
+    zmq_bind(publisher, "ipc://weather.ipc");
 	
 	//  初始化随机数生成器
-    srandom ((unsigned) time (NULL));
+    srandom((unsigned) time(NULL));
 
     while (1) 
     {
