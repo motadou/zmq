@@ -50,14 +50,26 @@ zmq::tcp_connecter_t::~tcp_connecter_t ()
     zmq_assert (!_reconnect_timer_started);
     zmq_assert (!_handle);
     zmq_assert (_s == retired_fd);
+
+    printf("%s %s %d ***************************************************%ld|||||||||||||||||||\n", __FILE__, __FUNCTION__, __LINE__, (int64_t)this);
 }
 
 void zmq::tcp_connecter_t::process_plug()
 {
     if (_delayed_start)
-        add_reconnect_timer ();
+    {
+        printf("%s %s %d ***************************************************%ld\n", __FILE__, __FUNCTION__, __LINE__, (int64_t)this);
+
+        add_reconnect_timer();
+    }
     else
-        start_connecting ();
+    {
+        printf("%s %s %d ***************************************************%ld\n", __FILE__, __FUNCTION__, __LINE__, (int64_t)this);
+
+        /// 首次走这里
+
+        start_connecting();
+    }
 }
 
 void zmq::tcp_connecter_t::process_term(int linger_)
@@ -136,15 +148,19 @@ void zmq::tcp_connecter_t::timer_event(int id_)
 {
     zmq_assert (id_ == reconnect_timer_id || id_ == connect_timer_id);
 
+    printf("%s %s %d ***************************************************%d\n", __FILE__, __FUNCTION__, __LINE__, id_);
+
     if (id_ == connect_timer_id) 
     {
         _connect_timer_started = false;
         rm_handle();
         close();
-        add_reconnect_timer ();
+        add_reconnect_timer();
     } 
     else if (id_ == reconnect_timer_id) 
     {
+        printf("%s %s %d ***************************************************\n", __FILE__, __FUNCTION__, __LINE__);
+
         _reconnect_timer_started = false;
         start_connecting ();
     }
@@ -152,23 +168,27 @@ void zmq::tcp_connecter_t::timer_event(int id_)
 
 void zmq::tcp_connecter_t::start_connecting ()
 {
+    printf("%s %s %d ***************************************************\n", __FILE__, __FUNCTION__, __LINE__);
+
     //  Open the connecting socket.
     const int rc = open ();
 
     //  Connect may succeed in synchronous manner.
     if (rc == 0) 
     {
-        _handle = add_fd (_s);
+        _handle = add_fd(_s);
         out_event ();
     }
     //  Connection establishment may be delayed. Poll for its completion.
-    else if (rc == -1 && errno == EINPROGRESS) 
+    else if (rc == -1 && errno == EINPROGRESS)
     {
-        _handle = add_fd (_s);
-        set_pollout (_handle);
-        _socket->event_connect_delayed (_endpoint, zmq_errno ());
+        printf("%s %s %d ***************************************************\n", __FILE__, __FUNCTION__, __LINE__);
 
-        //  add userspace connect timeout
+        _handle = add_fd (_s);
+        set_pollout(_handle);
+        _socket->event_connect_delayed(_endpoint, zmq_errno ());
+
+        // add userspace connect timeout
         add_connect_timer ();
     }
     //  Handle any other error condition by eventual reconnect.
@@ -184,17 +204,17 @@ void zmq::tcp_connecter_t::add_connect_timer ()
 {
     if (options.connect_timeout > 0) 
     {
-        add_timer (options.connect_timeout, connect_timer_id);
+        add_timer(options.connect_timeout, connect_timer_id);
         _connect_timer_started = true;
     }
 }
 
 void zmq::tcp_connecter_t::add_reconnect_timer ()
 {
-    if (options.reconnect_ivl != -1) 
+    if (options.reconnect_ivl != -1)
     {
         const int interval = get_new_reconnect_ivl ();
-        add_timer (interval, reconnect_timer_id);
+        add_timer(interval, reconnect_timer_id);
         _socket->event_connect_retried (_endpoint, interval);
         _reconnect_timer_started = true;
     }
@@ -378,11 +398,8 @@ zmq::fd_t zmq::tcp_connecter_t::connect ()
 
 bool zmq::tcp_connecter_t::tune_socket (const fd_t fd_)
 {
-    const int rc = tune_tcp_socket (fd_)
-                   | tune_tcp_keepalives (
-                       fd_, options.tcp_keepalive, options.tcp_keepalive_cnt,
-                       options.tcp_keepalive_idle, options.tcp_keepalive_intvl)
-                   | tune_tcp_maxrt (fd_, options.tcp_maxrt);
+    const int rc = tune_tcp_socket (fd_) | tune_tcp_keepalives(fd_, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl) | tune_tcp_maxrt (fd_, options.tcp_maxrt);
+    
     return rc == 0;
 }
 

@@ -164,7 +164,7 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
     zmq_assert (!_session);
     zmq_assert (session_);
     _session = session_;
-    _socket  = _session->get_socket ();
+    _socket  = _session->get_socket();
 
     //  Connect to I/O threads poller object.
     io_object_t::plug(io_thread_);
@@ -1086,7 +1086,8 @@ void zmq::stream_engine_t::error (error_reason_t reason_)
 {
     printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
-    if (_options.raw_socket && _options.raw_notify) {
+    if (_options.raw_socket && _options.raw_notify) 
+    {
         //  For raw sockets, send a final 0-length message to the application
         //  so that it knows the peer has been disconnected.
         msg_t terminator;

@@ -18,10 +18,6 @@
 #include "config.hpp"
 #include "i_poll_events.hpp"
 
-#ifdef ZMQ_HAVE_WINDOWS
-const zmq::epoll_t::epoll_fd_t zmq::epoll_t::epoll_retired_fd = INVALID_HANDLE_VALUE;
-#endif
-
 zmq::epoll_t::epoll_t (const zmq::thread_ctx_t &ctx_) : worker_poller_base_t (ctx_)
 {
 #ifdef ZMQ_IOTHREAD_POLLER_USE_EPOLL_CLOEXEC
@@ -81,7 +77,7 @@ void zmq::epoll_t::rm_fd (handle_t handle_)
 {
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
-    int rc = epoll_ctl (_epoll_fd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
+    int rc = epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, pe->fd, &pe->ev);
     errno_assert (rc != -1);
     pe->fd = retired_fd;
     _retired.push_back (pe);

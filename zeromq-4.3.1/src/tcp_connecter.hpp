@@ -26,7 +26,7 @@ private:
     enum
     {
         reconnect_timer_id = 1,
-        connect_timer_id
+        connect_timer_id   = 2
     };
 
     //  Handlers for incoming commands.

@@ -141,12 +141,14 @@ int zmq::session_base_t::push_msg (msg_t *msg_)
 
 int zmq::session_base_t::read_zap_msg(msg_t *msg_)
 {
-    if (_zap_pipe == NULL) {
+    if (_zap_pipe == NULL) 
+    {
         errno = ENOTCONN;
         return -1;
     }
 
-    if (!_zap_pipe->read (msg_)) {
+    if (!_zap_pipe->read (msg_)) 
+    {
         errno = EAGAIN;
         return -1;
     }
@@ -289,7 +291,7 @@ zmq::socket_base_t *zmq::session_base_t::get_socket ()
     return _socket;
 }
 
-void zmq::session_base_t::process_plug ()
+void zmq::session_base_t::process_plug()
 {
     if (_active)
     {
@@ -395,26 +397,29 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
     if (_pipe)
         clean_pipes ();
 
-    zmq_assert (reason_ == stream_engine_t::connection_error
-                || reason_ == stream_engine_t::timeout_error
-                || reason_ == stream_engine_t::protocol_error);
+    zmq_assert (reason_ == stream_engine_t::connection_error || reason_ == stream_engine_t::timeout_error || reason_ == stream_engine_t::protocol_error);
 
-    switch (reason_) {
+    switch (reason_) 
+    {
         case stream_engine_t::timeout_error:
             /* FALLTHROUGH */
         case stream_engine_t::connection_error:
-            if (_active) {
+            if (_active) 
+            {
                 reconnect ();
                 break;
             }
             /* FALLTHROUGH */
         case stream_engine_t::protocol_error:
-            if (_pending) {
+            if (_pending) 
+            {
                 if (_pipe)
                     _pipe->terminate (false);
                 if (_zap_pipe)
                     _zap_pipe->terminate (false);
-            } else {
+            } 
+            else 
+            {
                 terminate ();
             }
             break;
@@ -422,10 +427,10 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
 
     //  Just in case there's only a delimiter in the pipe.
     if (_pipe)
-        _pipe->check_read ();
+        _pipe->check_read();
 
     if (_zap_pipe)
-        _zap_pipe->check_read ();
+        _zap_pipe->check_read();
 }
 
 void zmq::session_base_t::process_term(int linger_)
@@ -490,7 +495,8 @@ void zmq::session_base_t::reconnect ()
         _terminating_pipes.insert (_pipe);
         _pipe = NULL;
 
-        if (_has_linger_timer) {
+        if (_has_linger_timer) 
+        {
             cancel_timer (linger_timer_id);
             _has_linger_timer = false;
         }
@@ -500,8 +506,11 @@ void zmq::session_base_t::reconnect ()
 
     //  Reconnect.
     if (options.reconnect_ivl != -1)
-        start_connecting (true);
-    else {
+    {
+        start_connecting(true);
+    }
+    else 
+    {
         std::string *ep = new (std::string);
         _addr->to_string (*ep);
         send_term_endpoint (_socket, ep);
@@ -564,6 +573,9 @@ void zmq::session_base_t::start_connecting(bool wait_)
     {
         own_t *connecter = (this->*connecter_factories_it->second) (io_thread, wait_);
 
+
+        printf("%s %s %d ***************************************************::%s\n", __FILE__, __FUNCTION__, __LINE__, (wait_?"true":"false"));
+
         alloc_assert (connecter);
         launch_child (connecter);
         return;
@@ -612,6 +624,8 @@ zmq::own_t *zmq::session_base_t::create_connecter_tcp(io_thread_t *io_thread_, b
         alloc_assert (proxy_address);
         return new (std::nothrow) socks_connecter_t(io_thread_, this, options, _addr, proxy_address, wait_);
     }
+
+    printf("%s %s %d createcreatecreatecreatecreatecreatecreatecreatecreate\n", __FILE__, __FUNCTION__, __LINE__);
 
     return new (std::nothrow) tcp_connecter_t(io_thread_, this, options, _addr, wait_);
 }
