@@ -39,7 +39,7 @@ zmq::io_object_t::handle_t zmq::io_object_t::add_fd (fd_t fd_)
 
 void zmq::io_object_t::rm_fd (handle_t handle_)
 {
-    _poller->rm_fd (handle_);
+    _poller->rm_fd(handle_);
 }
 
 void zmq::io_object_t::set_pollin (handle_t handle_)

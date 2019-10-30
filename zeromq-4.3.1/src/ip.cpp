@@ -266,12 +266,6 @@ bool zmq::initialize_network ()
 
 void zmq::shutdown_network ()
 {
-#ifdef ZMQ_HAVE_WINDOWS
-    //  On Windows, uninitialise socket layer.
-    int rc = WSACleanup ();
-    wsa_assert (rc != SOCKET_ERROR);
-#endif
-
 #if defined ZMQ_HAVE_OPENPGM
     //  Shut down the OpenPGM library.
     if (pgm_shutdown () != TRUE)

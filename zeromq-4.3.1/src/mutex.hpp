@@ -2,7 +2,6 @@
 #define __ZMQ_MUTEX_HPP_INCLUDED__
 
 #include "err.hpp"
-//  Mutex class encapsulates OS mutex in a platform-independent way.
 #include <pthread.h>
 
 namespace zmq
@@ -11,7 +10,7 @@ namespace zmq
 class mutex_t
 {
 public:
-    inline mutex_t ()
+    inline mutex_t()
     {
         int rc = pthread_mutexattr_init (&_attr);
         posix_assert (rc);
@@ -23,7 +22,7 @@ public:
         posix_assert (rc);
     }
 
-    inline ~mutex_t ()
+    inline ~mutex_t()
     {
         int rc = pthread_mutex_destroy (&_mutex);
         posix_assert (rc);
@@ -32,13 +31,13 @@ public:
         posix_assert (rc);
     }
 
-    inline void lock ()
+    inline void lock()
     {
         int rc = pthread_mutex_lock (&_mutex);
         posix_assert (rc);
     }
 
-    inline bool try_lock ()
+    inline bool try_lock()
     {
         int rc = pthread_mutex_trylock (&_mutex);
         if (rc == EBUSY)
@@ -48,18 +47,19 @@ public:
         return true;
     }
 
-    inline void unlock ()
+    inline void unlock()
     {
         int rc = pthread_mutex_unlock (&_mutex);
         posix_assert (rc);
     }
 
-    inline pthread_mutex_t *get_mutex () { return &_mutex; }
+    inline pthread_mutex_t * get_mutex () { return &_mutex; }
 
 private:
     pthread_mutex_t     _mutex;
     pthread_mutexattr_t _attr;
 
+private:
     // Disable copy construction and assignment.
     mutex_t (const mutex_t &);
     const mutex_t &operator= (const mutex_t &);
@@ -80,6 +80,7 @@ struct scoped_lock_t
 private:
     mutex_t &_mutex;
 
+private:
     // Disable copy construction and assignment.
     scoped_lock_t (const scoped_lock_t &);
     const scoped_lock_t &operator= (const scoped_lock_t &);

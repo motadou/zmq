@@ -97,6 +97,9 @@ public:
     
     virtual ~poller_base_t ();
 
+
+    int iFlag;
+
 public:
     // Methods from the poller concept.
     int  get_load() const;

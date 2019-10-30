@@ -176,30 +176,28 @@ public:
     //  is returned.
     inline T *cas (T *cmp_, T *val_) ZMQ_NOEXCEPT
     {
+        // 这里测试了ZMQ_ATOMIC_PTR_MUTEX这个宏定义，cmake编译或者configure编译都没有设置该宏。
+        // 查询了一下其他的说明，应该是在ARM平台上才定义这个
+        // 为了方便阅读，我将宏定义去除了。可以参考zmq的原生代码
+
+        // 将cmp_的值与_ptr相比，如果相等则将val_存储在_ptr中，否则将cmp_中的值变为_ptr中的值。返回是否存储成功。
+
 #if defined ZMQ_ATOMIC_PTR_CXX11
-        _ptr.compare_exchange_strong (cmp_, val_, std::memory_order_acq_rel);
+        _ptr.compare_exchange_strong(cmp_, val_, std::memory_order_acq_rel);
         return cmp_;
 #else
-        return (T *) atomic_cas ((void **) &_ptr, cmp_, val_
-#if defined ZMQ_ATOMIC_PTR_MUTEX
-                                 ,
-                                 _sync
-#endif
-        );
+        return (T *) atomic_cas((void **) &_ptr, cmp_, val_);
 #endif
     }
 
-  private:
+private:
 #if defined ZMQ_ATOMIC_PTR_CXX11
     std::atomic<T *> _ptr;
 #else
     volatile T *_ptr;
 #endif
 
-#if defined ZMQ_ATOMIC_PTR_MUTEX
-    mutex_t _sync;
-#endif
-
+private:
 #if !defined ZMQ_ATOMIC_PTR_CXX11
     atomic_ptr_t (const atomic_ptr_t &);
     const atomic_ptr_t &operator= (const atomic_ptr_t &);

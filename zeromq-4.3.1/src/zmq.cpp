@@ -20,12 +20,8 @@
 // zmq.h must be included *after* poll.h for AIX to build properly
 //#include "../include/zmq.h"
 
-#if !defined ZMQ_HAVE_WINDOWS
+
 #include <unistd.h>
-#ifdef ZMQ_HAVE_VXWORKS
-#include <strings.h>
-#endif
-#endif
 
 // XSI vector I/O
 #if defined ZMQ_HAVE_UIO
@@ -110,16 +106,22 @@ void *zmq_ctx_new (void)
 
 int zmq_ctx_term (void *ctx_)
 {
-    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) {
+    printf("--------------------------------11\n");
+
+    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) 
+    {
         errno = EFAULT;
         return -1;
     }
 
-    int rc = (static_cast<zmq::ctx_t *> (ctx_))->terminate ();
+    printf("--------------------------------22\n");
+
+    int rc = (static_cast<zmq::ctx_t *> (ctx_))->terminate();
     int en = errno;
 
     //  Shut down only if termination was not interrupted by a signal.
-    if (!rc || en != EINTR) {
+    if (!rc || en != EINTR) 
+    {
         zmq::shutdown_network ();
     }
 
@@ -193,7 +195,7 @@ static zmq::socket_base_t *as_socket_base_t (void *s_)
     return s;
 }
 
-void *zmq_socket (void *ctx_, int type_)
+void *zmq_socket(void *ctx_, int type_)
 {
     if (!ctx_ || !(static_cast<zmq::ctx_t *>(ctx_))->check_tag()) 
     {
@@ -211,18 +213,18 @@ int zmq_close (void *s_)
     zmq::socket_base_t *s = as_socket_base_t (s_);
     if (!s)
         return -1;
-    s->close ();
+    s->close();
     return 0;
 }
 
 int zmq_setsockopt (void *s_, int option_, const void *optval_, size_t optvallen_)
 {
-    zmq::socket_base_t *s = as_socket_base_t (s_);
+    zmq::socket_base_t *s = as_socket_base_t(s_);
     
     if (!s)
         return -1;
 
-    return s->setsockopt (option_, optval_, optvallen_);
+    return s->setsockopt(option_, optval_, optvallen_);
 }
 
 int zmq_getsockopt (void *s_, int option_, void *optval_, size_t *optvallen_)

@@ -153,9 +153,9 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_, bool
     _monitor_sync ()
 {
     options.socket_id = sid_;
-    options.ipv6 = (parent_->get (ZMQ_IPV6) != 0);
-    options.linger.store (parent_->get (ZMQ_BLOCKY) ? -1 : 0);
-    options.zero_copy = parent_->get (ZMQ_ZERO_COPY_RECV) != 0;
+    options.ipv6      = (parent_->get(ZMQ_IPV6) != 0);
+    options.linger.store(parent_->get(ZMQ_BLOCKY) ? -1 : 0);
+    options.zero_copy = parent_->get(ZMQ_ZERO_COPY_RECV) != 0;
 
     if (_thread_safe) 
     {
@@ -164,7 +164,8 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_, bool
     } 
     else 
     {
-        mailbox_t *m = new (std::nothrow) mailbox_t ();
+        // 走这里
+        mailbox_t *m = new (std::nothrow) mailbox_t();
         zmq_assert (m);
 
         if (m->get_fd() != retired_fd)
@@ -205,6 +206,8 @@ zmq::socket_base_t::~socket_base_t ()
 
 zmq::i_mailbox *zmq::socket_base_t::get_mailbox () const
 {
+    printf("%s %s %d get_mailboxget_mailboxget_mailboxget_mailboxget_mailboxget_mailbox\n", __FILE__, __FUNCTION__, __LINE__);
+
     return _mailbox;
 }
 
@@ -244,25 +247,18 @@ int zmq::socket_base_t::parse_uri (const char *uri_, std::string &protocol_, std
 int zmq::socket_base_t::check_protocol (const std::string &protocol_) const
 {
     //  First check out whether the protocol is something we are aware of.
-    if (protocol_ != protocol_name::inproc
-#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS && !defined ZMQ_HAVE_VXWORKS
+    if (   protocol_ != protocol_name::inproc
         && protocol_ != protocol_name::ipc
-#endif
         && protocol_ != protocol_name::tcp
 #if defined ZMQ_HAVE_OPENPGM
         //  pgm/epgm transports only available if 0MQ is compiled with OpenPGM.
         && protocol_ != "pgm"
         && protocol_ != "epgm"
 #endif
-#if defined ZMQ_HAVE_TIPC
         // TIPC transport is only available on Linux.
         && protocol_ != protocol_name::tipc
-#endif
 #if defined ZMQ_HAVE_NORM
         && protocol_ != "norm"
-#endif
-#if defined ZMQ_HAVE_VMCI
-        && protocol_ != protocol_name::vmci
 #endif
         && protocol_ != protocol_name::udp) 
     {
@@ -282,9 +278,8 @@ int zmq::socket_base_t::check_protocol (const std::string &protocol_) const
     }
 #endif
 
-    if (protocol_ == protocol_name::udp
-        && (options.type != ZMQ_DISH && options.type != ZMQ_RADIO
-            && options.type != ZMQ_DGRAM)) {
+    if (protocol_ == protocol_name::udp && (options.type != ZMQ_DISH && options.type != ZMQ_RADIO && options.type != ZMQ_DGRAM)) 
+    {
         errno = ENOCOMPATPROTO;
         return -1;
     }
@@ -293,9 +288,7 @@ int zmq::socket_base_t::check_protocol (const std::string &protocol_) const
     return 0;
 }
 
-void zmq::socket_base_t::attach_pipe (pipe_t *pipe_,
-                                      bool subscribe_to_all_,
-                                      bool locally_initiated_)
+void zmq::socket_base_t::attach_pipe(pipe_t *pipe_, bool subscribe_to_all_, bool locally_initiated_)
 {
     //  First, register the pipe so that we can terminate it later on.
     pipe_->set_event_sink (this);
@@ -323,7 +316,7 @@ int zmq::socket_base_t::setsockopt(int option_, const void *optval_, size_t optv
     }
 
     //  First, check whether specific socket type overloads the option.
-    int rc = xsetsockopt (option_, optval_, optvallen_);
+    int rc = xsetsockopt(option_, optval_, optvallen_);
     if (rc == 0 || errno != EINVAL) 
     {
         return rc;
@@ -331,15 +324,16 @@ int zmq::socket_base_t::setsockopt(int option_, const void *optval_, size_t optv
 
     //  If the socket type doesn't support the option, pass it to
     //  the generic option parser.
-    rc = options.setsockopt (option_, optval_, optvallen_);
-    update_pipe_options (option_);
+    rc = options.setsockopt(option_, optval_, optvallen_);
+
+    update_pipe_options(option_);
 
     return rc;
 }
 
 int zmq::socket_base_t::getsockopt(int option_, void *optval_, size_t *optvallen_)
 {
-    scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
+    scoped_optional_lock_t sync_lock(_thread_safe ? &_sync : NULL);
 
     if (unlikely (_ctx_terminated)) 
     {
@@ -648,6 +642,7 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
         return -1;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     if (protocol == protocol_name::inproc) 
     {
         //  TODO: inproc connect is specific with respect to creating pipes
@@ -736,16 +731,18 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
     }
 
     //  Choose the I/O thread to run the session in.
-    io_thread_t *io_thread = choose_io_thread (options.affinity);
+    io_thread_t * io_thread = choose_io_thread(options.affinity);
     if (!io_thread) 
     {
         errno = EMTHREAD;
         return -1;
     }
 
-    address_t *paddr = new (std::nothrow) address_t (protocol, address, this->get_ctx ());
+    address_t *paddr = new (std::nothrow) address_t(protocol, address, this->get_ctx());
     alloc_assert (paddr);
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // 如果是TCP协议
     //  Resolve address (if needed by the protocol)
     if (protocol == protocol_name::tcp) 
     {
@@ -777,7 +774,8 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
         {
             //  Do we have a valid port string? (cannot be '*' in connect
             check = strrchr (address.c_str (), ':');
-            if (check) {
+            if (check) 
+            {
                 check++;
                 if (*check && (isdigit (*check)))
                     rc = 0; //  Valid
@@ -794,22 +792,25 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
         //  Defer resolution until a socket is opened
         paddr->resolved.tcp_addr = NULL;
     }
-    #if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS && !defined ZMQ_HAVE_VXWORKS
-    else if (protocol == protocol_name::ipc) 
+
+    if (protocol == protocol_name::ipc) 
     {
         paddr->resolved.ipc_addr = new (std::nothrow) ipc_address_t ();
         alloc_assert (paddr->resolved.ipc_addr);
         int rc = paddr->resolved.ipc_addr->resolve (address.c_str ());
-        if (rc != 0) {
+        if (rc != 0) 
+        {
             LIBZMQ_DELETE (paddr);
             return -1;
         }
     }
-    #endif
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // 如果是UDP协议
     if (protocol == protocol_name::udp) 
     {
-        if (options.type != ZMQ_RADIO) {
+        if (options.type != ZMQ_RADIO) 
+        {
             errno = ENOCOMPATPROTO;
             LIBZMQ_DELETE (paddr);
             return -1;
@@ -877,6 +878,9 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
     session_base_t *session = session_base_t::create(io_thread, true, this, options, paddr);
     errno_assert (session);
 
+    printf("xxxx:::%d %d %d\n", io_thread->get_tid(), session->get_tid(), this->get_tid());
+
+
     //  PGM does not support subscription forwarding; ask for all data to be
     //  sent to this pipe. (same for NORM, currently?)
     const bool subscribe_to_all = protocol == "pgm" || protocol == "epgm" || protocol == "norm" || protocol == protocol_name::udp;
@@ -892,8 +896,8 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
 
         const bool conflate = get_effective_conflate_option (options);
 
-        int  hwms[2]      = { conflate ? -1 : options.sndhwm, conflate ? -1 : options.rcvhwm};
-        bool conflates[2] = { conflate, conflate};
+        int  hwms[2]      = { conflate ? -1 : options.sndhwm, conflate ? -1 : options.rcvhwm };
+        bool conflates[2] = { conflate, conflate };
         rc = pipepair(parents, new_pipes, hwms, conflates);
         errno_assert (rc == 0);
 
@@ -1015,7 +1019,7 @@ int zmq::socket_base_t::term_endpoint (const char *endpoint_uri_)
     return 0;
 }
 
-int zmq::socket_base_t::send (msg_t *msg_, int flags_)
+int zmq::socket_base_t::send(msg_t *msg_, int flags_)
 {
     scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
 
@@ -1050,7 +1054,7 @@ int zmq::socket_base_t::send (msg_t *msg_, int flags_)
     msg_->reset_metadata ();
 
     //  Try to send the message using method in each socket class
-    rc = xsend (msg_);
+    rc = xsend(msg_);
     if (rc == 0) 
     {
         return 0;
@@ -1071,7 +1075,7 @@ int zmq::socket_base_t::send (msg_t *msg_, int flags_)
         }
     }
 
-    if (unlikely (errno != EAGAIN)) 
+    if (unlikely(errno != EAGAIN)) 
     {
         return -1;
     }
@@ -1085,7 +1089,7 @@ int zmq::socket_base_t::send (msg_t *msg_, int flags_)
 
     //  Compute the time when the timeout should occur.
     //  If the timeout is infinite, don't care.
-    int timeout = options.sndtimeo;
+    int timeout        = options.sndtimeo;
     const uint64_t end = timeout < 0 ? 0 : (_clock.now_ms () + timeout);
 
     //  Oops, we couldn't send the message. Wait for the next
@@ -1093,12 +1097,12 @@ int zmq::socket_base_t::send (msg_t *msg_, int flags_)
     //  If timeout is reached in the meantime, return EAGAIN.
     while (true) 
     {
-        if (unlikely (process_commands (timeout, false) != 0)) 
+        if (unlikely (process_commands(timeout, false) != 0)) 
         {
             return -1;
         }
-        
-        rc = xsend (msg_);
+
+        rc = xsend(msg_);
         if (rc == 0)
             break;
         
@@ -1109,7 +1113,7 @@ int zmq::socket_base_t::send (msg_t *msg_, int flags_)
         
         if (timeout > 0) 
         {
-            timeout = static_cast<int> (end - _clock.now_ms ());
+            timeout = static_cast<int>(end - _clock.now_ms ());
             if (timeout <= 0) 
             {
                 errno = EAGAIN;
@@ -1225,31 +1229,32 @@ int zmq::socket_base_t::close ()
 
     //  Remove all existing signalers for thread safe sockets
     if (_thread_safe)
-        (static_cast<mailbox_safe_t *> (_mailbox))->clear_signalers ();
+    {
+        (static_cast<mailbox_safe_t *> (_mailbox))->clear_signalers();
+    }
 
     //  Mark the socket as dead
     _tag = 0xdeadbeef;
 
-
     //  Transfer the ownership of the socket from this application thread
     //  to the reaper thread which will take care of the rest of shutdown
     //  process.
-    send_reap (this);
+    send_reap(this);
 
     return 0;
 }
 
-bool zmq::socket_base_t::has_in ()
+bool zmq::socket_base_t::has_in()
 {
     return xhas_in ();
 }
 
-bool zmq::socket_base_t::has_out ()
+bool zmq::socket_base_t::has_out()
 {
     return xhas_out ();
 }
 
-void zmq::socket_base_t::start_reaping (poller_t *poller_)
+void zmq::socket_base_t::start_reaping(poller_t *poller_)
 {
     //  Plug the socket to the reaper thread.
     _poller = poller_;
@@ -1284,7 +1289,10 @@ void zmq::socket_base_t::start_reaping (poller_t *poller_)
 
 int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
 {
-    if (timeout_ == 0) {
+    printf("%s %s %d process_commandsprocess_commandsprocess_commandsprocess_conds >> pthred_self:%ld \n", __FILE__, __FUNCTION__, __LINE__,  pthread_self());
+
+    if (timeout_ == 0) 
+    {
         //  If we are asked not to wait, check whether we haven't processed
         //  commands recently, so that we can throttle the new commands.
 
@@ -1297,7 +1305,8 @@ int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
         //  depending on CPU speed: It's ~1ms on 3GHz CPU, ~2ms on 1.5GHz CPU
         //  etc. The optimisation makes sense only on platforms where getting
         //  a timestamp is a very cheap operation (tens of nanoseconds).
-        if (tsc && throttle_) {
+        if (tsc && throttle_) 
+        {
             //  Check whether TSC haven't jumped backwards (in case of migration
             //  between CPU cores) and whether certain time have elapsed since
             //  last command processing. If it didn't do nothing.
@@ -1312,7 +1321,8 @@ int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
     int rc = _mailbox->recv (&cmd, timeout_);
 
     //  Process all available commands.
-    while (rc == 0) {
+    while (rc == 0) 
+    {
         cmd.destination->process_command (cmd);
         rc = _mailbox->recv (&cmd, 0);
     }
@@ -1322,7 +1332,8 @@ int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
 
     zmq_assert (errno == EAGAIN);
 
-    if (_ctx_terminated) {
+    if (_ctx_terminated) 
+    {
         errno = ETERM;
         return -1;
     }
@@ -1330,7 +1341,7 @@ int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
     return 0;
 }
 
-void zmq::socket_base_t::process_stop ()
+void zmq::socket_base_t::process_stop()
 {
     //  Here, someone have called zmq_ctx_term while the socket was still alive.
     //  We'll remember the fact so that any blocking call is interrupted and any
@@ -1340,6 +1351,9 @@ void zmq::socket_base_t::process_stop ()
     stop_monitor ();
 
     _ctx_terminated = true;
+
+
+    printf("%s %s %d STopSTopSTopSTopSTopSTopSTop\n", __FILE__, __FUNCTION__, __LINE__);
 }
 
 void zmq::socket_base_t::process_bind (pipe_t *pipe_)
@@ -1453,6 +1467,7 @@ void zmq::socket_base_t::in_event ()
         if (_thread_safe)
             _reaper_signaler->recv ();
 
+        printf("%s %s %d in_eventin_eventin_eventin_eventin_eventin_eventin_event\n", __FILE__, __FUNCTION__, __LINE__);
         process_commands (0, false);
     }
     check_destroy ();
@@ -1718,13 +1733,14 @@ void zmq::socket_base_t::monitor_event (int event_,
 
 void zmq::socket_base_t::stop_monitor (bool send_monitor_stopped_event_)
 {
-    // this is a private method which is only called from
-    // contexts where the mutex has been locked before
+    // this is a private method which is only called from contexts where the mutex has been locked before
+    if (_monitor_socket) 
+    {
+        if ((_monitor_events & ZMQ_EVENT_MONITOR_STOPPED) && send_monitor_stopped_event_)
+        {
+            monitor_event(ZMQ_EVENT_MONITOR_STOPPED, 0, "");
+        }
 
-    if (_monitor_socket) {
-        if ((_monitor_events & ZMQ_EVENT_MONITOR_STOPPED)
-            && send_monitor_stopped_event_)
-            monitor_event (ZMQ_EVENT_MONITOR_STOPPED, 0, "");
         zmq_close (_monitor_socket);
         _monitor_socket = NULL;
         _monitor_events = 0;

@@ -40,7 +40,7 @@ zmq::ctx_t *zmq::object_t::get_ctx ()
     return _ctx;
 }
 
-void zmq::object_t::process_command (command_t &cmd_)
+void zmq::object_t::process_command(command_t &cmd_)
 {
     switch (cmd_.type) 
     {
@@ -67,7 +67,7 @@ void zmq::object_t::process_command (command_t &cmd_)
             break;
 
         case command_t::attach:
-            process_attach (cmd_.args.attach.engine);
+            process_attach(cmd_.args.attach.engine);
             process_seqnum ();
             break;
 
@@ -89,8 +89,7 @@ void zmq::object_t::process_command (command_t &cmd_)
             break;
 
         case command_t::pipe_hwm:
-            process_pipe_hwm (cmd_.args.pipe_hwm.inhwm,
-                              cmd_.args.pipe_hwm.outhwm);
+            process_pipe_hwm (cmd_.args.pipe_hwm.inhwm, cmd_.args.pipe_hwm.outhwm);
             break;
 
         case command_t::term_req:
@@ -132,59 +131,54 @@ int zmq::object_t::register_endpoint (const char *addr_, const endpoint_t &endpo
     return _ctx->register_endpoint (addr_, endpoint_);
 }
 
-int zmq::object_t::unregister_endpoint (const std::string &addr_,
-                                        socket_base_t *socket_)
+int zmq::object_t::unregister_endpoint (const std::string &addr_, socket_base_t *socket_)
 {
     return _ctx->unregister_endpoint (addr_, socket_);
 }
 
 void zmq::object_t::unregister_endpoints (socket_base_t *socket_)
 {
-    return _ctx->unregister_endpoints (socket_);
+    return _ctx->unregister_endpoints(socket_);
 }
 
 zmq::endpoint_t zmq::object_t::find_endpoint (const char *addr_)
 {
-    return _ctx->find_endpoint (addr_);
+    return _ctx->find_endpoint(addr_);
 }
 
-void zmq::object_t::pend_connection (const std::string &addr_,
-                                     const endpoint_t &endpoint_,
-                                     pipe_t **pipes_)
+void zmq::object_t::pend_connection(const std::string &addr_, const endpoint_t &endpoint_, pipe_t **pipes_)
 {
-    _ctx->pend_connection (addr_, endpoint_, pipes_);
+    _ctx->pend_connection(addr_, endpoint_, pipes_);
 }
 
-void zmq::object_t::connect_pending (const char *addr_,
-                                     zmq::socket_base_t *bind_socket_)
+void zmq::object_t::connect_pending(const char *addr_, zmq::socket_base_t *bind_socket_)
 {
-    return _ctx->connect_pending (addr_, bind_socket_);
+    return _ctx->connect_pending(addr_, bind_socket_);
 }
 
-void zmq::object_t::destroy_socket (socket_base_t *socket_)
+void zmq::object_t::destroy_socket(socket_base_t *socket_)
 {
-    _ctx->destroy_socket (socket_);
+    _ctx->destroy_socket(socket_);
 }
 
-zmq::io_thread_t *zmq::object_t::choose_io_thread (uint64_t affinity_)
+zmq::io_thread_t *zmq::object_t::choose_io_thread(uint64_t affinity_)
 {
     return _ctx->choose_io_thread(affinity_);
 }
 
-void zmq::object_t::send_stop ()
+void zmq::object_t::send_stop()
 {
-    //  'stop' command goes always from administrative thread to
-    //  the current object.
+    //  'stop' command goes always from administrative thread to the current object.
     command_t cmd;
     cmd.destination = this;
-    cmd.type = command_t::stop;
-    _ctx->send_command (_tid, cmd);
+    cmd.type        = command_t::stop;
+    _ctx->send_command(_tid, cmd);
 }
 
-void zmq::object_t::send_plug (own_t *destination_, bool inc_seqnum_)
+void zmq::object_t::send_plug(own_t *destination_, bool inc_seqnum_)
 {
     if (inc_seqnum_)
-        destination_->inc_seqnum ();
+        destination_->inc_seqnum();
 
     command_t cmd;
     cmd.destination = destination_;
@@ -192,17 +186,17 @@ void zmq::object_t::send_plug (own_t *destination_, bool inc_seqnum_)
     send_command(cmd);
 }
 
-void zmq::object_t::send_own (own_t *destination_, own_t *object_)
+void zmq::object_t::send_own(own_t * destination_, own_t * object_)
 {
-    destination_->inc_seqnum ();
+    destination_->inc_seqnum();
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::own;
+    cmd.destination     = destination_;
+    cmd.type            = command_t::own;
     cmd.args.own.object = object_;
-    send_command (cmd);
+    send_command(cmd);
 }
 
-void zmq::object_t::send_attach (session_base_t * destination_, i_engine *engine_, bool inc_seqnum_)
+void zmq::object_t::send_attach(session_base_t * destination_, i_engine *engine_, bool inc_seqnum_)
 {
     if (inc_seqnum_)
         destination_->inc_seqnum ();
@@ -211,17 +205,17 @@ void zmq::object_t::send_attach (session_base_t * destination_, i_engine *engine
     cmd.destination        = destination_;
     cmd.type               = command_t::attach;
     cmd.args.attach.engine = engine_;
-    send_command (cmd);
+    send_command(cmd);
 }
 
-void zmq::object_t::send_bind (own_t *destination_, pipe_t *pipe_, bool inc_seqnum_)
+void zmq::object_t::send_bind(own_t *destination_, pipe_t *pipe_, bool inc_seqnum_)
 {
     if (inc_seqnum_)
         destination_->inc_seqnum ();
 
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::bind;
+    cmd.destination    = destination_;
+    cmd.type           = command_t::bind;
     cmd.args.bind.pipe = pipe_;
     send_command (cmd);
 }
@@ -230,53 +224,50 @@ void zmq::object_t::send_activate_read (pipe_t *destination_)
 {
     command_t cmd;
     cmd.destination = destination_;
-    cmd.type = command_t::activate_read;
+    cmd.type        = command_t::activate_read;
     send_command (cmd);
 }
 
-void zmq::object_t::send_activate_write (pipe_t *destination_,
-                                         uint64_t msgs_read_)
+void zmq::object_t::send_activate_write(pipe_t *destination_, uint64_t msgs_read_)
 {
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::activate_write;
+    cmd.destination                   = destination_;
+    cmd.type                          = command_t::activate_write;
     cmd.args.activate_write.msgs_read = msgs_read_;
     send_command (cmd);
 }
 
-void zmq::object_t::send_hiccup (pipe_t *destination_, void *pipe_)
+void zmq::object_t::send_hiccup(pipe_t *destination_, void *pipe_)
 {
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::hiccup;
+    cmd.destination      = destination_;
+    cmd.type             = command_t::hiccup;
     cmd.args.hiccup.pipe = pipe_;
     send_command (cmd);
 }
 
-void zmq::object_t::send_pipe_term (pipe_t *destination_)
+void zmq::object_t::send_pipe_term(pipe_t *destination_)
 {
     command_t cmd;
     cmd.destination = destination_;
-    cmd.type = command_t::pipe_term;
-    send_command (cmd);
+    cmd.type        = command_t::pipe_term;
+    send_command(cmd);
 }
 
 void zmq::object_t::send_pipe_term_ack (pipe_t *destination_)
 {
     command_t cmd;
     cmd.destination = destination_;
-    cmd.type = command_t::pipe_term_ack;
+    cmd.type        = command_t::pipe_term_ack;
     send_command (cmd);
 }
 
-void zmq::object_t::send_pipe_hwm (pipe_t *destination_,
-                                   int inhwm_,
-                                   int outhwm_)
+void zmq::object_t::send_pipe_hwm (pipe_t *destination_, int inhwm_, int outhwm_)
 {
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::pipe_hwm;
-    cmd.args.pipe_hwm.inhwm = inhwm_;
+    cmd.destination          = destination_;
+    cmd.type                 = command_t::pipe_hwm;
+    cmd.args.pipe_hwm.inhwm  = inhwm_;
     cmd.args.pipe_hwm.outhwm = outhwm_;
     send_command (cmd);
 }
@@ -284,8 +275,8 @@ void zmq::object_t::send_pipe_hwm (pipe_t *destination_,
 void zmq::object_t::send_term_req (own_t *destination_, own_t *object_)
 {
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::term_req;
+    cmd.destination          = destination_;
+    cmd.type                 = command_t::term_req;
     cmd.args.term_req.object = object_;
     send_command (cmd);
 }
@@ -293,8 +284,8 @@ void zmq::object_t::send_term_req (own_t *destination_, own_t *object_)
 void zmq::object_t::send_term (own_t *destination_, int linger_)
 {
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::term;
+    cmd.destination      = destination_;
+    cmd.type             = command_t::term;
     cmd.args.term.linger = linger_;
     send_command (cmd);
 }
@@ -303,16 +294,15 @@ void zmq::object_t::send_term_ack (own_t *destination_)
 {
     command_t cmd;
     cmd.destination = destination_;
-    cmd.type = command_t::term_ack;
+    cmd.type        = command_t::term_ack;
     send_command (cmd);
 }
 
-void zmq::object_t::send_term_endpoint (own_t *destination_,
-                                        std::string *endpoint_)
+void zmq::object_t::send_term_endpoint (own_t *destination_, std::string *endpoint_)
 {
     command_t cmd;
-    cmd.destination = destination_;
-    cmd.type = command_t::term_endpoint;
+    cmd.destination                 = destination_;
+    cmd.type                        = command_t::term_endpoint;
     cmd.args.term_endpoint.endpoint = endpoint_;
     send_command (cmd);
 }
@@ -320,8 +310,8 @@ void zmq::object_t::send_term_endpoint (own_t *destination_,
 void zmq::object_t::send_reap (class socket_base_t *socket_)
 {
     command_t cmd;
-    cmd.destination = _ctx->get_reaper ();
-    cmd.type = command_t::reap;
+    cmd.destination      = _ctx->get_reaper();
+    cmd.type             = command_t::reap;
     cmd.args.reap.socket = socket_;
     send_command (cmd);
 }
@@ -329,7 +319,7 @@ void zmq::object_t::send_reap (class socket_base_t *socket_)
 void zmq::object_t::send_reaped ()
 {
     command_t cmd;
-    cmd.destination = _ctx->get_reaper ();
+    cmd.destination = _ctx->get_reaper();
     cmd.type        = command_t::reaped;
 
     send_command (cmd);
@@ -339,7 +329,7 @@ void zmq::object_t::send_inproc_connected (zmq::socket_base_t *socket_)
 {
     command_t cmd;
     cmd.destination = socket_;
-    cmd.type = command_t::inproc_connected;
+    cmd.type        = command_t::inproc_connected;
     send_command (cmd);
 }
 
@@ -347,7 +337,7 @@ void zmq::object_t::send_done ()
 {
     command_t cmd;
     cmd.destination = NULL;
-    cmd.type = command_t::done;
+    cmd.type        = command_t::done;
     _ctx->send_command (ctx_t::term_tid, cmd);
 }
 
@@ -426,22 +416,22 @@ void zmq::object_t::process_term_endpoint (std::string *)
     zmq_assert (false);
 }
 
-void zmq::object_t::process_reap (class socket_base_t *)
+void zmq::object_t::process_reap(class socket_base_t *)
 {
     zmq_assert (false);
 }
 
-void zmq::object_t::process_reaped ()
+void zmq::object_t::process_reaped()
 {
     zmq_assert (false);
 }
 
-void zmq::object_t::process_seqnum ()
+void zmq::object_t::process_seqnum()
 {
     zmq_assert (false);
 }
 
-void zmq::object_t::send_command (command_t &cmd_)
+void zmq::object_t::send_command(command_t & cmd_)
 {
-    _ctx->send_command(cmd_.destination->get_tid (), cmd_);
+    _ctx->send_command(cmd_.destination->get_tid(), cmd_);
 }

@@ -11,8 +11,7 @@ namespace zmq
 //  Only a single thread can read from the pipe at any specific moment.
 //  Only a single thread can write to the pipe at any specific moment.
 //  T is the type of the object in the queue.
-//  N is granularity of the pipe, i.e. how many items are needed to
-//  perform next memory allocation.
+//  N is granularity of the pipe, i.e. how many items are needed to perform next memory allocation.
 
 template <typename T, int N> class ypipe_t : public ypipe_base_t<T>
 {
@@ -21,12 +20,12 @@ public:
     inline ypipe_t ()
     {
         //  Insert terminator element into the queue.
-        _queue.push ();
+        _queue.push();
 
         //  Let all the pointers to point to the terminator.
         //  (unless pipe is dead, in which case c is set to NULL).
-        _r = _w = _f = &_queue.back ();
-        _c.set (&_queue.back ());
+        _r = _w = _f = &_queue.back();
+        _c.set(&_queue.back());
     }
 
     //  The destructor doesn't have to be virtual. It is made virtual
@@ -37,70 +36,60 @@ public:
     //  when used with zmq_msg. Initialising the VSM body for
     //  non-VSM messages won't be good for performance.
 
-#ifdef ZMQ_HAVE_OPENVMS
-#pragma message save
-#pragma message disable(UNINIT)
-#endif
-
     //  Write an item to the pipe.  Don't flush it yet. If incomplete is
     //  set to true the item is assumed to be continued by items
     //  subsequently written to the pipe. Incomplete items are never
     //  flushed down the stream.
-    inline void write (const T &value_, bool incomplete_)
+    inline void write(const T &value_, bool incomplete_)
     {
         //  Place the value to the queue, add new terminator element.
-        _queue.back () = value_;
-        _queue.push ();
+        _queue.back() = value_;
+        _queue.push();
 
         //  Move the "flush up to here" poiter.
         if (!incomplete_)
-            _f = &_queue.back ();
+            _f = &_queue.back();
     }
-
-#ifdef ZMQ_HAVE_OPENVMS
-#pragma message restore
-#endif
 
     //  Pop an incomplete item from the pipe. Returns true if such
     //  item exists, false otherwise.
-    inline bool unwrite (T *value_)
+    inline bool unwrite(T *value_)
     {
-        if (_f == &_queue.back ())
+        if (_f == &_queue.back())
             return false;
         _queue.unpush ();
-        *value_ = _queue.back ();
+        *value_ = _queue.back();
         return true;
     }
 
-    //  Flush all the completed items into the pipe. Returns false if
-    //  the reader thread is sleeping. In that case, caller is obliged to
-    //  wake the reader up before using the pipe again.
-    inline bool flush ()
+    //  Flush all the completed items into the pipe. 
+    //  Returns false if the reader thread is sleeping. In that case, caller is obliged to wake the reader up before using the pipe again.
+    inline bool flush()
     {
         //  If there are no un-flushed items, do nothing.
         if (_w == _f)
             return true;
 
         //  Try to set 'c' to 'f'.
-        if (_c.cas (_w, _f) != _w) {
+        if (_c.cas(_w, _f) != _w)
+        {
             //  Compare-and-swap was unseccessful because 'c' is NULL.
             //  This means that the reader is asleep. Therefore we don't
             //  care about thread-safeness and update c in non-atomic
             //  manner. We'll return false to let the caller know
             //  that reader is sleeping.
-            _c.set (_f);
+            _c.set(_f);
             _w = _f;
             return false;
         }
 
-        //  Reader is alive. Nothing special to do now. Just move
-        //  the 'first un-flushed item' pointer to 'f'.
+        //  Reader is alive. Nothing special to do now. Just move the 'first un-flushed item' pointer to 'f'.
         _w = _f;
         return true;
     }
 
     //  Check whether item is available for reading.
-    inline bool check_read ()
+    inline bool check_read()
     {
         //  Was the value prefetched already? If so, return.
         if (&_queue.front () != _r && _r)
@@ -149,19 +138,17 @@ public:
         return (*fn_) (_queue.front ());
     }
 
-  protected:
+protected:
     //  Allocation-efficient queue to store pipe items.
     //  Front of the queue points to the first prefetched item, back of
     //  the pipe points to last un-flushed item. Front is used only by
     //  reader thread, while back is used only by writer thread.
     yqueue_t<T, N> _queue;
 
-    //  Points to the first un-flushed item. This variable is used
-    //  exclusively by writer thread.
+    //  Points to the first un-flushed item. This variable is used exclusively by writer thread.
     T *_w;
 
-    //  Points to the first un-prefetched item. This variable is used
-    //  exclusively by reader thread.
+    //  Points to the first un-prefetched item. This variable is used exclusively by reader thread.
     T *_r;
 
     //  Points to the first item to be flushed in the future.

@@ -51,6 +51,8 @@ zmq::epoll_t::~epoll_t ()
 
 zmq::epoll_t::handle_t zmq::epoll_t::add_fd(fd_t fd_, i_poll_events *events_)
 {
+    printf("%s %s %d ADDADDADDADDADDADDADDADDADDADDADDADDADDADDADD %d \n", __FILE__, __FUNCTION__, __LINE__, fd_);
+
     check_thread ();
     poll_entry_t *pe = new (std::nothrow) poll_entry_t;
     alloc_assert (pe);
@@ -157,6 +159,9 @@ void zmq::epoll_t::loop ()
             errno_assert (errno == EINTR);
             continue;
         }
+
+        printf("%s %s %d epoll thread_self: %ld flag:%d\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), iFlag);
+
 
         for (int i = 0; i < n; i++) 
         {

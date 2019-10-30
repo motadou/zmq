@@ -18,6 +18,8 @@ zmq::reaper_t::reaper_t (class ctx_t *ctx_, uint32_t tid_) : object_t (ctx_, tid
         _poller->set_pollin (_mailbox_handle);
     }
 
+    _poller->iFlag = 11111;
+
 #ifdef HAVE_FORK
     _pid = getpid ();
 #endif
@@ -54,7 +56,8 @@ void zmq::reaper_t::in_event ()
     while (true) 
     {
 #ifdef HAVE_FORK
-        if (unlikely (_pid != getpid ())) {
+        if (unlikely (_pid != getpid ())) 
+        {
             //printf("zmq::reaper_t::in_event return in child process %d\n", (int)getpid());
             return;
         }

@@ -13,17 +13,10 @@ class pipe_t;
 class socket_base_t;
 
 //  This structure defines the commands that can be sent between threads.
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4324) // C4324: alignment padding warnings
-__declspec(align (64))
-#endif
-
 struct command_t
 {
     //  Object to process the command.
-    zmq::object_t *destination;
+    zmq::object_t * destination;
 
     enum type_t
     {
@@ -54,11 +47,13 @@ struct command_t
         //  terminate itself.
         struct
         {
+
         } stop;
 
         //  Sent to I/O object to make it register with its I/O thread.
         struct
         {
+
         } plug;
 
         //  Sent to socket to let it know about the newly created object.
@@ -85,6 +80,7 @@ struct command_t
         //  are messages in the pipe.
         struct
         {
+
         } activate_read;
 
         //  Sent by pipe reader to inform pipe writer about how many
@@ -106,11 +102,13 @@ struct command_t
         //  its end of the pipe.
         struct
         {
+
         } pipe_term;
 
         //  Pipe writer acknowledges pipe_term command.
         struct
         {
+
         } pipe_term_ack;
 
         //  Sent by one of pipe to another part for modify hwm
@@ -137,6 +135,7 @@ struct command_t
         //  shut down.
         struct
         {
+
         } term_ack;
 
         //  Sent by session_base (I/O thread) to socket (application thread)
@@ -156,21 +155,18 @@ struct command_t
         //  Closed socket notifies the reaper that it's already deallocated.
         struct
         {
+
         } reaped;
 
         //  Sent by reaper thread to the term thread when all the sockets
         //  are successfully deallocated.
         struct
         {
-        } done;
 
+        } done;
     } args;
-#ifdef _MSC_VER
-};
-#pragma warning(pop)
-#else
-} __attribute__ ((aligned (64)));
-#endif
+} __attribute__ ((aligned(64)));
+
 }
 
 #endif

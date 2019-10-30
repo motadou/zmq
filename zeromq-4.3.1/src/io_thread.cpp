@@ -15,6 +15,8 @@ zmq::io_thread_t::io_thread_t (ctx_t *ctx_, uint32_t tid_) : object_t (ctx_, tid
         _mailbox_handle = _poller->add_fd(_mailbox.get_fd(), this);
         _poller->set_pollin(_mailbox_handle);
     }
+
+    _poller->iFlag = 22222;
 }
 
 zmq::io_thread_t::~io_thread_t ()

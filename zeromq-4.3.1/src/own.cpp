@@ -123,15 +123,17 @@ bool zmq::own_t::is_terminating ()
     return _terminating;
 }
 
-void zmq::own_t::process_term (int linger_)
+void zmq::own_t::process_term(int linger_)
 {
     //  Double termination should never happen.
     zmq_assert (!_terminating);
 
     //  Send termination request to all owned objects.
-    for (owned_t::iterator it = _owned.begin (), end = _owned.end (); it != end;
-         ++it)
-        send_term (*it, linger_);
+    for (owned_t::iterator it = _owned.begin(), end = _owned.end(); it != end; ++it)
+    {
+        send_term(*it, linger_);
+    }
+
     register_term_acks (static_cast<int> (_owned.size ()));
     _owned.clear ();
 

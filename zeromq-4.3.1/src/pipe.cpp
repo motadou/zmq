@@ -276,7 +276,7 @@ void zmq::pipe_t::process_hiccup (void *pipe_)
 
     //  Plug in the new outpipe.
     zmq_assert (pipe_);
-    _out_pipe = static_cast<upipe_t *> (pipe_);
+    _out_pipe   = static_cast<upipe_t *> (pipe_);
     _out_active = true;
 
     //  If appropriate, notify the user about the hiccup.
@@ -284,41 +284,44 @@ void zmq::pipe_t::process_hiccup (void *pipe_)
         _sink->hiccuped (this);
 }
 
-void zmq::pipe_t::process_pipe_term ()
+void zmq::pipe_t::process_pipe_term()
 {
-    zmq_assert (_state == active || _state == delimiter_received
-                || _state == term_req_sent1);
+    zmq_assert (_state == active || _state == delimiter_received || _state == term_req_sent1);
 
     //  This is the simple case of peer-induced termination. If there are no
     //  more pending messages to read, or if the pipe was configured to drop
     //  pending messages, we can move directly to the term_ack_sent state.
     //  Otherwise we'll hang up in waiting_for_delimiter state till all
     //  pending messages are read.
-    if (_state == active) {
+    if (_state == active) 
+    {
         if (_delay)
+        {
             _state = waiting_for_delimiter;
-        else {
-            _state = term_ack_sent;
+        }
+        else 
+        {
+            _state    = term_ack_sent;
             _out_pipe = NULL;
-            send_pipe_term_ack (_peer);
+            send_pipe_term_ack(_peer);
         }
     }
-
     //  Delimiter happened to arrive before the term command. Now we have the
     //  term command as well, so we can move straight to term_ack_sent state.
-    else if (_state == delimiter_received) {
-        _state = term_ack_sent;
+    else if (_state == delimiter_received) 
+    {
+        _state    = term_ack_sent;
         _out_pipe = NULL;
-        send_pipe_term_ack (_peer);
+        send_pipe_term_ack(_peer);
     }
-
     //  This is the case where both ends of the pipe are closed in parallel.
     //  We simply reply to the request by ack and continue waiting for our
     //  own ack.
-    else if (_state == term_req_sent1) {
-        _state = term_req_sent2;
+    else if (_state == term_req_sent1) 
+    {
+        _state    = term_req_sent2;
         _out_pipe = NULL;
-        send_pipe_term_ack (_peer);
+        send_pipe_term_ack(_peer);
     }
 }
 
@@ -332,11 +335,15 @@ void zmq::pipe_t::process_pipe_term_ack ()
     //  Simply deallocate the pipe. In term_req_sent1 state we have to ack
     //  the peer before deallocating this side of the pipe.
     //  All the other states are invalid.
-    if (_state == term_req_sent1) {
+    if (_state == term_req_sent1) 
+    {
         _out_pipe = NULL;
         send_pipe_term_ack (_peer);
-    } else
-        zmq_assert (_state == term_ack_sent || _state == term_req_sent2);
+    } 
+    else
+    {
+        zmq_assert(_state == term_ack_sent || _state == term_req_sent2);
+    }
 
     //  We'll deallocate the inbound pipe, the peer will deallocate the outbound
     //  pipe (which is an inbound pipe from its point of view).

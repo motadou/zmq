@@ -27,9 +27,9 @@ zmq::session_base_t * zmq::session_base_t::create (class io_thread_t *io_thread_
 
     switch (options_.type) 
     {
-        case ZMQ_REQ     : s = new (std::nothrow) req_session_t(io_thread_, active_, socket_, options_, addr_);     break;
+        case ZMQ_REQ     : s = new (std::nothrow) req_session_t  (io_thread_, active_, socket_, options_, addr_);   break;
         case ZMQ_RADIO   : s = new (std::nothrow) radio_session_t(io_thread_, active_, socket_, options_, addr_);   break;
-        case ZMQ_DISH    : s = new (std::nothrow) dish_session_t(io_thread_, active_, socket_, options_, addr_);    break;
+        case ZMQ_DISH    : s = new (std::nothrow) dish_session_t (io_thread_, active_, socket_, options_, addr_);   break;
         case ZMQ_DEALER  :
         case ZMQ_REP     :
         case ZMQ_ROUTER  :
@@ -45,7 +45,7 @@ zmq::session_base_t * zmq::session_base_t::create (class io_thread_t *io_thread_
         case ZMQ_CLIENT  :
         case ZMQ_GATHER  :
         case ZMQ_SCATTER :
-        case ZMQ_DGRAM   : s = new (std::nothrow) session_base_t(io_thread_, active_, socket_, options_, addr_);    break;
+        case ZMQ_DGRAM   : s = new (std::nothrow) session_base_t (io_thread_, active_, socket_, options_, addr_);   break;
         default          : errno = EINVAL; return NULL;
     }
 
@@ -53,7 +53,7 @@ zmq::session_base_t * zmq::session_base_t::create (class io_thread_t *io_thread_
     return s;
 }
 
-zmq::session_base_t::session_base_t (class io_thread_t *io_thread_, bool active_, class socket_base_t *socket_, const options_t &options_, address_t *addr_) :
+zmq::session_base_t::session_base_t(class io_thread_t *io_thread_, bool active_, class socket_base_t *socket_, const options_t &options_, address_t *addr_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     _active (active_),
@@ -118,7 +118,7 @@ int zmq::session_base_t::pull_msg (msg_t *msg_)
     return 0;
 }
 
-int zmq::session_base_t::push_msg (msg_t *msg_)
+int zmq::session_base_t::push_msg(msg_t *msg_)
 {
     printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
@@ -173,6 +173,7 @@ int zmq::session_base_t::write_zap_msg (msg_t *msg_)
 
 void zmq::session_base_t::reset ()
 {
+
 }
 
 void zmq::session_base_t::flush ()
@@ -181,23 +182,26 @@ void zmq::session_base_t::flush ()
         _pipe->flush ();
 }
 
-void zmq::session_base_t::rollback ()
+void zmq::session_base_t::rollback()
 {
     if (_pipe)
-        _pipe->rollback ();
+    {
+        _pipe->rollback();
+    }
 }
 
-void zmq::session_base_t::clean_pipes ()
+void zmq::session_base_t::clean_pipes()
 {
     zmq_assert (_pipe != NULL);
 
     //  Get rid of half-processed messages in the out pipe. Flush any
     //  unflushed messages upstream.
-    _pipe->rollback ();
-    _pipe->flush ();
+    _pipe->rollback();
+    _pipe->flush();
 
     //  Remove any half-read message from the in pipe.
-    while (_incomplete_in) {
+    while (_incomplete_in) 
+    {
         msg_t msg;
         int rc = msg.init ();
         errno_assert (rc == 0);
@@ -213,21 +217,30 @@ void zmq::session_base_t::pipe_terminated (pipe_t *pipe_)
     // Drop the reference to the deallocated pipe if required.
     zmq_assert (pipe_ == _pipe || pipe_ == _zap_pipe || _terminating_pipes.count (pipe_) == 1);
 
-    if (pipe_ == _pipe) {
+    if (pipe_ == _pipe) 
+    {
         // If this is our current pipe, remove it
         _pipe = NULL;
-        if (_has_linger_timer) {
+        if (_has_linger_timer) 
+        {
             cancel_timer (linger_timer_id);
             _has_linger_timer = false;
         }
-    } else if (pipe_ == _zap_pipe)
+    } 
+    else if (pipe_ == _zap_pipe)
+    {
         _zap_pipe = NULL;
+    }
     else
+    {
         // Remove the pipe from the detached pipes set
-        _terminating_pipes.erase (pipe_);
+        _terminating_pipes.erase(pipe_);
+    }
 
-    if (!is_terminating () && options.raw_socket) {
-        if (_engine) {
+    if (!is_terminating () && options.raw_socket) 
+    {
+        if (_engine) 
+        {
             _engine->terminate ();
             _engine = NULL;
         }
@@ -237,7 +250,8 @@ void zmq::session_base_t::pipe_terminated (pipe_t *pipe_)
     //  If we are waiting for pending messages to be sent, at this point
     //  we are sure that there will be no more messages and we can proceed
     //  with termination safely.
-    if (_pending && !_pipe && !_zap_pipe && _terminating_pipes.empty ()) {
+    if (_pending && !_pipe && !_zap_pipe && _terminating_pipes.empty ()) 
+    {
         _pending = false;
         own_t::process_term (0);
     }
@@ -336,7 +350,8 @@ int zmq::session_base_t::zap_connect ()
     send_bind (peer.socket, new_pipes[1], false);
 
     //  Send empty routing id if required by the peer.
-    if (peer.options.recv_routing_id) {
+    if (peer.options.recv_routing_id) 
+    {
         msg_t id;
         rc = id.init ();
         errno_assert (rc == 0);
@@ -366,9 +381,9 @@ void zmq::session_base_t::process_attach (i_engine *engine_)
 
         const bool conflate = get_effective_conflate_option (options);
 
-        int hwms[2] = { conflate ? -1 : options.rcvhwm, conflate ? -1 : options.sndhwm};
-        bool conflates[2] = {conflate, conflate};
-        int rc = pipepair (parents, pipes, hwms, conflates);
+        int  hwms[2]      = { conflate ? -1 : options.rcvhwm, conflate ? -1 : options.sndhwm};
+        bool conflates[2] = { conflate, conflate };
+        int rc = pipepair(parents, pipes, hwms, conflates);
         errno_assert (rc == 0);
 
         //  Plug the local end of the pipe.
@@ -401,20 +416,21 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
 
     switch (reason_) 
     {
-        case stream_engine_t::timeout_error:
+        case stream_engine_t::timeout_error    :
             /* FALLTHROUGH */
-        case stream_engine_t::connection_error:
+        case stream_engine_t::connection_error :
             if (_active) 
             {
                 reconnect ();
                 break;
             }
             /* FALLTHROUGH */
-        case stream_engine_t::protocol_error:
+        case stream_engine_t::protocol_error   :
             if (_pending) 
             {
                 if (_pipe)
                     _pipe->terminate (false);
+                
                 if (_zap_pipe)
                     _zap_pipe->terminate (false);
             } 
@@ -440,14 +456,16 @@ void zmq::session_base_t::process_term(int linger_)
     //  If the termination of the pipe happens before the term command is
     //  delivered there's nothing much to do. We can proceed with the
     //  standard termination immediately.
-    if (!_pipe && !_zap_pipe && _terminating_pipes.empty ()) {
+    if (!_pipe && !_zap_pipe && _terminating_pipes.empty ()) 
+    {
         own_t::process_term (0);
         return;
     }
 
     _pending = true;
 
-    if (_pipe != NULL) {
+    if (_pipe != NULL) 
+    {
         //  If there's finite linger value, delay the termination.
         //  If linger is infinite (negative) we don't even have to set
         //  the timer.
@@ -484,10 +502,9 @@ void zmq::session_base_t::timer_event (int id_)
     _pipe->terminate (false);
 }
 
-void zmq::session_base_t::reconnect ()
+void zmq::session_base_t::reconnect()
 {
-    //  For delayed connect situations, terminate the pipe
-    //  and reestablish later on
+    //  For delayed connect situations, terminate the pipe and reestablish later on
     if (_pipe && options.immediate == 1 && _addr->protocol != "pgm" && _addr->protocol != "epgm" && _addr->protocol != "norm" && _addr->protocol != protocol_name::udp) 
     {
         _pipe->hiccup ();
@@ -502,7 +519,7 @@ void zmq::session_base_t::reconnect ()
         }
     }
 
-    reset ();
+    reset();
 
     //  Reconnect.
     if (options.reconnect_ivl != -1)
@@ -518,27 +535,17 @@ void zmq::session_base_t::reconnect ()
 
     //  For subscriber sockets we hiccup the inbound pipe, which will cause
     //  the socket object to resend all the subscriptions.
-    if (_pipe
-        && (options.type == ZMQ_SUB || options.type == ZMQ_XSUB
-            || options.type == ZMQ_DISH))
-        _pipe->hiccup ();
+    if (_pipe && (options.type == ZMQ_SUB || options.type == ZMQ_XSUB || options.type == ZMQ_DISH))
+    {
+        _pipe->hiccup();
+    }
 }
 
 zmq::session_base_t::connecter_factory_entry_t zmq::session_base_t::_connecter_factories[] = 
 {
-    connecter_factory_entry_t (protocol_name::tcp, &zmq::session_base_t::create_connecter_tcp),
-
-#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS && !defined ZMQ_HAVE_VXWORKS
-    connecter_factory_entry_t (protocol_name::ipc, &zmq::session_base_t::create_connecter_ipc),
-#endif
-
-#if defined ZMQ_HAVE_TIPC
+    connecter_factory_entry_t (protocol_name::tcp,  &zmq::session_base_t::create_connecter_tcp),
+    connecter_factory_entry_t (protocol_name::ipc,  &zmq::session_base_t::create_connecter_ipc),
     connecter_factory_entry_t (protocol_name::tipc, &zmq::session_base_t::create_connecter_tipc),
-#endif
-
-#if defined ZMQ_HAVE_VMCI
-    connecter_factory_entry_t (protocol_name::vmci, &zmq::session_base_t::create_connecter_vmci),
-#endif
 };
 
 zmq::session_base_t::connecter_factory_map_t zmq::session_base_t::_connecter_factories_map(_connecter_factories, _connecter_factories + sizeof(_connecter_factories)/sizeof(_connecter_factories[0]));
@@ -573,9 +580,6 @@ void zmq::session_base_t::start_connecting(bool wait_)
     {
         own_t *connecter = (this->*connecter_factories_it->second) (io_thread, wait_);
 
-
-        printf("%s %s %d ***************************************************::%s\n", __FILE__, __FUNCTION__, __LINE__, (wait_?"true":"false"));
-
         alloc_assert (connecter);
         launch_child (connecter);
         return;
@@ -591,30 +595,15 @@ void zmq::session_base_t::start_connecting(bool wait_)
     zmq_assert (false);
 }
 
-#if defined ZMQ_HAVE_VMCI
-zmq::own_t *zmq::session_base_t::create_connecter_vmci (io_thread_t *io_thread_,
-                                                        bool wait_)
+zmq::own_t *zmq::session_base_t::create_connecter_tipc (io_thread_t *io_thread_, bool wait_)
 {
-    return new (std::nothrow)
-      vmci_connecter_t (io_thread_, this, options, _addr, wait_);
+    return new (std::nothrow) tipc_connecter_t (io_thread_, this, options, _addr, wait_);
 }
-#endif
 
-#if defined ZMQ_HAVE_TIPC
-zmq::own_t *zmq::session_base_t::create_connecter_tipc (io_thread_t *io_thread_,
-                                                        bool wait_)
-{
-    return new (std::nothrow)
-      tipc_connecter_t (io_thread_, this, options, _addr, wait_);
-}
-#endif
-
-#if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS && !defined ZMQ_HAVE_VXWORKS
 zmq::own_t *zmq::session_base_t::create_connecter_ipc (io_thread_t *io_thread_, bool wait_)
 {
     return new (std::nothrow)ipc_connecter_t (io_thread_, this, options, _addr, wait_);
 }
-#endif
 
 zmq::own_t *zmq::session_base_t::create_connecter_tcp(io_thread_t *io_thread_, bool wait_)
 {
@@ -699,8 +688,7 @@ void zmq::session_base_t::start_connecting_norm (io_thread_t *io_thread_)
 
 void zmq::session_base_t::start_connecting_udp (io_thread_t * /*io_thread_*/)
 {
-    zmq_assert (options.type == ZMQ_DISH || options.type == ZMQ_RADIO
-                || options.type == ZMQ_DGRAM);
+    zmq_assert (options.type == ZMQ_DISH || options.type == ZMQ_RADIO || options.type == ZMQ_DGRAM);
 
     udp_engine_t *engine = new (std::nothrow) udp_engine_t (options);
     alloc_assert (engine);

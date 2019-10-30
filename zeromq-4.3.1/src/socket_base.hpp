@@ -41,11 +41,11 @@ public:
     bool is_thread_safe () const;
 
     //  Returns the mailbox associated with this socket.
-    i_mailbox *get_mailbox () const;
+    i_mailbox * get_mailbox () const;
 
     //  Interrupt blocking call if the socket is stuck in one.
     //  This function can be called from a different thread!
-    void stop ();
+    void stop();
 
     //  Interface for communication with the API layer.
     int  setsockopt (int option_, const void *optval_, size_t optvallen_);
@@ -165,7 +165,7 @@ private:
     {
     public:
         void emplace (const char *endpoint_uri_, pipe_t *pipe_);
-        int erase_pipes (const std::string &endpoint_uri_str_);
+        int  erase_pipes (const std::string &endpoint_uri_str_);
         void erase_pipe (pipe_t *pipe_);
 
     private:

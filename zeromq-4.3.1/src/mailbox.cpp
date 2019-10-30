@@ -22,18 +22,18 @@ zmq::mailbox_t::~mailbox_t ()
     _sync.unlock ();
 }
 
-zmq::fd_t zmq::mailbox_t::get_fd () const
+zmq::fd_t zmq::mailbox_t::get_fd() const
 {
     return _signaler.get_fd();
 }
 
-void zmq::mailbox_t::send(const command_t &cmd_)
+void zmq::mailbox_t::send(const command_t & cmd_)
 {
-    _sync.lock ();
-    _cpipe.write (cmd_, false);
-    const bool ok = _cpipe.flush ();
-    _sync.unlock ();
-    
+    _sync.lock();
+    _cpipe.write(cmd_, false);
+    const bool ok = _cpipe.flush();
+    _sync.unlock();
+
     if (!ok)
     {
         _signaler.send();
@@ -53,7 +53,7 @@ int zmq::mailbox_t::recv(command_t *cmd_, int timeout_)
     }
 
     //  Wait for signal from the command sender.
-    int rc = _signaler.wait (timeout_);
+    int rc = _signaler.wait(timeout_);
     if (rc == -1) 
     {
         errno_assert (errno == EAGAIN || errno == EINTR);

@@ -130,10 +130,10 @@ void zmq::tcp_connecter_t::out_event ()
     alloc_assert (engine);
 
     //  Attach the engine to the corresponding session object.
-    send_attach (_session, engine);
+    send_attach(_session, engine);
 
     //  Shut the connecter down.
-    terminate ();
+    terminate();
 
     _socket->event_connected (_endpoint, fd);
 }

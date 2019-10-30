@@ -74,7 +74,6 @@ private:
     typedef std::map<std::string, connecter_factory_fun_t> connecter_factory_map_t;
     static connecter_factory_map_t _connecter_factories_map;
 
-    own_t *create_connecter_vmci (io_thread_t *io_thread_, bool wait_);
     own_t *create_connecter_tipc (io_thread_t *io_thread_, bool wait_);
     own_t *create_connecter_ipc  (io_thread_t *io_thread_, bool wait_);
     own_t *create_connecter_tcp  (io_thread_t *io_thread_, bool wait_);

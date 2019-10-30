@@ -22,7 +22,7 @@ public:
 
     fd_t get_fd () const;
     void send (const command_t &cmd_);
-    int recv (command_t *cmd_, int timeout_);
+    int  recv (command_t *cmd_, int timeout_);
 
     bool valid () const;
 

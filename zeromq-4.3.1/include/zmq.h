@@ -13,68 +13,21 @@
 extern "C" {
 #endif
 
-#if !defined _WIN32_WCE
 #include <errno.h>
-#endif
-
 #include <stddef.h>
 #include <stdio.h>
-#if defined _WIN32
-//  Set target version to Windows Server 2008, Windows Vista or higher.
-//  Windows XP (0x0501) is supported but without client & server socket types.
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifdef __MINGW32__
-//  Require Windows XP or higher with MinGW for getaddrinfo().
-#if (_WIN32_WINNT >= 0x0501)
-#else
-#error You need at least Windows XP target
-#endif
-#endif
-#include <winsock2.h>
-#endif
 
 /*  Handle DSO symbol visibility                                             */
-#if defined _WIN32
-    #if defined ZMQ_STATIC
-    #define ZMQ_EXPORT
-    #elif defined DLL_EXPORT
-    #define ZMQ_EXPORT __declspec(dllexport)
-    #else
-    #define ZMQ_EXPORT __declspec(dllimport)
-    #endif
-#else
-    #if defined __SUNPRO_C || defined __SUNPRO_CC
-    #define ZMQ_EXPORT __global
-    #elif (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
+#if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
     #define ZMQ_EXPORT __attribute__ ((visibility ("default")))
-    #else
+#else
     #define ZMQ_EXPORT
-    #endif
 #endif
 
 /*  Define integer types needed for event interface */
 #define ZMQ_DEFINED_STDINT 1
-#if defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_OPENVMS
-#include <inttypes.h>
-#elif defined _MSC_VER && _MSC_VER < 1600
-#ifndef int32_t
-typedef __int32 int32_t;
-#endif
-#ifndef uint32_t
-typedef unsigned __int32 uint32_t;
-#endif
-#ifndef uint16_t
-typedef unsigned __int16 uint16_t;
-#endif
-#ifndef uint8_t
-typedef unsigned __int8 uint8_t;
-#endif
-#else
+
 #include <stdint.h>
-#endif
 
 //  32-bit AIX's pollfd struct members are called reqevents and rtnevents so it
 //  defines compatibility macros for them. Need to include that header first to
@@ -456,14 +409,10 @@ ZMQ_EXPORT int zmq_socket_monitor (void *s_, const char *addr_, int events_);
 
 typedef struct zmq_pollitem_t
 {
-    void *socket;
-#if defined _WIN32
-    SOCKET fd;
-#else
-    int fd;
-#endif
-    short events;
-    short revents;
+    void  * socket;
+    int     fd;
+    short   events;
+    short   revents;
 } zmq_pollitem_t;
 
 #define ZMQ_POLLITEMS_DFLT 16
@@ -502,8 +451,7 @@ ZMQ_EXPORT int zmq_recviov (void *s_, struct iovec *iov_, size_t *count_, int fl
 /******************************************************************************/
 
 /*  Encode data with Z85 encoding. Returns encoded data                       */
-ZMQ_EXPORT char *
-zmq_z85_encode (char *dest_, const uint8_t *data_, size_t size_);
+ZMQ_EXPORT char * zmq_z85_encode (char *dest_, const uint8_t *data_, size_t size_);
 
 /*  Decode data with Z85 encoding. Returns decoded data                       */
 ZMQ_EXPORT uint8_t *zmq_z85_decode (uint8_t *dest_, const char *string_);
@@ -514,8 +462,7 @@ ZMQ_EXPORT int zmq_curve_keypair (char *z85_public_key_, char *z85_secret_key_);
 
 /*  Derive the z85-encoded public key from the z85-encoded secret key.        */
 /*  Returns 0 on success.                                                     */
-ZMQ_EXPORT int zmq_curve_public (char *z85_public_key_,
-                                 const char *z85_secret_key_);
+ZMQ_EXPORT int zmq_curve_public (char *z85_public_key_, const char *z85_secret_key_);
 
 /******************************************************************************/
 /*  Atomic utility methods                                                    */

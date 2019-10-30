@@ -41,10 +41,7 @@ struct i_pipe_events
 class pipe_t : public object_t, public array_item_t<1>, public array_item_t<2>, public array_item_t<3>
 {
     //  This allows pipepair to create pipe objects.
-    friend int pipepair (zmq::object_t *parents_[2],
-                         zmq::pipe_t *pipes_[2],
-                         int hwms_[2],
-                         bool conflate_[2]);
+    friend int pipepair(zmq::object_t *parents_[2], zmq::pipe_t *pipes_[2], int hwms_[2], bool conflate_[2]);
 
 public:
     //  Specifies the object to send events to.

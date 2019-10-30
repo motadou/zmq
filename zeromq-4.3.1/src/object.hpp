@@ -17,8 +17,7 @@ class session_base_t;
 class io_thread_t;
 class own_t;
 
-//  Base class for all objects that participate in inter-thread
-//  communication.
+//  Base class for all objects that participate in inter-thread communication.
 
 class object_t
 {
@@ -38,8 +37,8 @@ public:
 protected:
     //  Using following function, socket is able to access global
     //  repository of inproc endpoints.
-    int register_endpoint (const char *addr_, const zmq::endpoint_t &endpoint_);
-    int unregister_endpoint (const std::string &addr_, socket_base_t *socket_);
+    int  register_endpoint (const char *addr_, const zmq::endpoint_t &endpoint_);
+    int  unregister_endpoint (const std::string &addr_, socket_base_t *socket_);
     void unregister_endpoints (zmq::socket_base_t *socket_);
     zmq::endpoint_t find_endpoint (const char *addr_);
     void pend_connection (const std::string &addr_, const endpoint_t &endpoint_, pipe_t **pipes_);

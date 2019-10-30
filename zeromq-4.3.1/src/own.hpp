@@ -111,6 +111,7 @@ public:
     //  Number of events we have to get before we can destroy the object.
     int _term_acks;
 
+private:
     own_t (const own_t &);
     const own_t &operator= (const own_t &);
 };

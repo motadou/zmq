@@ -34,5 +34,6 @@ int main (void)
 
     zmq_close (publisher);
     zmq_term (context);
+
     return 0;
 }

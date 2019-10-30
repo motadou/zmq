@@ -69,7 +69,7 @@ int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
 
     while (_active > 0) 
     {
-        if (_pipes[_current]->write (msg_)) 
+        if (_pipes[_current]->write(msg_)) 
         {
             if (pipe_)
             {
@@ -123,7 +123,7 @@ int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
     _more = (msg_->flags () & msg_t::more) != 0;
     if (!_more) 
     {
-        _pipes[_current]->flush ();
+        _pipes[_current]->flush();
 
         if (++_current >= _active)
             _current = 0;
@@ -143,14 +143,15 @@ bool zmq::lb_t::has_out ()
     if (_more)
         return true;
 
-    while (_active > 0) {
+    while (_active > 0) 
+    {
         //  Check whether a pipe has room for another message.
         if (_pipes[_current]->check_write ())
             return true;
 
         //  Deactivate the pipe.
         _active--;
-        _pipes.swap (_current, _active);
+        _pipes.swap(_current, _active);
         if (_current == _active)
             _current = 0;
     }

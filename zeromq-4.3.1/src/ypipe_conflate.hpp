@@ -16,9 +16,9 @@ namespace zmq
 
 template <typename T> class ypipe_conflate_t : public ypipe_base_t<T>
 {
-  public:
+public:
     //  Initialises the pipe.
-    inline ypipe_conflate_t () : reader_awake (false) {}
+    inline ypipe_conflate_t () : reader_awake (false) { }
 
     //  The destructor doesn't have to be virtual. It is made virtual
     //  just to keep ICC and code checking tools from complaining.
@@ -28,20 +28,12 @@ template <typename T> class ypipe_conflate_t : public ypipe_base_t<T>
         //  when used with zmq_msg. Initialising the VSM body for
         //  non-VSM messages won't be good for performance.
 
-#ifdef ZMQ_HAVE_OPENVMS
-#pragma message save
-#pragma message disable(UNINIT)
-#endif
     inline void write (const T &value_, bool incomplete_)
     {
         (void) incomplete_;
 
         dbuffer.write (value_);
     }
-
-#ifdef ZMQ_HAVE_OPENVMS
-#pragma message restore
-#endif
 
     // There are no incomplete items for conflate ypipe
     inline bool unwrite (T *) { return false; }
@@ -77,10 +69,11 @@ template <typename T> class ypipe_conflate_t : public ypipe_base_t<T>
     //  The pipe mustn't be empty or the function crashes.
     inline bool probe (bool (*fn_) (const T &)) { return dbuffer.probe (fn_); }
 
-  protected:
+protected:
     dbuffer_t<T> dbuffer;
     bool reader_awake;
 
+protected:
     //  Disable copying of ypipe object.
     ypipe_conflate_t (const ypipe_conflate_t &);
     const ypipe_conflate_t &operator= (const ypipe_conflate_t &);
