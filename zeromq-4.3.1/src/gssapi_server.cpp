@@ -191,6 +191,7 @@ int zmq::gssapi_server_t::zap_msg_available ()
         errno = EFSM;
         return -1;
     }
+
     const int rc = receive_and_process_zap_reply ();
     if (rc == 0)
         state = send_ready;

@@ -3,11 +3,7 @@
 
 #include <limits.h>
 #include <string.h>
-
-#ifndef ZMQ_HAVE_WINDOWS
 #include <unistd.h>
-#endif
-
 #include <new>
 #include <sstream>
 
@@ -73,7 +69,7 @@ zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_, cons
     //  Put the socket into non-blocking mode.
     unblock_socket (_s);
 
-    const int family = get_peer_ip_address (_s, _peer_address);
+    const int family = get_peer_ip_address(_s, _peer_address);
     if (family == 0)
         _peer_address.clear ();
 #if defined ZMQ_HAVE_SO_PEERCRED
@@ -119,19 +115,10 @@ zmq::stream_engine_t::~stream_engine_t ()
 
     if (_s != retired_fd) 
     {
-#ifdef ZMQ_HAVE_WINDOWS
-        int rc = closesocket (_s);
-        wsa_assert (rc != SOCKET_ERROR);
-#else
         int rc = close (_s);
-#if defined(__FreeBSD_kernel__) || defined(__FreeBSD__)
-        // FreeBSD may return ECONNRESET on close() under load but this is not
-        // an error.
-        if (rc == -1 && errno == ECONNRESET)
-            rc = 0;
-#endif
+
         errno_assert (rc == 0);
-#endif
+
         _s = retired_fd;
     }
 
@@ -163,8 +150,8 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
     //  Connect to session object.
     zmq_assert (!_session);
     zmq_assert (session_);
-    _session = session_;
-    _socket  = _session->get_socket();
+    _session  = session_;
+    _socket   = _session->get_socket();
 
     //  Connect to I/O threads poller object.
     io_object_t::plug(io_thread_);
@@ -273,7 +260,7 @@ void zmq::stream_engine_t::terminate ()
     delete this;
 }
 
-void zmq::stream_engine_t::in_event ()
+void zmq::stream_engine_t::in_event()
 {
     zmq_assert (!_io_error);
 
@@ -302,7 +289,7 @@ void zmq::stream_engine_t::in_event ()
         //  the underlying TCP layer has fixed buffer size and thus the
         //  number of bytes read will be always limited.
         size_t bufsize = 0;
-        _decoder->get_buffer (&_inpos, &bufsize);
+        _decoder->get_buffer(&_inpos, &bufsize);
 
         const int rc = tcp_read(_s, _inpos, bufsize);
 
@@ -313,7 +300,7 @@ void zmq::stream_engine_t::in_event ()
             error (connection_error);
             return;
         }
-        
+
         if (rc == -1) 
         {
             if (errno != EAGAIN)
@@ -1082,7 +1069,7 @@ int zmq::stream_engine_t::push_one_then_decode_and_push (msg_t *msg_)
     return rc;
 }
 
-void zmq::stream_engine_t::error (error_reason_t reason_)
+void zmq::stream_engine_t::error(error_reason_t reason_)
 {
     printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
@@ -1097,28 +1084,28 @@ void zmq::stream_engine_t::error (error_reason_t reason_)
     }
     zmq_assert (_session);
 
-    if ((_options.router_notify & ZMQ_NOTIFY_DISCONNECT) && !_handshaking) {
+    if ((_options.router_notify & ZMQ_NOTIFY_DISCONNECT) && !_handshaking) 
+    {
         // For router sockets with disconnect notification, rollback
         // any incomplete message in the pipe, and push the disconnect
         // notification message.
-        _session->rollback ();
+        _session->rollback();
 
         msg_t disconnect_notification;
-        disconnect_notification.init ();
+        disconnect_notification.init();
         _session->push_msg (&disconnect_notification);
     }
 
     // protocol errors have been signaled already at the point where they occurred
-    if (reason_ != protocol_error
-        && (_mechanism == NULL
-            || _mechanism->status () == mechanism_t::handshaking)) {
+    if (reason_ != protocol_error && (_mechanism == NULL || _mechanism->status () == mechanism_t::handshaking)) 
+    {
         int err = errno;
         _socket->event_handshake_failed_no_detail (_endpoint, err);
     }
 
-    _socket->event_disconnected (_endpoint, _s);
-    _session->flush ();
-    _session->engine_error (reason_);
+    _socket->event_disconnected(_endpoint, _s);
+    _session->flush();
+    _session->engine_error(reason_);
     unplug ();
     delete this;
 }
@@ -1127,7 +1114,8 @@ void zmq::stream_engine_t::set_handshake_timer ()
 {
     zmq_assert (!_has_handshake_timer);
 
-    if (!_options.raw_socket && _options.handshake_ivl > 0) {
+    if (!_options.raw_socket && _options.handshake_ivl > 0) 
+    {
         add_timer (_options.handshake_ivl, handshake_timer_id);
         _has_handshake_timer = true;
     }
