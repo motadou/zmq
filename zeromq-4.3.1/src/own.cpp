@@ -106,6 +106,8 @@ void zmq::own_t::process_own(own_t *object_)
 
 void zmq::own_t::terminate ()
 {
+    printf("%s %s %d zmq::own_t::terminate\n", __FILE__, __FUNCTION__, __LINE__);
+
     //  If termination is already underway, there's no point
     //  in starting it anew.
     if (_terminating)
@@ -115,7 +117,12 @@ void zmq::own_t::terminate ()
     //  so it has to terminate itself.
     if (!_owner) 
     {
-        process_term (options.linger.load ());
+        printf("%s %s %d zmq::own_t::terminate zmq::own_t::terminate zmq::own_t::terminate zmq::own_t::terminate\n", __FILE__, __FUNCTION__, __LINE__);
+
+        process_term(options.linger.load());
+
+        printf("%s %s %d zmq::own_t::terminate zmq::own_t::terminate zmq::own_t::terminate zmq::own_t::terminate\n", __FILE__, __FUNCTION__, __LINE__);
+
         return;
     }
 
@@ -132,6 +139,7 @@ void zmq::own_t::process_term(int linger_)
 {
     //  Double termination should never happen.
     zmq_assert (!_terminating);
+    printf("%s %s %d zmq::own_t::process_term:: ===================== size:%d\n", __FILE__, __FUNCTION__, __LINE__, _owned.size());
 
     //  Send termination request to all owned objects.
     for (owned_t::iterator it = _owned.begin(), end = _owned.end(); it != end; ++it)
@@ -164,6 +172,8 @@ void zmq::own_t::unregister_term_ack()
 
 void zmq::own_t::process_term_ack()
 {
+    printf("%s %s %d own::process_term_ack\n", __FILE__, __FUNCTION__, __LINE__);
+
     unregister_term_ack ();
 }
 

@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #ifndef __ZMQ_OPTIONS_HPP_INCLUDED__
 #define __ZMQ_OPTIONS_HPP_INCLUDED__
 
@@ -43,6 +14,7 @@
 #include <set>
 #include <sys/types.h>
 #endif
+
 #ifdef ZMQ_HAVE_LOCAL_PEERCRED
 #include <sys/ucred.h>
 #endif
@@ -52,19 +24,19 @@
 #endif
 
 //  Normal base 256 key is 32 bytes
-#define CURVE_KEYSIZE 32
+#define CURVE_KEYSIZE     32
+
 //  Key encoded using Z85 is 40 bytes
 #define CURVE_KEYSIZE_Z85 40
 
 namespace zmq
 {
+
 struct options_t
 {
     options_t ();
 
-    int set_curve_key (uint8_t *destination_,
-                       const void *optval_,
-                       size_t optvallen_);
+    int set_curve_key (uint8_t *destination_, const void *optval_, size_t optvallen_);
 
     int setsockopt (int option_, const void *optval_, size_t optvallen_);
     int getsockopt (int option_, void *optval_, size_t *optvallen_) const;
@@ -177,6 +149,7 @@ struct options_t
     typedef std::set<gid_t> ipc_gid_accept_filters_t;
     ipc_gid_accept_filters_t ipc_gid_accept_filters;
 #endif
+
 #if defined ZMQ_HAVE_SO_PEERCRED
     typedef std::set<pid_t> ipc_pid_accept_filters_t;
     ipc_pid_accept_filters_t ipc_pid_accept_filters;
@@ -234,13 +207,6 @@ struct options_t
     //  Time in milliseconds to wait for a PING response before disconnecting
     int heartbeat_timeout;
 
-#if defined ZMQ_HAVE_VMCI
-    uint64_t vmci_buffer_size;
-    uint64_t vmci_buffer_min_size;
-    uint64_t vmci_buffer_max_size;
-    int vmci_connect_timeout;
-#endif
-
     //  When creating a new ZMQ socket, if this option is set the value
     //  will be used as the File Descriptor instead of allocating a new
     //  one via the socket () system call.
@@ -268,41 +234,30 @@ struct options_t
     std::map<std::string, std::string> app_metadata;
 };
 
-inline bool get_effective_conflate_option (const options_t &options)
+inline bool get_effective_conflate_option(const options_t & options)
 {
     // conflate is only effective for some socket types
-    return options.conflate
-           && (options.type == ZMQ_DEALER || options.type == ZMQ_PULL
-               || options.type == ZMQ_PUSH || options.type == ZMQ_PUB
-               || options.type == ZMQ_SUB);
+    return options.conflate && (options.type == ZMQ_DEALER || options.type == ZMQ_PULL || options.type == ZMQ_PUSH || options.type == ZMQ_PUB || options.type == ZMQ_SUB);
 }
 
-int do_getsockopt (void *const optval_,
-                   size_t *const optvallen_,
-                   const void *value_,
-                   const size_t value_len_);
+int do_getsockopt (void *const optval_, size_t *const optvallen_, const void *value_, const size_t value_len_);
 
 template <typename T>
 int do_getsockopt (void *const optval_, size_t *const optvallen_, T value_)
 {
 #if __cplusplus >= 201103L && (!defined(__GNUC__) || __GNUC__ > 5)
-    static_assert (std::is_trivially_copyable<T>::value,
-                   "invalid use of do_getsockopt");
+    static_assert (std::is_trivially_copyable<T>::value, "invalid use of do_getsockopt");
 #endif
+
     return do_getsockopt (optval_, optvallen_, &value_, sizeof (T));
 }
 
-int do_getsockopt (void *const optval_,
-                   size_t *const optvallen_,
-                   const std::string &value_);
+int do_getsockopt(void *const optval_, size_t *const optvallen_, const std::string &value_);
 
-int do_setsockopt_int_as_bool_strict (const void *const optval_,
-                                      const size_t optvallen_,
-                                      bool *const out_value_);
+int do_setsockopt_int_as_bool_strict(const void *const optval_, const size_t optvallen_, bool *const out_value_);
 
-int do_setsockopt_int_as_bool_relaxed (const void *const optval_,
-                                       const size_t optvallen_,
-                                       bool *const out_value_);
+int do_setsockopt_int_as_bool_relaxed(const void *const optval_, const size_t optvallen_, bool *const out_value_);
+
 }
 
 #endif

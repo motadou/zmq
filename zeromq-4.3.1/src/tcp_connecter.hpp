@@ -68,7 +68,7 @@ private:
     fd_t connect ();
 
     //  Tunes a connected socket.
-    bool tune_socket (fd_t fd_);
+    bool tune_socket(fd_t fd_);
 
     //  Address to connect to. Owned by session_base_t.
     address_t *const _addr;

@@ -1,10 +1,7 @@
 #ifndef __ZMQ_SIGNALER_HPP_INCLUDED__
 #define __ZMQ_SIGNALER_HPP_INCLUDED__
 
-#ifdef HAVE_FORK
 #include <unistd.h>
-#endif
-
 #include "fd.hpp"
 
 namespace zmq
@@ -31,11 +28,9 @@ public:
     int  recv_failable();
     bool valid() const;
 
-#ifdef HAVE_FORK
     // close the file descriptors in a forked child process so that they
     // do not interfere with the context in the parent process.
     void forked ();
-#endif
 
 private:
     //  Underlying write & read file descriptor
@@ -49,13 +44,11 @@ private:
     signaler_t (const signaler_t &);
     const signaler_t &operator= (const signaler_t &);
 
-#ifdef HAVE_FORK
     // the process that created this context. Used to detect forking.
     pid_t pid;
     // idempotent close of file descriptors that is safe to use by destructor
     // and forked().
     void close_internal ();
-#endif
 };
 
 }

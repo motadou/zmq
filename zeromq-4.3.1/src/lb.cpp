@@ -30,7 +30,8 @@ void zmq::lb_t::pipe_terminated (pipe_t *pipe_)
 
     //  Remove the pipe from the list; adjust number of active pipes
     //  accordingly.
-    if (index < _active) {
+    if (index < _active) 
+    {
         _active--;
         _pipes.swap (index, _active);
         if (_current == _active)
@@ -46,9 +47,9 @@ void zmq::lb_t::activated (pipe_t *pipe_)
     _active++;
 }
 
-int zmq::lb_t::send (msg_t *msg_)
+int zmq::lb_t::send(msg_t *msg_)
 {
-    return sendpipe (msg_, NULL);
+    return sendpipe(msg_, NULL);
 }
 
 int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
@@ -130,7 +131,7 @@ int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
     }
 
     //  Detach the message from the data buffer.
-    int rc = msg_->init ();
+    int rc = msg_->init();
     errno_assert (rc == 0);
 
     return 0;

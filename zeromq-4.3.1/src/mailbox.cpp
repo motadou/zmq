@@ -45,7 +45,7 @@ int zmq::mailbox_t::recv(command_t *cmd_, int timeout_)
     //  Try to get the command straight away.
     if (_active) 
     {
-        if (_cpipe.read (cmd_))
+        if (_cpipe.read(cmd_))
             return 0;
 
         //  If there are no more commands available, switch into passive state.

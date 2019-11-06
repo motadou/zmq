@@ -214,11 +214,15 @@ void zmq::session_base_t::clean_pipes()
 
 void zmq::session_base_t::pipe_terminated (pipe_t *pipe_)
 {
+    printf("%s %s %d pipe_terminated %ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
+
     // Drop the reference to the deallocated pipe if required.
     zmq_assert (pipe_ == _pipe || pipe_ == _zap_pipe || _terminating_pipes.count (pipe_) == 1);
 
     if (pipe_ == _pipe) 
     {
+        printf("%s %s %d pipe_terminated\n", __FILE__, __FUNCTION__, __LINE__);
+
         // If this is our current pipe, remove it
         _pipe = NULL;
         if (_has_linger_timer) 
@@ -237,8 +241,10 @@ void zmq::session_base_t::pipe_terminated (pipe_t *pipe_)
         _terminating_pipes.erase(pipe_);
     }
 
-    if (!is_terminating () && options.raw_socket) 
+    if (!is_terminating() && options.raw_socket) 
     {
+        printf("%s %s %d pipe_terminated\n", __FILE__, __FUNCTION__, __LINE__);
+
         if (_engine) 
         {
             _engine->terminate ();
@@ -250,15 +256,19 @@ void zmq::session_base_t::pipe_terminated (pipe_t *pipe_)
     //  If we are waiting for pending messages to be sent, at this point
     //  we are sure that there will be no more messages and we can proceed
     //  with termination safely.
-    if (_pending && !_pipe && !_zap_pipe && _terminating_pipes.empty ()) 
+    if (_pending && !_pipe && !_zap_pipe && _terminating_pipes.empty()) 
     {
+        printf("%s %s %d CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC pipe_terminated\n", __FILE__, __FUNCTION__, __LINE__);
+
         _pending = false;
-        own_t::process_term (0);
+        own_t::process_term(0);
     }
 }
 
 void zmq::session_base_t::read_activated (pipe_t *pipe_)
 {
+    printf("%s %s %d RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR pipe_terminated\n", __FILE__, __FUNCTION__, __LINE__);
+
     // Skip activating if we're detaching this pipe
     if (unlikely (pipe_ != _pipe && pipe_ != _zap_pipe)) 
     {
@@ -268,16 +278,18 @@ void zmq::session_base_t::read_activated (pipe_t *pipe_)
 
     if (unlikely (_engine == NULL)) 
     {
-        _pipe->check_read ();
+        _pipe->check_read();
         return;
     }
 
-    if (likely (pipe_ == _pipe))
-        _engine->restart_output ();
+    if (likely(pipe_ == _pipe))
+    {
+        _engine->restart_output();
+    }
     else 
     {
         // i.e. pipe_ == zap_pipe
-        _engine->zap_msg_available ();
+        _engine->zap_msg_available();
     }
 }
 
@@ -300,7 +312,7 @@ void zmq::session_base_t::hiccuped (pipe_t *)
     zmq_assert (false);
 }
 
-zmq::socket_base_t *zmq::session_base_t::get_socket ()
+zmq::socket_base_t *zmq::session_base_t::get_socket()
 {
     return _socket;
 }
@@ -369,17 +381,17 @@ bool zmq::session_base_t::zap_enabled ()
     return (options.mechanism != ZMQ_NULL || !options.zap_domain.empty ());
 }
 
-void zmq::session_base_t::process_attach (i_engine *engine_)
+void zmq::session_base_t::process_attach(i_engine * engine_)
 {
     zmq_assert (engine_ != NULL);
 
     //  Create the pipe if it does not exist yet.
     if (!_pipe && !is_terminating ()) 
     {
-        object_t *parents[2] = {this, _socket};
-        pipe_t *pipes[2] = {NULL, NULL};
+        object_t *parents[2] = { this, _socket };
+        pipe_t   *pipes[2]   = { NULL, NULL };
 
-        const bool conflate = get_effective_conflate_option (options);
+        const bool conflate = get_effective_conflate_option(options);
 
         int  hwms[2]      = { conflate ? -1 : options.rcvhwm, conflate ? -1 : options.sndhwm};
         bool conflates[2] = { conflate, conflate };
@@ -387,7 +399,7 @@ void zmq::session_base_t::process_attach (i_engine *engine_)
         errno_assert (rc == 0);
 
         //  Plug the local end of the pipe.
-        pipes[0]->set_event_sink (this);
+        pipes[0]->set_event_sink(this);
 
         //  Remember the local end of the pipe.
         zmq_assert (!_pipe);
@@ -400,7 +412,7 @@ void zmq::session_base_t::process_attach (i_engine *engine_)
     //  Plug in the engine.
     zmq_assert (!_engine);
     _engine = engine_;
-    _engine->plug (_io_thread, this);
+    _engine->plug(_io_thread, this);
 }
 
 void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t reason_)
@@ -451,46 +463,61 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
 
 void zmq::session_base_t::process_term(int linger_)
 {
+    printf("%s %s %d process_termprocess_termprocess_termprocess_termprocess_termprocess_term %ld %d\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), linger_);
+
     zmq_assert (!_pending);
 
     //  If the termination of the pipe happens before the term command is
     //  delivered there's nothing much to do. We can proceed with the
     //  standard termination immediately.
-    if (!_pipe && !_zap_pipe && _terminating_pipes.empty ()) 
+    if (!_pipe && !_zap_pipe && _terminating_pipes.empty()) 
     {
-        own_t::process_term (0);
+        printf("%s %s %d process_termprocess_termprocess_termprocess_termprocess_termprocess_term\n", __FILE__, __FUNCTION__, __LINE__);
+
+        own_t::process_term(0);
         return;
     }
 
+    printf("%s %s %d process_termprocess_termprocess_termprocess_termprocess_termprocess_term\n", __FILE__, __FUNCTION__, __LINE__);
+
     _pending = true;
 
-    if (_pipe != NULL) 
+    if (_pipe != NULL)
     {
         //  If there's finite linger value, delay the termination.
         //  If linger is infinite (negative) we don't even have to set
         //  the timer.
-        if (linger_ > 0) {
+        if (linger_ > 0) 
+        {
             zmq_assert (!_has_linger_timer);
-            add_timer (linger_, linger_timer_id);
+            add_timer(linger_, linger_timer_id);
             _has_linger_timer = true;
         }
 
+        printf("%s %s %d process_termprocess_termprocess_termprocess_termprocess_termprocess_term\n", __FILE__, __FUNCTION__, __LINE__);
+
         //  Start pipe termination process. Delay the termination till all messages
         //  are processed in case the linger time is non-zero.
-        _pipe->terminate (linger_ != 0);
+        _pipe->terminate(linger_ != 0);
+
+        printf("%s %s %d process_termprocess_termprocess_termprocess_termprocess_termprocess_term\n", __FILE__, __FUNCTION__, __LINE__);
 
         //  TODO: Should this go into pipe_t::terminate ?
         //  In case there's no engine and there's only delimiter in the
         //  pipe it wouldn't be ever read. Thus we check for it explicitly.
         if (!_engine)
-            _pipe->check_read ();
+            _pipe->check_read();
     }
 
     if (_zap_pipe != NULL)
-        _zap_pipe->terminate (false);
+    {
+        printf("%s %s %d process_termprocess_termprocess_termprocess_termprocess_termprocess_term\n", __FILE__, __FUNCTION__, __LINE__);
+
+        _zap_pipe->terminate(false);
+    }
 }
 
-void zmq::session_base_t::timer_event (int id_)
+void zmq::session_base_t::timer_event(int id_)
 {
     //  Linger period expired. We can proceed with termination even though
     //  there are still pending messages to be sent.
@@ -507,9 +534,9 @@ void zmq::session_base_t::reconnect()
     //  For delayed connect situations, terminate the pipe and reestablish later on
     if (_pipe && options.immediate == 1 && _addr->protocol != "pgm" && _addr->protocol != "epgm" && _addr->protocol != "norm" && _addr->protocol != protocol_name::udp) 
     {
-        _pipe->hiccup ();
-        _pipe->terminate (false);
-        _terminating_pipes.insert (_pipe);
+        _pipe->hiccup();
+        _pipe->terminate(false);
+        _terminating_pipes.insert(_pipe);
         _pipe = NULL;
 
         if (_has_linger_timer) 
@@ -595,12 +622,12 @@ void zmq::session_base_t::start_connecting(bool wait_)
     zmq_assert (false);
 }
 
-zmq::own_t *zmq::session_base_t::create_connecter_tipc (io_thread_t *io_thread_, bool wait_)
+zmq::own_t *zmq::session_base_t::create_connecter_tipc(io_thread_t *io_thread_, bool wait_)
 {
     return new (std::nothrow) tipc_connecter_t (io_thread_, this, options, _addr, wait_);
 }
 
-zmq::own_t *zmq::session_base_t::create_connecter_ipc (io_thread_t *io_thread_, bool wait_)
+zmq::own_t *zmq::session_base_t::create_connecter_ipc(io_thread_t *io_thread_, bool wait_)
 {
     return new (std::nothrow)ipc_connecter_t (io_thread_, this, options, _addr, wait_);
 }
@@ -696,13 +723,18 @@ void zmq::session_base_t::start_connecting_udp (io_thread_t * /*io_thread_*/)
     bool recv = false;
     bool send = false;
 
-    if (options.type == ZMQ_RADIO) {
+    if (options.type == ZMQ_RADIO) 
+    {
         send = true;
         recv = false;
-    } else if (options.type == ZMQ_DISH) {
+    } 
+    else if (options.type == ZMQ_DISH) 
+    {
         send = false;
         recv = true;
-    } else if (options.type == ZMQ_DGRAM) {
+    } 
+    else if (options.type == ZMQ_DGRAM) 
+    {
         send = true;
         recv = true;
     }

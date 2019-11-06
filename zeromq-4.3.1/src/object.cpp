@@ -313,7 +313,7 @@ void zmq::object_t::send_reap (class socket_base_t *socket_)
     cmd.destination      = _ctx->get_reaper();
     cmd.type             = command_t::reap;
     cmd.args.reap.socket = socket_;
-    send_command (cmd);
+    send_command(cmd);
 }
 
 void zmq::object_t::send_reaped ()

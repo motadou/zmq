@@ -6,12 +6,7 @@
 #if defined ZMQ_IOTHREAD_POLLER_USE_EPOLL
 
 #include <vector>
-
-#if defined ZMQ_HAVE_WINDOWS
-#include "../external/wepoll/wepoll.h"
-#else
 #include <sys/epoll.h>
-#endif
 
 #include "ctx.hpp"
 #include "fd.hpp"

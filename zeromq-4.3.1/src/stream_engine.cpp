@@ -129,7 +129,7 @@ zmq::stream_engine_t::~stream_engine_t ()
     //  the only user.
     if (_metadata != NULL) 
     {
-        if (_metadata->drop_ref ()) 
+        if (_metadata->drop_ref()) 
         {
             LIBZMQ_DELETE (_metadata);
         }

@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
     
     printf("%s %s %d CLIENT PTHREAD_SELF:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
 
-    int iSndTimeout = 5000;// millsecond
+    int iSndTimeout = 5000*1000;// millsecond
     //设置接收超时 
     if (zmq_setsockopt(pSock, ZMQ_RCVTIMEO, &iSndTimeout, sizeof(iSndTimeout)) < 0)
     {

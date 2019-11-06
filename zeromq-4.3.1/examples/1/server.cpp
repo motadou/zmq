@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
 
     printf("%s %s %d SERVER:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
 
-    int iRcvTimeout = 5000;// millsecond
+    int iRcvTimeout = 5000*1000;// millsecond
     //设置zmq的接收超时时间为5秒 
     if (zmq_setsockopt(pSock, ZMQ_RCVTIMEO, &iRcvTimeout, sizeof(iRcvTimeout)) < 0)
     {
@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
         //zmq_recv函数返回错误信息 ，并使用zmq_strerror函数进行错误定位 
         if (zmq_recv(pSock, szMsg, sizeof(szMsg), 0) < 0)
         {
-            printf("error = %s\n", zmq_strerror(errno));
+            printf("error = %d %s\n", errno, zmq_strerror(errno));
             continue;
         }
         printf("received message : %s\n", szMsg);

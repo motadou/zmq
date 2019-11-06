@@ -28,26 +28,25 @@ protected:
     void xattach_pipe (zmq::pipe_t *pipe_,
                        bool subscribe_to_all_,
                        bool locally_initiated_);
-    int xsend (zmq::msg_t *msg_);
+    int  xsend (zmq::msg_t *msg_);
     bool xhas_out ();
-    int xrecv (zmq::msg_t *msg_);
+    int  xrecv (zmq::msg_t *msg_);
     bool xhas_in ();
     void xread_activated (zmq::pipe_t *pipe_);
     void xwrite_activated (zmq::pipe_t *pipe_);
     void xhiccuped (pipe_t *pipe_);
     void xpipe_terminated (zmq::pipe_t *pipe_);
 
-  private:
+private:
     //  Check whether the message matches at least one subscription.
     bool match (zmq::msg_t *msg_);
 
     //  Function to be applied to the trie to send all the subsciptions
     //  upstream.
-    static void
-    send_subscription (unsigned char *data_, size_t size_, void *arg_);
+    static void send_subscription (unsigned char *data_, size_t size_, void *arg_);
 
     //  Fair queueing object for inbound pipes.
-    fq_t _fq;
+    fq_t   _fq;
 
     //  Object for distributing the subscriptions upstream.
     dist_t _dist;
@@ -61,16 +60,18 @@ protected:
 
     //  If true, 'message' contains a matching message to return on the
     //  next recv call.
-    bool _has_message;
+    bool  _has_message;
     msg_t _message;
 
     //  If true, part of a multipart message was already received, but
     //  there are following parts still waiting.
-    bool _more;
+    bool  _more;
 
+private:
     xsub_t (const xsub_t &);
     const xsub_t &operator= (const xsub_t &);
 };
+
 }
 
 #endif

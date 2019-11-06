@@ -30,14 +30,14 @@ public:
     void engine_error(zmq::stream_engine_t::error_reason_t reason_);
 
     //  i_pipe_events interface implementation.
-    void read_activated (zmq::pipe_t *pipe_);
-    void write_activated (zmq::pipe_t *pipe_);
-    void hiccuped (zmq::pipe_t *pipe_);
-    void pipe_terminated (zmq::pipe_t *pipe_);
+    void read_activated(zmq::pipe_t *pipe_);
+    void write_activated(zmq::pipe_t *pipe_);
+    void hiccuped(zmq::pipe_t *pipe_);
+    void pipe_terminated(zmq::pipe_t *pipe_);
 
     //  Delivers a message. Returns 0 if successful; -1 otherwise.
     //  The function takes ownership of the message.
-    virtual int push_msg (msg_t *msg_);
+    virtual int push_msg(msg_t *msg_);
 
     int zap_connect ();
     bool zap_enabled ();

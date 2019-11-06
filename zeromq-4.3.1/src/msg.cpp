@@ -156,10 +156,10 @@ int zmq::msg_t::init_data(void *data_, size_t size_, msg_free_fn *ffn_, void *hi
 
 int zmq::msg_t::init_delimiter ()
 {
-    _u.delimiter.metadata = NULL;
-    _u.delimiter.type = type_delimiter;
-    _u.delimiter.flags = 0;
-    _u.delimiter.group[0] = '\0';
+    _u.delimiter.metadata   = NULL;
+    _u.delimiter.type       = type_delimiter;
+    _u.delimiter.flags      = 0;
+    _u.delimiter.group[0]   = '\0';
     _u.delimiter.routing_id = 0;
     return 0;
 }

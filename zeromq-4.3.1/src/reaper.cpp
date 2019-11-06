@@ -49,7 +49,7 @@ void zmq::reaper_t::stop ()
     }
 }
 
-void zmq::reaper_t::in_event ()
+void zmq::reaper_t::in_event()
 {
     while (true) 
     {
@@ -61,7 +61,7 @@ void zmq::reaper_t::in_event ()
 
         //  Get the next command. If there is none, exit.
         command_t cmd;
-        int rc = _mailbox.recv (&cmd, 0);
+        int rc = _mailbox.recv(&cmd, 0);
         if (rc != 0 && errno == EINTR)
             continue;
         if (rc != 0 && errno == EAGAIN)
@@ -69,7 +69,7 @@ void zmq::reaper_t::in_event ()
         errno_assert (rc == 0);
 
         //  Process the command.
-        cmd.destination->process_command (cmd);
+        cmd.destination->process_command(cmd);
     }
 }
 
@@ -90,7 +90,7 @@ void zmq::reaper_t::process_stop ()
     //  If there are no sockets being reaped finish immediately.
     if (!_sockets) 
     {
-        send_done ();
+        send_done();
         _poller->rm_fd(_mailbox_handle);
         _poller->stop();
     }
@@ -99,7 +99,7 @@ void zmq::reaper_t::process_stop ()
 void zmq::reaper_t::process_reap(socket_base_t *socket_)
 {
     //  Add the socket to the poller.
-    socket_->start_reaping (_poller);
+    socket_->start_reaping(_poller);
 
     ++_sockets;
 }

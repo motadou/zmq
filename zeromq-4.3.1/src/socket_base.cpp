@@ -841,8 +841,8 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
         }
     }
 #endif
-#if defined ZMQ_HAVE_TIPC
-    else if (protocol == protocol_name::tipc) {
+    else if (protocol == protocol_name::tipc) 
+    {
         paddr->resolved.tipc_addr = new (std::nothrow) tipc_address_t ();
         alloc_assert (paddr->resolved.tipc_addr);
         int rc = paddr->resolved.tipc_addr->resolve (address.c_str ());
@@ -860,26 +860,10 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
             return -1;
         }
     }
-#endif
-#if defined ZMQ_HAVE_VMCI
-    else if (protocol == protocol_name::vmci) {
-        paddr->resolved.vmci_addr =
-          new (std::nothrow) vmci_address_t (this->get_ctx ());
-        alloc_assert (paddr->resolved.vmci_addr);
-        int rc = paddr->resolved.vmci_addr->resolve (address.c_str ());
-        if (rc != 0) {
-            LIBZMQ_DELETE (paddr);
-            return -1;
-        }
-    }
-#endif
 
     //  Create session.
     session_base_t *session = session_base_t::create(io_thread, true, this, options, paddr);
     errno_assert (session);
-
-    printf("xxxx:::%d %d %d\n", io_thread->get_tid(), session->get_tid(), this->get_tid());
-
 
     //  PGM does not support subscription forwarding; ask for all data to be
     //  sent to this pipe. (same for NORM, currently?)
@@ -888,16 +872,18 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
 
     if (options.immediate != 1 || subscribe_to_all) 
     {
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-        
         //  Create a bi-directional pipe.
         object_t *parents[2] = {this, session};
         pipe_t *new_pipes[2] = {NULL, NULL};
 
         const bool conflate = get_effective_conflate_option (options);
 
+        // hwms = { 1000, 1000 }, conflates = {false, false}
         int  hwms[2]      = { conflate ? -1 : options.sndhwm, conflate ? -1 : options.rcvhwm };
         bool conflates[2] = { conflate, conflate };
+
+        printf("%s %s %d >>>:: hwms:: %d %d >> conflates: %s %s >>\n", __FILE__, __FUNCTION__, __LINE__, hwms[0], hwms[1], (conflates[0]?"true":"false"), (conflates[1] ? "true" : "false"));
+
         rc = pipepair(parents, new_pipes, hwms, conflates);
         errno_assert (rc == 0);
 
@@ -982,8 +968,8 @@ int zmq::socket_base_t::term_endpoint (const char *endpoint_uri_)
     //  Parse endpoint_uri_ string.
     std::string uri_protocol;
     std::string uri_path;
-    if (parse_uri (endpoint_uri_, uri_protocol, uri_path)
-        || check_protocol (uri_protocol)) {
+    if (parse_uri (endpoint_uri_, uri_protocol, uri_path) || check_protocol (uri_protocol)) 
+    {
         return -1;
     }
 
@@ -1192,27 +1178,34 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
     //  Compute the time when the timeout should occur.
     //  If the timeout is infinite, don't care.
     int timeout = options.rcvtimeo;
+
     const uint64_t end = timeout < 0 ? 0 : (_clock.now_ms () + timeout);
 
     //  In blocking scenario, commands are processed over and over again until
     //  we are able to fetch a message.
     bool block = (_ticks != 0);
-    while (true) {
-        if (unlikely (process_commands (block ? timeout : 0, false) != 0)) {
+    while (true) 
+    {
+        if (unlikely (process_commands (block ? timeout : 0, false) != 0)) 
+        {
             return -1;
         }
         rc = xrecv (msg_);
-        if (rc == 0) {
+        if (rc == 0) 
+        {
             _ticks = 0;
             break;
         }
-        if (unlikely (errno != EAGAIN)) {
+        if (unlikely (errno != EAGAIN)) 
+        {
             return -1;
         }
         block = true;
-        if (timeout > 0) {
+        if (timeout > 0) 
+        {
             timeout = static_cast<int> (end - _clock.now_ms ());
-            if (timeout <= 0) {
+            if (timeout <= 0) 
+            {
                 errno = EAGAIN;
                 return -1;
             }
@@ -1223,14 +1216,14 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
     return 0;
 }
 
-int zmq::socket_base_t::close ()
+int zmq::socket_base_t::close()
 {
     scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
 
     //  Remove all existing signalers for thread safe sockets
     if (_thread_safe)
     {
-        (static_cast<mailbox_safe_t *> (_mailbox))->clear_signalers();
+        (static_cast<mailbox_safe_t *>(_mailbox))->clear_signalers();
     }
 
     //  Mark the socket as dead
@@ -1254,7 +1247,7 @@ bool zmq::socket_base_t::has_out()
     return xhas_out ();
 }
 
-void zmq::socket_base_t::start_reaping(poller_t *poller_)
+void zmq::socket_base_t::start_reaping(poller_t * poller_)
 {
     //  Plug the socket to the reaper thread.
     _poller = poller_;
@@ -1262,8 +1255,12 @@ void zmq::socket_base_t::start_reaping(poller_t *poller_)
     fd_t fd;
 
     if (!_thread_safe)
-        fd = (static_cast<mailbox_t *> (_mailbox))->get_fd ();
-    else {
+    {
+        // ◊ﬂ’‚¿Ô
+        fd = (static_cast<mailbox_t *> (_mailbox))->get_fd();
+    }
+    else 
+    {
         scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
 
         _reaper_signaler = new (std::nothrow) signaler_t ();
@@ -1271,15 +1268,15 @@ void zmq::socket_base_t::start_reaping(poller_t *poller_)
 
         //  Add signaler to the safe mailbox
         fd = _reaper_signaler->get_fd ();
-        (static_cast<mailbox_safe_t *> (_mailbox))
-          ->add_signaler (_reaper_signaler);
+        (static_cast<mailbox_safe_t *> (_mailbox))->add_signaler (_reaper_signaler);
 
         //  Send a signal to make sure reaper handle existing commands
         _reaper_signaler->send ();
     }
 
-    _handle = _poller->add_fd (fd, this);
-    _poller->set_pollin (_handle);
+    printf("===add fd: %d\n", fd);
+    _handle = _poller->add_fd(fd, this);
+    _poller->set_pollin(_handle);
 
     //  Initialise the termination and check whether it can be deallocated
     //  immediately.
@@ -1318,19 +1315,21 @@ int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
 
     //  Check whether there are any commands pending for this thread.
     command_t cmd;
-    int rc = _mailbox->recv (&cmd, timeout_);
+    int rc = _mailbox->recv(&cmd, timeout_);
 
     //  Process all available commands.
     while (rc == 0) 
     {
-        cmd.destination->process_command (cmd);
-        rc = _mailbox->recv (&cmd, 0);
+        printf("%s %s %d process_aaaaaaaaaaaaa >> pthred_self:%ld %d\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), cmd.type);
+
+        cmd.destination->process_command(cmd);
+        rc = _mailbox->recv(&cmd, 0);
     }
 
     if (errno == EINTR)
         return -1;
 
-    zmq_assert (errno == EAGAIN);
+    zmq_assert(errno == EAGAIN);
 
     if (_ctx_terminated) 
     {
@@ -1361,23 +1360,28 @@ void zmq::socket_base_t::process_bind (pipe_t *pipe_)
     attach_pipe (pipe_);
 }
 
-void zmq::socket_base_t::process_term (int linger_)
+void zmq::socket_base_t::process_term(int linger_)
 {
+    printf("%s %s %d pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp\n", __FILE__, __FUNCTION__, __LINE__);
+
     //  Unregister all inproc endpoints associated with this socket.
     //  Doing this we make sure that no new pipes from other sockets (inproc)
     //  will be initiated.
-    unregister_endpoints (this);
+    unregister_endpoints(this);
 
     //  Ask all attached pipes to terminate.
-    for (pipes_t::size_type i = 0; i != _pipes.size (); ++i)
-        _pipes[i]->terminate (false);
-    register_term_acks (static_cast<int> (_pipes.size ()));
+    for (pipes_t::size_type i = 0; i != _pipes.size(); ++i)
+    {
+        _pipes[i]->terminate(false);
+    }
+
+    register_term_acks(static_cast<int>(_pipes.size()));
 
     //  Continue the termination process immediately.
-    own_t::process_term (linger_);
+    own_t::process_term(linger_);
 }
 
-void zmq::socket_base_t::process_term_endpoint (std::string *endpoint_)
+void zmq::socket_base_t::process_term_endpoint(std::string *endpoint_)
 {
     term_endpoint (endpoint_->c_str ());
     delete endpoint_;
@@ -1467,7 +1471,7 @@ void zmq::socket_base_t::in_event ()
         if (_thread_safe)
             _reaper_signaler->recv ();
 
-        printf("%s %s %d in_eventin_eventin_eventin_eventin_eventin_eventin_event\n", __FILE__, __FUNCTION__, __LINE__);
+        printf("%s %s %d in_eventin_eventin_eventin_eventin_eventin_eventin_event>>>>>>>>>>>>>>>>>>\n", __FILE__, __FUNCTION__, __LINE__);
         process_commands (0, false);
     }
     check_destroy ();
@@ -1489,13 +1493,13 @@ void zmq::socket_base_t::check_destroy ()
     if (_destroyed) 
     {
         //  Remove the socket from the reaper's poller.
-        _poller->rm_fd (_handle);
+        _poller->rm_fd(_handle);
 
         //  Remove the socket from the context.
-        destroy_socket (this);
+        destroy_socket(this);
 
         //  Notify the reaper about the fact.
-        send_reaped ();
+        send_reaped();
 
         //  Deallocate.
         own_t::process_destroy ();
@@ -1523,31 +1527,38 @@ void zmq::socket_base_t::hiccuped (pipe_t *pipe_)
 
 void zmq::socket_base_t::pipe_terminated (pipe_t *pipe_)
 {
+    printf("%s %s %d pipe_terminated %ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
+
     //  Notify the specific socket type about the pipe termination.
-    xpipe_terminated (pipe_);
+    xpipe_terminated(pipe_);
 
     // Remove pipe from inproc pipes
     _inprocs.erase_pipe (pipe_);
 
     //  Remove the pipe from the list of attached pipes and confirm its
     //  termination if we are already shutting down.
-    _pipes.erase (pipe_);
+    _pipes.erase(pipe_);
 
     // Remove the pipe from _endpoints (set it to NULL).
-    if (!pipe_->get_endpoint_uri ().empty ()) {
+    if (!pipe_->get_endpoint_uri().empty ()) 
+    {
         std::pair<endpoints_t::iterator, endpoints_t::iterator> range;
         range = _endpoints.equal_range (pipe_->get_endpoint_uri ());
 
-        for (endpoints_t::iterator it = range.first; it != range.second; ++it) {
-            if (it->second.second == pipe_) {
+        for (endpoints_t::iterator it = range.first; it != range.second; ++it) 
+        {
+            if (it->second.second == pipe_) 
+            {
                 it->second.second = NULL;
                 break;
             }
         }
     }
 
-    if (is_terminating ())
-        unregister_term_ack ();
+    if (is_terminating())
+    {
+        unregister_term_ack();
+    }
 }
 
 void zmq::socket_base_t::extract_flags (msg_t *msg_)

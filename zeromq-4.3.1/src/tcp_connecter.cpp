@@ -34,7 +34,7 @@ zmq::tcp_connecter_t::tcp_connecter_t(class io_thread_t *io_thread_, class sessi
     _reconnect_timer_started (false),
     _session (session_),
     _current_reconnect_ivl (options.reconnect_ivl),
-    _socket (_session->get_socket ())
+    _socket (_session->get_socket())
 {
     zmq_assert (_addr);
     zmq_assert (_addr->protocol == protocol_name::tcp);
@@ -200,7 +200,7 @@ void zmq::tcp_connecter_t::start_connecting ()
     }
 }
 
-void zmq::tcp_connecter_t::add_connect_timer ()
+void zmq::tcp_connecter_t::add_connect_timer()
 {
     if (options.connect_timeout > 0) 
     {
@@ -406,13 +406,10 @@ bool zmq::tcp_connecter_t::tune_socket (const fd_t fd_)
 void zmq::tcp_connecter_t::close ()
 {
     zmq_assert (_s != retired_fd);
-#ifdef ZMQ_HAVE_WINDOWS
-    const int rc = closesocket (_s);
-    wsa_assert (rc != SOCKET_ERROR);
-#else
+
     const int rc = ::close (_s);
     errno_assert (rc == 0);
-#endif
+
     _socket->event_closed (_endpoint, _s);
     _s = retired_fd;
 }

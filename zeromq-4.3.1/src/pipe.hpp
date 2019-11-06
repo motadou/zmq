@@ -26,7 +26,7 @@ int pipepair (zmq::object_t *parents_[2], zmq::pipe_t *pipes_[2], int hwms_[2], 
 
 struct i_pipe_events
 {
-    virtual ~i_pipe_events () {}
+    virtual ~i_pipe_events () { }
 
     virtual void read_activated (zmq::pipe_t *pipe_) = 0;
     virtual void write_activated (zmq::pipe_t *pipe_) = 0;
@@ -123,12 +123,7 @@ private:
 
     //  Constructor is private. Pipe can only be created using
     //  pipepair function.
-    pipe_t (object_t *parent_,
-            upipe_t *inpipe_,
-            upipe_t *outpipe_,
-            int inhwm_,
-            int outhwm_,
-            bool conflate_);
+    pipe_t (object_t * parent_, upipe_t * inpipe_, upipe_t * outpipe_,  int inhwm_, int outhwm_, bool conflate_);
 
     //  Pipepair uses this function to let us know about
     //  the peer pipe object.
@@ -219,6 +214,7 @@ private:
 };
 
 void send_routing_id (pipe_t *pipe_, const options_t &options_);
+
 }
 
 #endif

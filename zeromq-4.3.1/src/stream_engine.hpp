@@ -2,7 +2,6 @@
 #define __ZMQ_STREAM_ENGINE_HPP_INCLUDED__
 
 #include <stddef.h>
-
 #include "fd.hpp"
 #include "i_engine.hpp"
 #include "io_object.hpp"
@@ -15,6 +14,7 @@
 
 namespace zmq
 {
+
 //  Protocol revisions
 enum
 {
@@ -193,14 +193,15 @@ private:
     //  Heartbeat stuff
     enum
     {
-        heartbeat_ivl_timer_id = 0x80,
+        heartbeat_ivl_timer_id     = 0x80,
         heartbeat_timeout_timer_id = 0x81,
-        heartbeat_ttl_timer_id = 0x82
+        heartbeat_ttl_timer_id     = 0x82
     };
+
     bool _has_ttl_timer;
     bool _has_timeout_timer;
     bool _has_heartbeat_timer;
-    int _heartbeat_timeout;
+    int  _heartbeat_timeout;
 
     // Socket
     zmq::socket_base_t *_socket;

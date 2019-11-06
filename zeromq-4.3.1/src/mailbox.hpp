@@ -26,17 +26,15 @@ public:
 
     bool valid () const;
 
-#ifdef HAVE_FORK
     // close the file descriptors in the signaller. This is used in a forked
     // child process to close the file descriptors so that they do not interfere
     // with the context in the parent process.
-    void forked () { _signaler.forked (); }
-#endif
+    void forked () { _signaler.forked(); }
 
 private:
     //  The pipe to store actual commands.
     typedef ypipe_t<command_t, command_pipe_granularity> cpipe_t;
-    cpipe_t _cpipe;
+    cpipe_t    _cpipe;
 
     //  Signaler to pass signals from writer thread to reader thread.
     signaler_t _signaler;
