@@ -84,9 +84,9 @@ private:
     typedef std::map<std::string, start_connecting_fun_t> start_connecting_map_t;
     static start_connecting_map_t _start_connecting_map;
 
-    void start_connecting_pgm (io_thread_t *io_thread_);
+    void start_connecting_pgm  (io_thread_t *io_thread_);
     void start_connecting_norm (io_thread_t *io_thread_);
-    void start_connecting_udp (io_thread_t *io_thread_);
+    void start_connecting_udp  (io_thread_t *io_thread_);
 
     void reconnect ();
 

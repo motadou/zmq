@@ -50,24 +50,17 @@ zmq::tcp_connecter_t::~tcp_connecter_t ()
     zmq_assert (!_reconnect_timer_started);
     zmq_assert (!_handle);
     zmq_assert (_s == retired_fd);
-
-    printf("%s %s %d ***************************************************%ld|||||||||||||||||||\n", __FILE__, __FUNCTION__, __LINE__, (int64_t)this);
 }
 
 void zmq::tcp_connecter_t::process_plug()
 {
     if (_delayed_start)
     {
-        printf("%s %s %d ***************************************************%ld\n", __FILE__, __FUNCTION__, __LINE__, (int64_t)this);
-
         add_reconnect_timer();
     }
     else
     {
-        printf("%s %s %d ***************************************************%ld\n", __FILE__, __FUNCTION__, __LINE__, (int64_t)this);
-
         /// 首次走这里
-
         start_connecting();
     }
 }
@@ -148,8 +141,6 @@ void zmq::tcp_connecter_t::timer_event(int id_)
 {
     zmq_assert (id_ == reconnect_timer_id || id_ == connect_timer_id);
 
-    printf("%s %s %d ***************************************************%d\n", __FILE__, __FUNCTION__, __LINE__, id_);
-
     if (id_ == connect_timer_id) 
     {
         _connect_timer_started = false;
@@ -159,8 +150,6 @@ void zmq::tcp_connecter_t::timer_event(int id_)
     } 
     else if (id_ == reconnect_timer_id) 
     {
-        printf("%s %s %d ***************************************************\n", __FILE__, __FUNCTION__, __LINE__);
-
         _reconnect_timer_started = false;
         start_connecting ();
     }
@@ -168,8 +157,6 @@ void zmq::tcp_connecter_t::timer_event(int id_)
 
 void zmq::tcp_connecter_t::start_connecting ()
 {
-    printf("%s %s %d ***************************************************\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  Open the connecting socket.
     const int rc = open ();
 
@@ -182,8 +169,6 @@ void zmq::tcp_connecter_t::start_connecting ()
     //  Connection establishment may be delayed. Poll for its completion.
     else if (rc == -1 && errno == EINPROGRESS)
     {
-        printf("%s %s %d ***************************************************\n", __FILE__, __FUNCTION__, __LINE__);
-
         _handle = add_fd (_s);
         set_pollout(_handle);
         _socket->event_connect_delayed(_endpoint, zmq_errno ());
@@ -366,8 +351,6 @@ zmq::fd_t zmq::tcp_connecter_t::connect ()
     socklen_t len = sizeof err;
 
     const int rc = getsockopt (_s, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *> (&err), &len);
-
-    printf("%s %s %d %d\n", __FILE__, __FUNCTION__, __LINE__, rc);
 
     //  Assert if the error was caused by 0MQ bug.
     //  Networking problems are OK. No need to assert.

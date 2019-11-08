@@ -72,7 +72,7 @@ public:
 
     //  Returns reference to the back element of the queue.
     //  If the queue is empty, behaviour is undefined.
-    inline T &back () { return _back_chunk->values[_back_pos]; }
+    inline T &back ()  { return _back_chunk->values[_back_pos];   }
 
     //  Adds an element to the back end of the queue.
     inline void push ()
@@ -83,7 +83,7 @@ public:
         if (++_end_pos != N)
             return;
 
-        chunk_t *sc = _spare_chunk.xchg (NULL);
+        chunk_t *sc = _spare_chunk.xchg(NULL);
         if (sc) 
         {
             _end_chunk->next = sc;
@@ -180,12 +180,12 @@ private:
     //  while begin & end positions are always valid. Begin position is
     //  accessed exclusively be queue reader (front/pop), while back and
     //  end positions are accessed exclusively by queue writer (back/push).
-    chunk_t *_begin_chunk;
-    int _begin_pos;
-    chunk_t *_back_chunk;
-    int _back_pos;
-    chunk_t *_end_chunk;
-    int _end_pos;
+    chunk_t * _begin_chunk;
+    int       _begin_pos;
+    chunk_t * _back_chunk;
+    int       _back_pos;
+    chunk_t * _end_chunk;
+    int       _end_pos;
 
     //  People are likely to produce and consume at similar rates.  In
     //  this scenario holding onto the most recently freed chunk saves

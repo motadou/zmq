@@ -30,7 +30,7 @@
 #include "likely.hpp"
 #include "wire.hpp"
 
-zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_, const std::string &endpoint_) :
+zmq::stream_engine_t::stream_engine_t(fd_t fd_, const options_t & options_, const std::string & endpoint_) :
     _s (fd_),
     _handle (static_cast<handle_t> (NULL)),
     _inpos (NULL),
@@ -71,7 +71,9 @@ zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_, cons
 
     const int family = get_peer_ip_address(_s, _peer_address);
     if (family == 0)
-        _peer_address.clear ();
+    {
+        _peer_address.clear();
+    }
 #if defined ZMQ_HAVE_SO_PEERCRED
     else if (family == PF_UNIX) 
     {
@@ -142,8 +144,6 @@ zmq::stream_engine_t::~stream_engine_t ()
 
 void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session_)
 {
-    printf("%s %s %d==================================================\n", __FILE__, __FUNCTION__, __LINE__);
-
     zmq_assert (!_plugged);
     _plugged = true;
 
@@ -160,8 +160,6 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
 
     if (_options.raw_socket) 
     {
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
         // no handshaking for raw sock, instantiate raw encoder and decoders
         _encoder = new (std::nothrow) raw_encoder_t (out_batch_size);
         alloc_assert (_encoder);
@@ -215,7 +213,7 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
     in_event();
 }
 
-void zmq::stream_engine_t::unplug ()
+void zmq::stream_engine_t::unplug()
 {
     zmq_assert (_plugged);
     _plugged = false;
@@ -246,15 +244,15 @@ void zmq::stream_engine_t::unplug ()
     }
     //  Cancel all fd subscriptions.
     if (!_io_error)
-        rm_fd (_handle);
+        rm_fd(_handle);
 
     //  Disconnect from I/O threads poller object.
-    io_object_t::unplug ();
+    io_object_t::unplug();
 
     _session = NULL;
 }
 
-void zmq::stream_engine_t::terminate ()
+void zmq::stream_engine_t::terminate()
 {
     unplug ();
     delete this;
@@ -295,9 +293,11 @@ void zmq::stream_engine_t::in_event()
 
         if (rc == 0) 
         {
+            printf("%s %s %d==\n", __FILE__, __FUNCTION__, __LINE__);
+
             // connection closed by peer
             errno = EPIPE;
-            error (connection_error);
+            error(connection_error);
             return;
         }
 
@@ -329,18 +329,13 @@ void zmq::stream_engine_t::in_event()
         if (rc == 0 || rc == -1)
             break;
 
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
         rc = (this->*_process_msg) (_decoder->msg ());
-
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
         if (rc == -1)
             break;
     }
 
-    //  Tear down the connection if we have failed to decode input data
-    //  or the session has rejected the message.
+    //  Tear down the connection if we have failed to decode input data or the session has rejected the message.
     if (rc == -1) 
     {
         if (errno != EAGAIN) 
@@ -373,7 +368,7 @@ void zmq::stream_engine_t::out_event()
         }
 
         _outpos  = NULL;
-        _outsize = _encoder->encode (&_outpos, 0);
+        _outsize = _encoder->encode(&_outpos, 0);
 
         while (_outsize < static_cast<size_t> (out_batch_size)) 
         {
@@ -489,7 +484,6 @@ bool zmq::stream_engine_t::restart_input ()
         error (protocol_error);
         return false;
     }
-
     else {
         _input_stopped = false;
         set_pollin (_handle);
@@ -694,8 +688,6 @@ bool zmq::stream_engine_t::handshake_v1_0_unversioned()
     //  will come from the socket.
     _next_msg = &stream_engine_t::pull_msg_from_session;
 
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  We are expecting routing id message.
     _process_msg = &stream_engine_t::process_routing_id_msg;
 
@@ -786,7 +778,6 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
         error (protocol_error);
         return false;
     }
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     _next_msg    = &stream_engine_t::next_handshake_command;
     _process_msg = &stream_engine_t::process_handshake_command;
@@ -806,9 +797,6 @@ int zmq::stream_engine_t::routing_id_msg (msg_t *msg_)
 
 int zmq::stream_engine_t::process_routing_id_msg (msg_t *msg_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
-
     if (_options.recv_routing_id) {
         msg_->set_flags (msg_t::routing_id);
         int rc = _session->push_msg (msg_);
@@ -831,8 +819,6 @@ int zmq::stream_engine_t::process_routing_id_msg (msg_t *msg_)
         rc = _session->push_msg (&subscription);
         errno_assert (rc == 0);
     }
-
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     _process_msg = &stream_engine_t::push_msg_to_session;
 
@@ -939,8 +925,6 @@ void zmq::stream_engine_t::mechanism_ready ()
     if (flush_session)
         _session->flush ();
 
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     _next_msg    = &stream_engine_t::pull_and_encode;
     _process_msg = &stream_engine_t::write_credential;
 
@@ -977,8 +961,6 @@ int zmq::stream_engine_t::push_msg_to_session (msg_t *msg_)
 
 int zmq::stream_engine_t::push_raw_msg_to_session (msg_t *msg_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (_metadata && _metadata != msg_->metadata ())
         msg_->set_metadata (_metadata);
     return push_msg_to_session (msg_);
@@ -1004,8 +986,6 @@ int zmq::stream_engine_t::write_credential (msg_t *msg_)
         }
     }
 
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     _process_msg = &stream_engine_t::decode_and_push;
     return decode_and_push (msg_);
 }
@@ -1023,9 +1003,6 @@ int zmq::stream_engine_t::pull_and_encode (msg_t *msg_)
 
 int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
-
     zmq_assert (_mechanism != NULL);
 
     if (_mechanism->decode (msg_) == -1)
@@ -1050,8 +1027,6 @@ int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
     
     if (_session->push_msg (msg_) == -1) 
     {
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
         if (errno == EAGAIN)
             _process_msg = &stream_engine_t::push_one_then_decode_and_push;
         return -1;
@@ -1061,8 +1036,6 @@ int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
 
 int zmq::stream_engine_t::push_one_then_decode_and_push (msg_t *msg_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     const int rc = _session->push_msg (msg_);
     if (rc == 0)
         _process_msg = &stream_engine_t::decode_and_push;
@@ -1071,8 +1044,6 @@ int zmq::stream_engine_t::push_one_then_decode_and_push (msg_t *msg_)
 
 void zmq::stream_engine_t::error(error_reason_t reason_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (_options.raw_socket && _options.raw_notify) 
     {
         //  For raw sockets, send a final 0-length message to the application
@@ -1097,16 +1068,16 @@ void zmq::stream_engine_t::error(error_reason_t reason_)
     }
 
     // protocol errors have been signaled already at the point where they occurred
-    if (reason_ != protocol_error && (_mechanism == NULL || _mechanism->status () == mechanism_t::handshaking)) 
+    if ((reason_ != protocol_error) && (_mechanism == NULL || _mechanism->status () == mechanism_t::handshaking)) 
     {
         int err = errno;
-        _socket->event_handshake_failed_no_detail (_endpoint, err);
+        _socket->event_handshake_failed_no_detail(_endpoint, err);
     }
 
     _socket->event_disconnected(_endpoint, _s);
     _session->flush();
     _session->engine_error(reason_);
-    unplug ();
+    unplug();
     delete this;
 }
 

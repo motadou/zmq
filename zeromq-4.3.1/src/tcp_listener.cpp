@@ -14,7 +14,6 @@
 #include "tcp.hpp"
 #include "socket_base.hpp"
 
-#ifndef ZMQ_HAVE_WINDOWS
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -22,14 +21,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
-#ifdef ZMQ_HAVE_VXWORKS
-#include <sockLib.h>
-#endif
-#endif
-
-#ifdef ZMQ_HAVE_OPENVMS
-#include <ioctl.h>
-#endif
 
 zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_, socket_base_t *socket_, const options_t &options_) :
     own_t (io_thread_, options_),
@@ -66,7 +57,7 @@ void zmq::tcp_listener_t::process_term (int linger_)
 void zmq::tcp_listener_t::in_event()
 {
     fd_t fd = accept();
-
+    printf("%s %s %d %d\n", __FILE__, __FUNCTION__, __LINE__, fd);
     //  If connection was reset by the peer in the meantime, just ignore it.
     //  TODO: Handle specific errors like ENFILE/EMFILE etc.
     if (fd == retired_fd) 
@@ -80,7 +71,7 @@ void zmq::tcp_listener_t::in_event()
     rc = rc | tune_tcp_maxrt(fd, options.tcp_maxrt);
     if (rc != 0) 
     {
-        _socket->event_accept_failed(_endpoint, zmq_errno ());
+        _socket->event_accept_failed(_endpoint, zmq_errno());
         return;
     }
 
@@ -97,8 +88,8 @@ void zmq::tcp_listener_t::in_event()
     session_base_t *session = session_base_t::create(io_thread, false, _socket, options, NULL);
     errno_assert(session);
     session->inc_seqnum();
-    launch_child(session);  // 发送给IO线程，加入到IO线程中去
-    send_attach(session, engine, false);
+    launch_child(session);                  // 发送给IO线程，加入到IO线程中去，目标是session
+    send_attach(session, engine, false);    // 发送attache命令，目标是session
 
     _socket->event_accepted(_endpoint, fd);
 }
@@ -106,14 +97,11 @@ void zmq::tcp_listener_t::in_event()
 void zmq::tcp_listener_t::close ()
 {
     zmq_assert (_s != retired_fd);
-#ifdef ZMQ_HAVE_WINDOWS
-    int rc = closesocket (_s);
-    wsa_assert (rc != SOCKET_ERROR);
-#else
+
     int rc = ::close (_s);
     errno_assert (rc == 0);
-#endif
-    _socket->event_closed (_endpoint, _s);
+
+    _socket->event_closed(_endpoint, _s);
     _s = retired_fd;
 }
 
@@ -197,46 +185,19 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
 
     //  Allow reusing of the address.
     int flag = 1;
-#ifdef ZMQ_HAVE_WINDOWS
-    rc = setsockopt (_s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char *> (&flag), sizeof (int));
-    wsa_assert (rc != SOCKET_ERROR);
-#elif defined ZMQ_HAVE_VXWORKS
-    rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, (char *) &flag, sizeof (int));
-    errno_assert (rc == 0);
-#else
     rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
-#endif
 
     //  Bind the socket to the network interface and port.
-#if defined ZMQ_HAVE_VXWORKS
-    rc = bind (_s, (sockaddr *) _address.addr (), _address.addrlen ());
-#else
     rc = bind (_s, _address.addr (), _address.addrlen ());
-#endif
-#ifdef ZMQ_HAVE_WINDOWS
-    if (rc == SOCKET_ERROR) 
-    {
-        errno = wsa_error_to_errno (WSAGetLastError ());
-        goto error;
-    }
-#else
+
     if (rc != 0)
         goto error;
-#endif
 
     //  Listen for incoming connections.
     rc = listen (_s, options.backlog);
-#ifdef ZMQ_HAVE_WINDOWS
-    if (rc == SOCKET_ERROR) 
-    {
-        errno = wsa_error_to_errno (WSAGetLastError ());
-        goto error;
-    }
-#else
     if (rc != 0)
         goto error;
-#endif
 
     _socket->event_listening (_endpoint, _s);
     return 0;
@@ -248,7 +209,7 @@ error:
     return -1;
 }
 
-zmq::fd_t zmq::tcp_listener_t::accept ()
+zmq::fd_t zmq::tcp_listener_t::accept()
 {
     //  The situation where connection cannot be accepted due to insufficient
     //  resources is considered valid and treated by ignoring the connection.
@@ -258,11 +219,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
     struct sockaddr_storage ss;
     memset (&ss, 0, sizeof (ss));
 
-#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_VXWORKS
-    int ss_len = sizeof (ss);
-#else
     socklen_t ss_len = sizeof (ss);
-#endif
 
 #if defined ZMQ_HAVE_SOCK_CLOEXEC && defined HAVE_ACCEPT4
     fd_t sock = ::accept4(_s, reinterpret_cast<struct sockaddr *> (&ss), &ss_len, SOCK_CLOEXEC);

@@ -15,8 +15,6 @@
     #define ZMQ_ATOMIC_PTR_ARM
 #elif defined __tile__
     #define ZMQ_ATOMIC_PTR_TILE
-#elif defined ZMQ_HAVE_WINDOWS
-    #define ZMQ_ATOMIC_PTR_WINDOWS
 #elif (defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_NETBSD || defined ZMQ_HAVE_GNU)
     #define ZMQ_ATOMIC_PTR_ATOMIC_H
 #else
@@ -27,8 +25,6 @@
     #include "mutex.hpp"
 #elif defined ZMQ_ATOMIC_PTR_CXX11
     #include <atomic>
-#elif defined ZMQ_ATOMIC_PTR_WINDOWS
-    #include "windows.hpp"
 #elif defined ZMQ_ATOMIC_PTR_ATOMIC_H
     #include <atomic.h>
 #elif defined ZMQ_ATOMIC_PTR_TILE
@@ -46,32 +42,11 @@ inline void *atomic_xchg_ptr (void **ptr_,
 #endif
                               ) ZMQ_NOEXCEPT
 {
-#if defined ZMQ_ATOMIC_PTR_WINDOWS
-    return InterlockedExchangePointer ((PVOID *) ptr_, val_);
-#elif defined ZMQ_ATOMIC_PTR_INTRINSIC
+#if   defined ZMQ_ATOMIC_PTR_INTRINSIC
     return __atomic_exchange_n (ptr_, val_, __ATOMIC_ACQ_REL);
-#elif defined ZMQ_ATOMIC_PTR_ATOMIC_H
-    return atomic_swap_ptr (ptr_, val_);
-#elif defined ZMQ_ATOMIC_PTR_TILE
-    return arch_atomic_exchange (ptr_, val_);
 #elif defined ZMQ_ATOMIC_PTR_X86
     void *old;
-    __asm__ volatile("lock; xchg %0, %2"
-                     : "=r"(old), "=m"(*ptr_)
-                     : "m"(*ptr_), "0"(val_));
-    return old;
-#elif defined ZMQ_ATOMIC_PTR_ARM
-    void *old;
-    unsigned int flag;
-    __asm__ volatile("       dmb     sy\n\t"
-                     "1:     ldrex   %1, [%3]\n\t"
-                     "       strex   %0, %4, [%3]\n\t"
-                     "       teq     %0, #0\n\t"
-                     "       bne     1b\n\t"
-                     "       dmb     sy\n\t"
-                     : "=&r"(flag), "=&r"(old), "+Qo"(*ptr_)
-                     : "r"(ptr_), "r"(val_)
-                     : "cc");
+    __asm__ volatile("lock; xchg %0, %2" : "=r"(old), "=m"(*ptr_) : "m"(*ptr_), "0"(val_));
     return old;
 #elif defined ZMQ_ATOMIC_PTR_MUTEX
     _sync.lock ();
@@ -84,49 +59,20 @@ inline void *atomic_xchg_ptr (void **ptr_,
 #endif
 }
 
-inline void *atomic_cas (void *volatile *ptr_,
-                         void *cmp_,
-                         void *val_
+inline void * atomic_cas (void *volatile *ptr_, void *cmp_, void *val_
 #if defined ZMQ_ATOMIC_PTR_MUTEX
                          ,
                          mutex_t &_sync
 #endif
                          ) ZMQ_NOEXCEPT
 {
-#if defined ZMQ_ATOMIC_PTR_WINDOWS
-    return InterlockedCompareExchangePointer ((volatile PVOID *) ptr_, val_,
-                                              cmp_);
-#elif defined ZMQ_ATOMIC_PTR_INTRINSIC
+#if   defined ZMQ_ATOMIC_PTR_INTRINSIC
     void *old = cmp_;
-    __atomic_compare_exchange_n (ptr_, &old, val_, false, __ATOMIC_RELEASE,
-                                 __ATOMIC_ACQUIRE);
+    __atomic_compare_exchange_n (ptr_, &old, val_, false, __ATOMIC_RELEASE, __ATOMIC_ACQUIRE);
     return old;
-#elif defined ZMQ_ATOMIC_PTR_ATOMIC_H
-    return atomic_cas_ptr (ptr_, cmp_, val_);
-#elif defined ZMQ_ATOMIC_PTR_TILE
-    return arch_atomic_val_compare_and_exchange (ptr_, cmp_, val_);
 #elif defined ZMQ_ATOMIC_PTR_X86
     void *old;
-    __asm__ volatile("lock; cmpxchg %2, %3"
-                     : "=a"(old), "=m"(*ptr_)
-                     : "r"(val_), "m"(*ptr_), "0"(cmp_)
-                     : "cc");
-    return old;
-#elif defined ZMQ_ATOMIC_PTR_ARM
-    void *old;
-    unsigned int flag;
-    __asm__ volatile("       dmb     sy\n\t"
-                     "1:     ldrex   %1, [%3]\n\t"
-                     "       mov     %0, #0\n\t"
-                     "       teq     %1, %4\n\t"
-                     "       it      eq\n\t"
-                     "       strexeq %0, %5, [%3]\n\t"
-                     "       teq     %0, #0\n\t"
-                     "       bne     1b\n\t"
-                     "       dmb     sy\n\t"
-                     : "=&r"(flag), "=&r"(old), "+Qo"(*ptr_)
-                     : "r"(ptr_), "r"(cmp_), "r"(val_)
-                     : "cc");
+    __asm__ volatile("lock; cmpxchg %2, %3" : "=a"(old), "=m"(*ptr_) : "r"(val_), "m"(*ptr_), "0"(cmp_) : "cc");
     return old;
 #elif defined ZMQ_ATOMIC_PTR_MUTEX
     _sync.lock ();
@@ -230,16 +176,12 @@ struct atomic_value_t
     int load () const ZMQ_NOEXCEPT
     {
 #if defined ZMQ_ATOMIC_PTR_CXX11
-        return _value.load (std::memory_order_acquire);
+        return _value.load(std::memory_order_acquire);
 #else
         return (int) (ptrdiff_t) atomic_cas ((void **) &_value, 0, 0
 #if defined ZMQ_ATOMIC_PTR_MUTEX
                                              ,
-#if defined __SUNPRO_CC
-                                             const_cast<mutex_t &> (_sync)
-#else
                                              _sync
-#endif
 #endif
         );
 #endif
@@ -256,9 +198,10 @@ private:
     mutable mutex_t _sync;
 #endif
 
- private:
+private:
     atomic_value_t &operator= (const atomic_value_t &src_);
 };
+
 }
 
 //  Remove macros local to this file.
@@ -268,7 +211,6 @@ private:
 #undef ZMQ_ATOMIC_PTR_X86
 #undef ZMQ_ATOMIC_PTR_ARM
 #undef ZMQ_ATOMIC_PTR_TILE
-#undef ZMQ_ATOMIC_PTR_WINDOWS
 #undef ZMQ_ATOMIC_PTR_ATOMIC_H
 
 #endif

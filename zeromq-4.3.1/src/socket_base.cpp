@@ -150,12 +150,12 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_, bool
     _thread_safe (thread_safe_),
     _reaper_signaler (NULL),
     _sync (),
-    _monitor_sync ()
+    _monitor_sync()
 {
     options.socket_id = sid_;
     options.ipv6      = (parent_->get(ZMQ_IPV6) != 0);
     options.linger.store(parent_->get(ZMQ_BLOCKY) ? -1 : 0);
-    options.zero_copy = parent_->get(ZMQ_ZERO_COPY_RECV) != 0;
+    options.zero_copy = (parent_->get(ZMQ_ZERO_COPY_RECV) != 0);
 
     if (_thread_safe) 
     {
@@ -180,7 +180,7 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_, bool
     }
 }
 
-int zmq::socket_base_t::get_peer_state (const void *routing_id_, size_t routing_id_size_) const
+int zmq::socket_base_t::get_peer_state(const void *routing_id_, size_t routing_id_size_) const
 {
     LIBZMQ_UNUSED (routing_id_);
     LIBZMQ_UNUSED (routing_id_size_);
@@ -193,12 +193,12 @@ int zmq::socket_base_t::get_peer_state (const void *routing_id_, size_t routing_
 zmq::socket_base_t::~socket_base_t ()
 {
     if (_mailbox)
-        LIBZMQ_DELETE (_mailbox);
+        LIBZMQ_DELETE(_mailbox);
 
     if (_reaper_signaler)
-        LIBZMQ_DELETE (_reaper_signaler);
+        LIBZMQ_DELETE(_reaper_signaler);
 
-    scoped_lock_t lock (_monitor_sync);
+    scoped_lock_t lock(_monitor_sync);
     stop_monitor ();
 
     zmq_assert (_destroyed);
@@ -206,8 +206,6 @@ zmq::socket_base_t::~socket_base_t ()
 
 zmq::i_mailbox *zmq::socket_base_t::get_mailbox () const
 {
-    printf("%s %s %d get_mailboxget_mailboxget_mailboxget_mailboxget_mailboxget_mailbox\n", __FILE__, __FUNCTION__, __LINE__);
-
     return _mailbox;
 }
 
@@ -619,8 +617,6 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
 {
     scoped_optional_lock_t sync_lock (_thread_safe ? &_sync : NULL);
 
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (unlikely (_ctx_terminated)) 
     {
         errno = ETERM;
@@ -881,8 +877,6 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
         // hwms = { 1000, 1000 }, conflates = {false, false}
         int  hwms[2]      = { conflate ? -1 : options.sndhwm, conflate ? -1 : options.rcvhwm };
         bool conflates[2] = { conflate, conflate };
-
-        printf("%s %s %d >>>:: hwms:: %d %d >> conflates: %s %s >>\n", __FILE__, __FUNCTION__, __LINE__, hwms[0], hwms[1], (conflates[0]?"true":"false"), (conflates[1] ? "true" : "false"));
 
         rc = pipepair(parents, new_pipes, hwms, conflates);
         errno_assert (rc == 0);
@@ -1274,27 +1268,23 @@ void zmq::socket_base_t::start_reaping(poller_t * poller_)
         _reaper_signaler->send ();
     }
 
-    printf("===add fd: %d\n", fd);
     _handle = _poller->add_fd(fd, this);
     _poller->set_pollin(_handle);
 
-    //  Initialise the termination and check whether it can be deallocated
-    //  immediately.
-    terminate ();
-    check_destroy ();
+    //  Initialise the termination and check whether it can be deallocated immediately.
+    terminate();
+    check_destroy();
 }
 
-int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
+int zmq::socket_base_t::process_commands(int timeout_, bool throttle_)
 {
-    printf("%s %s %d process_commandsprocess_commandsprocess_commandsprocess_conds >> pthred_self:%ld \n", __FILE__, __FUNCTION__, __LINE__,  pthread_self());
-
     if (timeout_ == 0) 
     {
         //  If we are asked not to wait, check whether we haven't processed
         //  commands recently, so that we can throttle the new commands.
 
         //  Get the CPU's tick counter. If 0, the counter is not available.
-        const uint64_t tsc = zmq::clock_t::rdtsc ();
+        const uint64_t tsc = zmq::clock_t::rdtsc();
 
         //  Optimised version of command processing - it doesn't have to check
         //  for incoming commands each time. It does so only if certain time
@@ -1320,8 +1310,6 @@ int zmq::socket_base_t::process_commands (int timeout_, bool throttle_)
     //  Process all available commands.
     while (rc == 0) 
     {
-        printf("%s %s %d process_aaaaaaaaaaaaa >> pthred_self:%ld %d\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), cmd.type);
-
         cmd.destination->process_command(cmd);
         rc = _mailbox->recv(&cmd, 0);
     }
@@ -1350,9 +1338,6 @@ void zmq::socket_base_t::process_stop()
     stop_monitor ();
 
     _ctx_terminated = true;
-
-
-    printf("%s %s %d STopSTopSTopSTopSTopSTopSTop\n", __FILE__, __FUNCTION__, __LINE__);
 }
 
 void zmq::socket_base_t::process_bind (pipe_t *pipe_)
@@ -1362,8 +1347,6 @@ void zmq::socket_base_t::process_bind (pipe_t *pipe_)
 
 void zmq::socket_base_t::process_term(int linger_)
 {
-    printf("%s %s %d pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  Unregister all inproc endpoints associated with this socket.
     //  Doing this we make sure that no new pipes from other sockets (inproc)
     //  will be initiated.
@@ -1471,7 +1454,6 @@ void zmq::socket_base_t::in_event ()
         if (_thread_safe)
             _reaper_signaler->recv ();
 
-        printf("%s %s %d in_eventin_eventin_eventin_eventin_eventin_eventin_event>>>>>>>>>>>>>>>>>>\n", __FILE__, __FUNCTION__, __LINE__);
         process_commands (0, false);
     }
     check_destroy ();
@@ -1527,8 +1509,6 @@ void zmq::socket_base_t::hiccuped (pipe_t *pipe_)
 
 void zmq::socket_base_t::pipe_terminated (pipe_t *pipe_)
 {
-    printf("%s %s %d pipe_terminated %ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
     //  Notify the specific socket type about the pipe termination.
     xpipe_terminated(pipe_);
 

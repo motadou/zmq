@@ -1,12 +1,6 @@
 #include "precompiled.hpp"
-
-#if defined ZMQ_IOTHREAD_POLLER_USE_EPOLL
 #include "epoll.hpp"
-
-#if !defined ZMQ_HAVE_WINDOWS
 #include <unistd.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -47,8 +41,6 @@ zmq::epoll_t::~epoll_t ()
 
 zmq::epoll_t::handle_t zmq::epoll_t::add_fd(fd_t fd_, i_poll_events *events_)
 {
-    printf("%s %s %d ADDADDADDADDADDADDADDADDADDADDADDADDADDADDADD %d thread_self: %ld, flag:%d\n", __FILE__, __FUNCTION__, __LINE__, fd_, pthread_self(), iFlag);
-
     check_thread ();
     poll_entry_t *pe = new (std::nothrow) poll_entry_t;
     alloc_assert (pe);
@@ -84,7 +76,7 @@ void zmq::epoll_t::rm_fd(handle_t handle_)
     adjust_load (-1);
 }
 
-void zmq::epoll_t::set_pollin (handle_t handle_)
+void zmq::epoll_t::set_pollin(handle_t handle_)
 {
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
@@ -93,7 +85,7 @@ void zmq::epoll_t::set_pollin (handle_t handle_)
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::reset_pollin (handle_t handle_)
+void zmq::epoll_t::reset_pollin(handle_t handle_)
 {
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
@@ -102,16 +94,16 @@ void zmq::epoll_t::reset_pollin (handle_t handle_)
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::set_pollout (handle_t handle_)
+void zmq::epoll_t::set_pollout(handle_t handle_)
 {
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
     pe->ev.events |= EPOLLOUT;
-    int rc = epoll_ctl (_epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
+    int rc = epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::reset_pollout (handle_t handle_)
+void zmq::epoll_t::reset_pollout(handle_t handle_)
 {
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
@@ -158,11 +150,9 @@ void zmq::epoll_t::loop ()
             continue;
         }
 
-        printf("%s %s %d epoll thread_self: %ld flag:%d\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), iFlag);
-
         for (int i = 0; i < n; i++) 
         {
-            poll_entry_t *pe = (static_cast<poll_entry_t *> (ev_buf[i].data.ptr));
+            poll_entry_t *pe = (static_cast<poll_entry_t *>(ev_buf[i].data.ptr));
 
             if (pe->fd == retired_fd)
                 continue;
@@ -171,12 +161,13 @@ void zmq::epoll_t::loop ()
                 pe->events->in_event();
             if (pe->fd == retired_fd)
                 continue;
-            
+
             if (ev_buf[i].events & EPOLLOUT)
                 pe->events->out_event();
             if (pe->fd == retired_fd)
                 continue;
 
+            printf("%s %s %d %d\n", __FILE__, __FUNCTION__, __LINE__, pe->fd);
             if (ev_buf[i].events & EPOLLIN)
                 pe->events->in_event();
         }
@@ -189,5 +180,3 @@ void zmq::epoll_t::loop ()
         _retired.clear ();
     }
 }
-
-#endif

@@ -1,32 +1,3 @@
-/*
-    Copyright (c) 2007-2016 Contributors as noted in the AUTHORS file
-
-    This file is part of libzmq, the ZeroMQ core engine in C++.
-
-    libzmq is free software; you can redistribute it and/or modify it under
-    the terms of the GNU Lesser General Public License (LGPL) as published
-    by the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    As a special exception, the Contributors give you permission to link
-    this library with independent modules to produce an executable,
-    regardless of the license terms of these independent modules, and to
-    copy and distribute the resulting executable under terms of your choice,
-    provided that you also meet, for each linked independent module, the
-    terms and conditions of the license of that module. An independent
-    module is a module which is not derived from or based on this library.
-    If you modify this library, you must extend this exception to your
-    version of the library.
-
-    libzmq is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "precompiled.hpp"
 #include <string.h>
 #include <limits.h>
@@ -35,10 +6,6 @@
 #include "options.hpp"
 #include "err.hpp"
 #include "macros.hpp"
-
-#ifndef ZMQ_HAVE_WINDOWS
-#include <net/if.h>
-#endif
 
 #if defined IFNAMSIZ
 #define BINDDEVSIZ IFNAMSIZ
@@ -249,27 +216,20 @@ zmq::options_t::options_t () :
     memset (curve_public_key, 0, CURVE_KEYSIZE);
     memset (curve_secret_key, 0, CURVE_KEYSIZE);
     memset (curve_server_key, 0, CURVE_KEYSIZE);
-#if defined ZMQ_HAVE_VMCI
-    vmci_buffer_size = 0;
-    vmci_buffer_min_size = 0;
-    vmci_buffer_max_size = 0;
-    vmci_connect_timeout = -1;
-#endif
 }
 
-int zmq::options_t::set_curve_key (uint8_t *destination_,
-                                   const void *optval_,
-                                   size_t optvallen_)
+int zmq::options_t::set_curve_key(uint8_t *destination_, const void *optval_, size_t optvallen_)
 {
-    switch (optvallen_) {
+    switch (optvallen_) 
+    {
         case CURVE_KEYSIZE:
-            memcpy (destination_, optval_, optvallen_);
+            memcpy(destination_, optval_, optvallen_);
             mechanism = ZMQ_CURVE;
             return 0;
 
         case CURVE_KEYSIZE_Z85 + 1:
-            if (zmq_z85_decode (destination_,
-                                reinterpret_cast<const char *> (optval_))) {
+            if (zmq_z85_decode(destination_, reinterpret_cast<const char *> (optval_))) 
+            {
                 mechanism = ZMQ_CURVE;
                 return 0;
             }
@@ -277,10 +237,10 @@ int zmq::options_t::set_curve_key (uint8_t *destination_,
 
         case CURVE_KEYSIZE_Z85:
             char z85_key[CURVE_KEYSIZE_Z85 + 1];
-            memcpy (z85_key, reinterpret_cast<const char *> (optval_),
-                    optvallen_);
+            memcpy(z85_key, reinterpret_cast<const char *>(optval_), optvallen_);
             z85_key[CURVE_KEYSIZE_Z85] = 0;
-            if (zmq_z85_decode (destination_, z85_key)) {
+            if (zmq_z85_decode(destination_, z85_key)) 
+            {
                 mechanism = ZMQ_CURVE;
                 return 0;
             }
@@ -289,6 +249,7 @@ int zmq::options_t::set_curve_key (uint8_t *destination_,
         default:
             break;
     }
+
     return -1;
 }
 

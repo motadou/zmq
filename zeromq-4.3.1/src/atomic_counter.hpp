@@ -14,8 +14,6 @@
     #define ZMQ_ATOMIC_COUNTER_X86
 #elif defined __ARM_ARCH_7A__ && defined __GNUC__
     #define ZMQ_ATOMIC_COUNTER_ARM
-#elif defined ZMQ_HAVE_WINDOWS
-    #define ZMQ_ATOMIC_COUNTER_WINDOWS
 #elif (defined ZMQ_HAVE_SOLARIS || defined ZMQ_HAVE_NETBSD || defined ZMQ_HAVE_GNU)
     #define ZMQ_ATOMIC_COUNTER_ATOMIC_H
 #elif defined __tile__
@@ -28,9 +26,7 @@
     #include "mutex.hpp"
 #elif defined ZMQ_ATOMIC_COUNTER_CXX11
     #include <atomic>
-#elif defined ZMQ_ATOMIC_COUNTER_WINDOWS
-    #include "windows.hpp"
-#elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H
+#elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H   // solaris
     #include <atomic.h>
 #elif defined ZMQ_ATOMIC_COUNTER_TILE
     #include <arch/atomic.h>
@@ -48,14 +44,7 @@ namespace zmq
 //  Force the compiler to align to pointer size, which will cause the object
 //  to grow from 4 bytes to 8 bytes on 64 bit architectures (when not using
 //  mutexes).
-
-#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
-class __declspec(align (8)) atomic_counter_t
-#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_ARM_ARMV7VE))
-class __declspec(align (4)) atomic_counter_t
-#else
 class atomic_counter_t
-#endif
 {
 public:
     typedef uint32_t integer_t;
@@ -73,35 +62,15 @@ public:
     {
         integer_t old_value;
 
-#if   defined ZMQ_ATOMIC_COUNTER_WINDOWS
-        old_value = InterlockedExchangeAdd ((LONG *) &_value, increment_);
-#elif defined ZMQ_ATOMIC_COUNTER_INTRINSIC
-        old_value = __atomic_fetch_add (&_value, increment_, __ATOMIC_ACQ_REL);
+#if   defined ZMQ_ATOMIC_COUNTER_INTRINSIC
+        old_value = __atomic_fetch_add(&_value, increment_, __ATOMIC_ACQ_REL);
 #elif defined ZMQ_ATOMIC_COUNTER_CXX11
-        old_value = _value.fetch_add (increment_, std::memory_order_acq_rel);
-#elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H
-        integer_t new_value = atomic_add_32_nv (&_value, increment_);
-        old_value = new_value - increment_;
-#elif defined ZMQ_ATOMIC_COUNTER_TILE
-        old_value = arch_atomic_add (&_value, increment_);
+        old_value = _value.fetch_add(increment_, std::memory_order_acq_rel);
 #elif defined ZMQ_ATOMIC_COUNTER_X86
         __asm__ volatile("lock; xadd %0, %1 \n\t"
                          : "=r"(old_value), "=m"(_value)
                          : "0"(increment_), "m"(_value)
                          : "cc", "memory");
-#elif defined ZMQ_ATOMIC_COUNTER_ARM
-        integer_t flag, tmp;
-        __asm__ volatile("       dmb     sy\n\t"
-                         "1:     ldrex   %0, [%5]\n\t"
-                         "       add     %2, %0, %4\n\t"
-                         "       strex   %1, %2, [%5]\n\t"
-                         "       teq     %1, #0\n\t"
-                         "       bne     1b\n\t"
-                         "       dmb     sy\n\t"
-                         : "=&r"(old_value), "=&r"(flag), "=&r"(tmp),
-                           "+Qo"(_value)
-                         : "Ir"(increment_), "r"(&_value)
-                         : "cc");
 #elif defined ZMQ_ATOMIC_COUNTER_MUTEX
         sync.lock ();
         old_value = _value;
@@ -114,48 +83,19 @@ public:
     }
 
     //  Atomic subtraction. Returns false if the counter drops to zero.
-    inline bool sub (integer_t decrement_) ZMQ_NOEXCEPT
+    inline bool sub(integer_t decrement_) ZMQ_NOEXCEPT
     {
-#if defined ZMQ_ATOMIC_COUNTER_WINDOWS
-        LONG delta = -((LONG) decrement_);
-        integer_t old = InterlockedExchangeAdd ((LONG *) &_value, delta);
-        return old - decrement_ != 0;
-#elif defined ZMQ_ATOMIC_COUNTER_INTRINSIC
+#if   defined ZMQ_ATOMIC_COUNTER_INTRINSIC // 使用configure来生成makefile文件时，使用这个
         integer_t nv = __atomic_sub_fetch (&_value, decrement_, __ATOMIC_ACQ_REL);
         return nv != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_CXX11
         integer_t old = _value.fetch_sub (decrement_, std::memory_order_acq_rel);
         return old - decrement_ != 0;
-#elif defined ZMQ_ATOMIC_COUNTER_ATOMIC_H
-        int32_t delta = -((int32_t) decrement_);
-        integer_t nv = atomic_add_32_nv (&_value, delta);
-        return nv != 0;
-#elif defined ZMQ_ATOMIC_COUNTER_TILE
-        int32_t delta = -((int32_t) decrement_);
-        integer_t nv = arch_atomic_add (&_value, delta);
-        return nv != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_X86
         integer_t oldval = -decrement_;
         volatile integer_t *val = &_value;
-        __asm__ volatile("lock; xaddl %0,%1"
-                         : "=r"(oldval), "=m"(*val)
-                         : "0"(oldval), "m"(*val)
-                         : "cc", "memory");
+        __asm__ volatile("lock; xaddl %0,%1" : "=r"(oldval), "=m"(*val) : "0"(oldval), "m"(*val) : "cc", "memory");
         return oldval != decrement_;
-#elif defined ZMQ_ATOMIC_COUNTER_ARM
-        integer_t old_value, flag, tmp;
-        __asm__ volatile("       dmb     sy\n\t"
-                         "1:     ldrex   %0, [%5]\n\t"
-                         "       sub     %2, %0, %4\n\t"
-                         "       strex   %1, %2, [%5]\n\t"
-                         "       teq     %1, #0\n\t"
-                         "       bne     1b\n\t"
-                         "       dmb     sy\n\t"
-                         : "=&r"(old_value), "=&r"(flag), "=&r"(tmp),
-                           "+Qo"(_value)
-                         : "Ir"(decrement_), "r"(&_value)
-                         : "cc");
-        return old_value - decrement_ != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_MUTEX
         sync.lock ();
         _value -= decrement_;

@@ -106,23 +106,19 @@ void *zmq_ctx_new (void)
 
 int zmq_ctx_term (void *ctx_)
 {
-    printf("--------------------------------11\n");
-
-    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) 
+    if (!ctx_ || !(static_cast<zmq::ctx_t *>(ctx_))->check_tag()) 
     {
         errno = EFAULT;
         return -1;
     }
 
-    printf("--------------------------------22\n");
-
-    int rc = (static_cast<zmq::ctx_t *> (ctx_))->terminate();
+    int rc = (static_cast<zmq::ctx_t *>(ctx_))->terminate();
     int en = errno;
 
     //  Shut down only if termination was not interrupted by a signal.
     if (!rc || en != EINTR) 
     {
-        zmq::shutdown_network ();
+        zmq::shutdown_network();
     }
 
     errno = en;
@@ -131,11 +127,13 @@ int zmq_ctx_term (void *ctx_)
 
 int zmq_ctx_shutdown (void *ctx_)
 {
-    if (!ctx_ || !(static_cast<zmq::ctx_t *> (ctx_))->check_tag ()) {
+    if (!ctx_ || !(static_cast<zmq::ctx_t *>(ctx_))->check_tag()) 
+    {
         errno = EFAULT;
         return -1;
     }
-    return (static_cast<zmq::ctx_t *> (ctx_))->shutdown ();
+
+    return (static_cast<zmq::ctx_t *>(ctx_))->shutdown ();
 }
 
 int zmq_ctx_set (void *ctx_, int option_, int optval_)

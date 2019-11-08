@@ -19,16 +19,16 @@ int zmq::pipepair(class object_t *parents_[2], class pipe_t *pipes_[2], int hwms
 
     pipe_t::upipe_t *upipe1;
     if (conflate_[0])
-        upipe1 = new (std::nothrow) upipe_conflate_t ();
+        upipe1 = new (std::nothrow) upipe_conflate_t();
     else
-        upipe1 = new (std::nothrow) upipe_normal_t ();
+        upipe1 = new (std::nothrow) upipe_normal_t();
     alloc_assert (upipe1);
 
     pipe_t::upipe_t *upipe2;
     if (conflate_[1])
-        upipe2 = new (std::nothrow) upipe_conflate_t ();
+        upipe2 = new (std::nothrow) upipe_conflate_t();
     else
-        upipe2 = new (std::nothrow) upipe_normal_t ();
+        upipe2 = new (std::nothrow) upipe_normal_t();
     alloc_assert (upipe2);
 
     pipes_[0] = new (std::nothrow) pipe_t (parents_[0], upipe1, upipe2, hwms_[1], hwms_[0], conflate_[0]);
@@ -246,8 +246,6 @@ void zmq::pipe_t::flush()
 
 void zmq::pipe_t::process_activate_read ()
 {
-    printf("%s %s %d process_activate_read\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (!_in_active && (_state == active || _state == waiting_for_delimiter)) 
     {
         _in_active = true;
@@ -296,8 +294,6 @@ void zmq::pipe_t::process_pipe_term()
 {
     zmq_assert (_state == active || _state == delimiter_received || _state == term_req_sent1);
 
-    printf("%s %s %d process_pipe_term %d %s\n", __FILE__, __FUNCTION__, __LINE__, _state, (_delay?"true":"false"));
-
     //  This is the simple case of peer-induced termination. If there are no
     //  more pending messages to read, or if the pipe was configured to drop
     //  pending messages, we can move directly to the term_ack_sent state.
@@ -333,8 +329,6 @@ void zmq::pipe_t::process_pipe_term()
         _out_pipe = NULL;
         send_pipe_term_ack(_peer);
     }
-
-    printf("%s %s %d process_pipe_term %d\n", __FILE__, __FUNCTION__, __LINE__, _state);
 }
 
 void zmq::pipe_t::process_pipe_term_ack()
@@ -391,8 +385,7 @@ void zmq::pipe_t::set_nodelay ()
 
 void zmq::pipe_t::terminate(bool delay_)
 {
-    printf("%s %s %d *************************** %ld %d\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), _state);
-
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
     //  Overload the value specified at pipe creation.
     _delay = delay_;
 
@@ -408,14 +401,10 @@ void zmq::pipe_t::terminate(bool delay_)
         return;
     }
 
-    printf("%s %s %d ***************************\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  The simple sync termination case. Ask the peer to terminate and wait
     //  for the ack.
     if (_state == active) 
     {
-        printf("%s %s %d ***************************}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} %ld %s\n", __FILE__, __FUNCTION__, __LINE__, pthread_self(), (delay_?"true":"false"));
-
         send_pipe_term(_peer);
         _state = term_req_sent1;
     }
@@ -423,8 +412,6 @@ void zmq::pipe_t::terminate(bool delay_)
     //  'terminate'. We can act as if all the pending messages were read.
     else if (_state == waiting_for_delimiter && !_delay)
     {
-        printf("%s %s %d ***************************\n", __FILE__, __FUNCTION__, __LINE__);
-
         //  Drop any unfinished outbound messages.
         rollback ();
         _out_pipe = NULL;
@@ -441,8 +428,6 @@ void zmq::pipe_t::terminate(bool delay_)
     //  active state.
     else if (_state == delimiter_received) 
     {
-        printf("%s %s %d ***************************}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}} %ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
         send_pipe_term(_peer);
         _state = term_req_sent1;
     }
@@ -452,15 +437,11 @@ void zmq::pipe_t::terminate(bool delay_)
         zmq_assert (false);
     }
 
-    printf("%s %s %d ***************************\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  Stop outbound flow of messages.
     _out_active = false;
 
     if (_out_pipe) 
     {
-        printf("%s %s %d ***************************\n", __FILE__, __FUNCTION__, __LINE__);
-
         //  Drop any unfinished outbound messages.
         rollback();
 
@@ -471,8 +452,6 @@ void zmq::pipe_t::terminate(bool delay_)
         _out_pipe->write(msg, false);
         flush();
     }
-
-    printf("%s %s %d ***************************\n", __FILE__, __FUNCTION__, __LINE__);
 }
 
 bool zmq::pipe_t::is_delimiter(const msg_t &msg_)

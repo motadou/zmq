@@ -92,20 +92,20 @@ public:
     inline bool check_read()
     {
         //  Was the value prefetched already? If so, return.
-        if (&_queue.front () != _r && _r)
+        if (&_queue.front() != _r && _r)
             return true;
 
         //  There's no prefetched value, so let us prefetch more values.
         //  Prefetching is to simply retrieve the
         //  pointer from c in atomic fashion. If there are no
         //  items to prefetch, set c to NULL (using compare-and-swap).
-        _r = _c.cas (&_queue.front (), NULL);
+        _r = _c.cas(&_queue.front(), NULL);
 
         //  If there are no elements prefetched, exit.
         //  During pipe's lifetime r should never be NULL, however,
         //  it can happen during pipe shutdown when items
         //  are being deallocated.
-        if (&_queue.front () == _r || !_r)
+        if (&_queue.front() == _r || !_r)
             return false;
 
         //  There was at least one value prefetched.
@@ -122,7 +122,7 @@ public:
 
         //  There was at least one value prefetched.
         //  Return it to the caller.
-        *value_ = _queue.front ();
+        *value_ = _queue.front();
         _queue.pop ();
         return true;
     }
@@ -130,7 +130,7 @@ public:
     //  Applies the function fn to the first elemenent in the pipe
     //  and returns the value returned by the fn.
     //  The pipe mustn't be empty or the function crashes.
-    inline bool probe (bool (*fn_) (const T &))
+    inline bool probe(bool (*fn_) (const T &))
     {
         bool rc = check_read ();
         zmq_assert (rc);

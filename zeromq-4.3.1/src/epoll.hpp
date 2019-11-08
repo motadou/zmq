@@ -1,8 +1,8 @@
 #ifndef __ZMQ_EPOLL_HPP_INCLUDED__
 #define __ZMQ_EPOLL_HPP_INCLUDED__
 
-//  poller.hpp decides which polling mechanism to use.
 #include "poller.hpp"
+
 #if defined ZMQ_IOTHREAD_POLLER_USE_EPOLL
 
 #include <vector>
@@ -41,19 +41,14 @@ public:
     static int max_fds ();
 
 private:
-#if defined ZMQ_HAVE_WINDOWS
-    typedef HANDLE epoll_fd_t;
-    static const epoll_fd_t epoll_retired_fd;
-#else
     typedef fd_t epoll_fd_t;
     enum
     {
         epoll_retired_fd = retired_fd
     };
-#endif
 
     //  Main event loop.
-    void loop ();
+    void loop();
 
     //  Main epoll file descriptor
     epoll_fd_t _epoll_fd;

@@ -1,4 +1,3 @@
-//包含zmq的头文件 
 #include <zmq.h>
 #include "stdio.h"
 #include <pthread.h>
@@ -15,8 +14,6 @@ int main(int argc, char * argv[])
         return 0;
     }
 
-    printf("%s %s %d SERVER:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
     //创建zmq socket ，socket目前有6中属性 ，这里使用dealer方式
     //具体使用方式请参考zmq官方文档（zmq手册） 
     if((pSock = zmq_socket(pCtx, ZMQ_DEALER)) == NULL)
@@ -24,8 +21,6 @@ int main(int argc, char * argv[])
         zmq_ctx_destroy(pCtx);
         return 0;
     }
-
-    printf("%s %s %d SERVER:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
 
     int iRcvTimeout = 5000*1000;// millsecond
     //设置zmq的接收超时时间为5秒 
@@ -35,8 +30,6 @@ int main(int argc, char * argv[])
         zmq_ctx_destroy(pCtx);
         return 0;
     }
-
-    printf("%s %s %d SERVER:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
 
     //绑定地址 tcp://*:7766 
     //也就是使用tcp协议进行通信，使用网络端口 7766

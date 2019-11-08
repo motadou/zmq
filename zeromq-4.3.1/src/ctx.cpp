@@ -17,7 +17,7 @@
 #include "random.hpp"
 
 #define ZMQ_CTX_TAG_VALUE_GOOD 0xabadcafe
-#define ZMQ_CTX_TAG_VALUE_BAD 0xdeadbeef
+#define ZMQ_CTX_TAG_VALUE_BAD  0xdeadbeef
 
 int clipped_maxsocket (int max_requested_)
 {
@@ -62,7 +62,7 @@ zmq::ctx_t::~ctx_t ()
     //  thread subsequent invocation of destructor would hang-up.
     for (io_threads_t::size_type i = 0; i != _io_threads.size (); i++) 
     {
-        _io_threads[i]->stop ();
+        _io_threads[i]->stop();
     }
 
     //  Wait till I/O threads actually terminate.
@@ -89,10 +89,8 @@ bool zmq::ctx_t::valid () const
     return _term_mailbox.valid();
 }
 
-int zmq::ctx_t::terminate ()
+int zmq::ctx_t::terminate()
 {
-    printf("TterminateEterminateterminateterminateterminateterminateterminateterminateterminateterminateterminateterminate\n");
-
     _slot_sync.lock ();
 
     bool save_terminating = _terminating;
@@ -110,19 +108,10 @@ int zmq::ctx_t::terminate ()
     }
     _terminating = save_terminating;
 
-
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (!_starting) 
     {
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
         if (_pid != getpid ()) 
         {
-            printf("%s %s %d **********************************************************************************************\n", __FILE__, __FUNCTION__, __LINE__);
-
             // we are a forked child process. Close all file descriptors inherited from the parent.
             for (sockets_t::size_type i = 0; i != _sockets.size(); i++)
             {
@@ -132,10 +121,7 @@ int zmq::ctx_t::terminate ()
             _term_mailbox.forked();
         }
 
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
-        //  Check whether termination was already underway, but interrupted and now
-        //  restarted.
+        //  Check whether termination was already underway, but interrupted and now restarted.
         bool restarted = _terminating;
         _terminating = true;
 
@@ -188,8 +174,11 @@ int zmq::ctx_t::shutdown ()
         //  Send stop command to sockets so that any blocking calls
         //  can be interrupted. If there are no sockets we can ask reaper
         //  thread to stop.
-        for (sockets_t::size_type i = 0; i != _sockets.size (); i++)
-            _sockets[i]->stop ();
+        for (sockets_t::size_type i = 0; i != _sockets.size(); i++)
+        {
+            _sockets[i]->stop();
+        }
+
         if (_sockets.empty ())
             _reaper->stop ();
     }
@@ -201,7 +190,7 @@ int zmq::ctx_t::set(int option_, int optval_)
 {
     int rc = 0;
     
-    if (option_ == ZMQ_MAX_SOCKETS && optval_ >= 1 && optval_ == clipped_maxsocket (optval_)) 
+    if      (option_ == ZMQ_MAX_SOCKETS && optval_ >= 1 && optval_ == clipped_maxsocket (optval_)) 
     {
         scoped_lock_t locker (_opt_sync);
         _max_sockets = optval_;
@@ -424,7 +413,7 @@ void zmq::ctx_t::destroy_socket(class socket_base_t *socket_)
     _slots[tid] = NULL;
 
     //  Remove the socket from the list of sockets.
-    _sockets.erase (socket_);
+    _sockets.erase(socket_);
 
     //  If zmq_ctx_term() was already called and there are no more socket
     //  we can ask reaper thread to terminate.
@@ -437,7 +426,7 @@ zmq::object_t *zmq::ctx_t::get_reaper ()
     return _reaper;
 }
 
-zmq::thread_ctx_t::thread_ctx_t () : _thread_priority (ZMQ_THREAD_PRIORITY_DFLT), _thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT)
+zmq::thread_ctx_t::thread_ctx_t() : _thread_priority(ZMQ_THREAD_PRIORITY_DFLT), _thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT)
 {
 
 }
@@ -449,13 +438,11 @@ void zmq::thread_ctx_t::start_thread (thread_t &thread_, thread_fn *tfn_, void *
     thread_.setSchedulingParameters(_thread_priority, _thread_sched_policy, _thread_affinity_cpus);
     thread_.start(tfn_, arg_);
 
-#ifndef ZMQ_HAVE_ANDROID
     std::ostringstream s;
     if (!_thread_name_prefix.empty ())
         s << _thread_name_prefix << "/";
     s << "ZMQbg/" << nthreads_started;
-    thread_.setThreadName (s.str ().c_str ());
-#endif
+    thread_.setThreadName(s.str().c_str());
 
     nthreads_started++;
 }
@@ -463,7 +450,7 @@ void zmq::thread_ctx_t::start_thread (thread_t &thread_, thread_fn *tfn_, void *
 int zmq::thread_ctx_t::set (int option_, int optval_)
 {
     int rc = 0;
-    if (option_ == ZMQ_THREAD_SCHED_POLICY && optval_ >= 0) 
+    if      (option_ == ZMQ_THREAD_SCHED_POLICY && optval_ >= 0) 
     {
         scoped_lock_t locker (_opt_sync);
         _thread_sched_policy = optval_;
@@ -491,7 +478,7 @@ int zmq::thread_ctx_t::set (int option_, int optval_)
     } 
     else if (option_ == ZMQ_THREAD_PRIORITY && optval_ >= 0) 
     {
-        scoped_lock_t locker (_opt_sync);
+        scoped_lock_t locker(_opt_sync);
         _thread_priority = optval_;
     } 
     else 
@@ -503,7 +490,7 @@ int zmq::thread_ctx_t::set (int option_, int optval_)
     return rc;
 }
 
-int zmq::thread_ctx_t::get (int option_)
+int zmq::thread_ctx_t::get(int option_)
 {
     int rc = 0;
 
@@ -565,7 +552,7 @@ int zmq::ctx_t::register_endpoint(const char * addr_, const endpoint_t & endpoin
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    const bool inserted = _endpoints.ZMQ_MAP_INSERT_OR_EMPLACE (std::string(addr_), endpoint_).second;
+    const bool inserted = _endpoints.ZMQ_MAP_INSERT_OR_EMPLACE(std::string(addr_), endpoint_).second;
 
     if (!inserted) 
     {
@@ -588,33 +575,33 @@ int zmq::ctx_t::unregister_endpoint (const std::string &addr_, socket_base_t *so
     }
 
     //  Remove endpoint.
-    _endpoints.erase (it);
+    _endpoints.erase(it);
 
     return 0;
 }
 
-void zmq::ctx_t::unregister_endpoints (socket_base_t *socket_)
+void zmq::ctx_t::unregister_endpoints(socket_base_t *socket_)
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    for (endpoints_t::iterator it = _endpoints.begin (), end = _endpoints.end (); it != end;) 
+    for (endpoints_t::iterator it = _endpoints.begin(), end = _endpoints.end (); it != end; ) 
     {
         if (it->second.socket == socket_)
 #if __cplusplus >= 201103L
-            it = _endpoints.erase (it);
+            it = _endpoints.erase(it);
 #else
-            _endpoints.erase (it++);
+            _endpoints.erase(it++);
 #endif
         else
             ++it;
     }
 }
 
-zmq::endpoint_t zmq::ctx_t::find_endpoint (const char *addr_)
+zmq::endpoint_t zmq::ctx_t::find_endpoint(const char *addr_)
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    endpoints_t::iterator it = _endpoints.find (addr_);
+    endpoints_t::iterator it = _endpoints.find(addr_);
     if (it == _endpoints.end ()) 
     {
         errno = ECONNREFUSED;
@@ -627,7 +614,7 @@ zmq::endpoint_t zmq::ctx_t::find_endpoint (const char *addr_)
     //  get deallocated until "bind" command is issued by the caller.
     //  The subsequent 'bind' has to be called with inc_seqnum parameter
     //  set to false, so that the seqnum isn't incremented twice.
-    endpoint.socket->inc_seqnum ();
+    endpoint.socket->inc_seqnum();
 
     return endpoint;
 }
@@ -636,35 +623,32 @@ void zmq::ctx_t::pend_connection(const std::string &addr_, const endpoint_t &end
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    const pending_connection_t pending_connection = {endpoint_, pipes_[0],
-                                                     pipes_[1]};
+    const pending_connection_t pending_connection = { endpoint_, pipes_[0], pipes_[1] };
 
     endpoints_t::iterator it = _endpoints.find (addr_);
-    if (it == _endpoints.end ()) {
+    if (it == _endpoints.end ()) 
+    {
         //  Still no bind.
         endpoint_.socket->inc_seqnum ();
-        _pending_connections.ZMQ_MAP_INSERT_OR_EMPLACE (addr_,
-                                                        pending_connection);
-    } else {
+        _pending_connections.ZMQ_MAP_INSERT_OR_EMPLACE (addr_, pending_connection);
+    } 
+    else 
+    {
         //  Bind has happened in the mean time, connect directly
-        connect_inproc_sockets (it->second.socket, it->second.options,
-                                pending_connection, connect_side);
+        connect_inproc_sockets(it->second.socket, it->second.options, pending_connection, connect_side);
     }
 }
 
-void zmq::ctx_t::connect_pending (const char *addr_,
-                                  zmq::socket_base_t *bind_socket_)
+void zmq::ctx_t::connect_pending(const char *addr_, zmq::socket_base_t *bind_socket_)
 {
     scoped_lock_t locker (_endpoints_sync);
 
-    std::pair<pending_connections_t::iterator, pending_connections_t::iterator>
-      pending = _pending_connections.equal_range (addr_);
-    for (pending_connections_t::iterator p = pending.first; p != pending.second;
-         ++p)
-        connect_inproc_sockets (bind_socket_, _endpoints[addr_].options,
-                                p->second, bind_side);
+    std::pair<pending_connections_t::iterator, pending_connections_t::iterator> pending = _pending_connections.equal_range (addr_);
 
-    _pending_connections.erase (pending.first, pending.second);
+    for (pending_connections_t::iterator p = pending.first; p != pending.second; ++p)
+        connect_inproc_sockets(bind_socket_, _endpoints[addr_].options, p->second, bind_side);
+
+    _pending_connections.erase(pending.first, pending.second);
 }
 
 void zmq::ctx_t::connect_inproc_sockets(zmq::socket_base_t *bind_socket_, options_t &bind_options_, const pending_connection_t &pending_connection_, side side_)
@@ -694,24 +678,26 @@ void zmq::ctx_t::connect_inproc_sockets(zmq::socket_base_t *bind_socket_, option
         pending_connection_.bind_pipe->set_hwms(-1, -1);
     }
 
-    if (side_ == bind_side) {
+    if (side_ == bind_side) 
+    {
         command_t cmd;
         cmd.type = command_t::bind;
         cmd.args.bind.pipe = pending_connection_.bind_pipe;
-        bind_socket_->process_command (cmd);
-        bind_socket_->send_inproc_connected (
-          pending_connection_.endpoint.socket);
-    } else
-        pending_connection_.connect_pipe->send_bind (
-          bind_socket_, pending_connection_.bind_pipe, false);
+        bind_socket_->process_command(cmd);
+        bind_socket_->send_inproc_connected(pending_connection_.endpoint.socket);
+    } 
+    else
+    {
+        pending_connection_.connect_pipe->send_bind(bind_socket_, pending_connection_.bind_pipe, false);
+    }
 
     // When a ctx is terminated all pending inproc connection will be
     // connected, but the socket will already be closed and the pipe will be
     // in waiting_for_delimiter state, which means no more writes can be done
     // and the routing id write fails and causes an assert. Check if the socket
     // is open before sending.
-    if (pending_connection_.endpoint.options.recv_routing_id
-        && pending_connection_.endpoint.socket->check_tag ()) {
+    if (pending_connection_.endpoint.options.recv_routing_id && pending_connection_.endpoint.socket->check_tag()) 
+    {
         send_routing_id (pending_connection_.bind_pipe, bind_options_);
     }
 }

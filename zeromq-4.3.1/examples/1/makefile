@@ -1,4 +1,4 @@
-HOME := /home/kevintian/objs/zeromq-4.3.1
+HOME :=/home/kevintian/objs/zeromq-4.3.1
 
 ##############
 #INC :=/usr/local/include
@@ -9,12 +9,12 @@ HOME := /home/kevintian/objs/zeromq-4.3.1
 #LIB :=/usr/local/lib/x86_64-linux-gnu/libzmq.a
 
 ##############
-#INC := ${HOME}/include
-#LIB :=${HOME}/src/.libs/libzmq.a
+INC :=${HOME}/include
+LIB :=${HOME}/src/.libs/libzmq.a
 
 ##############
-INC := ${HOME}/include
-LIB :=${HOME}/build/lib/libzmq.a
+#INC :=${HOME}/include
+#LIB :=${HOME}/build/lib/libzmq.a
 
 all:client server
 

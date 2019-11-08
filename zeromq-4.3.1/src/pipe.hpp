@@ -197,10 +197,10 @@ private:
     int _server_socket_routing_id;
 
     //  Returns true if the message is delimiter; false otherwise.
-    static bool is_delimiter (const msg_t &msg_);
+    static bool is_delimiter(const msg_t &msg_);
 
     //  Computes appropriate low watermark from the given high watermark.
-    static int compute_lwm (int hwm_);
+    static int compute_lwm(int hwm_);
 
     const bool _conflate;
 
@@ -208,12 +208,13 @@ private:
     // Otherwise this is empty.
     std::string _endpoint_uri;
 
+private:
     //  Disable copying.
     pipe_t (const pipe_t &);
     const pipe_t &operator= (const pipe_t &);
 };
 
-void send_routing_id (pipe_t *pipe_, const options_t &options_);
+void send_routing_id (pipe_t * pipe_, const options_t & options_);
 
 }
 

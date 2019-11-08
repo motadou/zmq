@@ -100,8 +100,6 @@ void zmq::dealer_t::xwrite_activated (pipe_t *pipe_)
 
 void zmq::dealer_t::xpipe_terminated (pipe_t *pipe_)
 {
-    printf("%s %s %d xpipe_terminated %ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
     _fq.pipe_terminated(pipe_);
     _lb.pipe_terminated(pipe_);
 }
