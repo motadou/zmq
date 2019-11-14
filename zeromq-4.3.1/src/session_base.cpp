@@ -426,7 +426,6 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
             }
             /* FALLTHROUGH */
         case stream_engine_t::protocol_error   :
-            printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
             if (_pending) 
             {
                 if (_pipe)
@@ -437,8 +436,6 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
             } 
             else 
             {
-                printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
                 terminate ();
             }
             break;
@@ -454,7 +451,6 @@ void zmq::session_base_t::engine_error (zmq::stream_engine_t::error_reason_t rea
 
 void zmq::session_base_t::process_term(int linger_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
     zmq_assert (!_pending);
 
     //  If the termination of the pipe happens before the term command is
@@ -479,7 +475,7 @@ void zmq::session_base_t::process_term(int linger_)
             add_timer(linger_, linger_timer_id);
             _has_linger_timer = true;
         }
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
         //  Start pipe termination process. Delay the termination till all messages
         //  are processed in case the linger time is non-zero.
         _pipe->terminate(linger_ != 0);

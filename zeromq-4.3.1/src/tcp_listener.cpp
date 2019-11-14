@@ -57,7 +57,7 @@ void zmq::tcp_listener_t::process_term (int linger_)
 void zmq::tcp_listener_t::in_event()
 {
     fd_t fd = accept();
-    printf("%s %s %d %d\n", __FILE__, __FUNCTION__, __LINE__, fd);
+
     //  If connection was reset by the peer in the meantime, just ignore it.
     //  TODO: Handle specific errors like ENFILE/EMFILE etc.
     if (fd == retired_fd) 

@@ -124,7 +124,7 @@ zmq::stream_engine_t::~stream_engine_t ()
         _s = retired_fd;
     }
 
-    int rc = _tx_msg.close ();
+    int rc = _tx_msg.close();
     errno_assert (rc == 0);
 
     //  Drop reference to metadata and destroy it if we are
@@ -145,7 +145,7 @@ zmq::stream_engine_t::~stream_engine_t ()
 void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session_)
 {
     zmq_assert (!_plugged);
-    _plugged = true;
+    _plugged  = true;
 
     //  Connect to session object.
     zmq_assert (!_session);
@@ -161,10 +161,10 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
     if (_options.raw_socket) 
     {
         // no handshaking for raw sock, instantiate raw encoder and decoders
-        _encoder = new (std::nothrow) raw_encoder_t (out_batch_size);
+        _encoder = new (std::nothrow) raw_encoder_t(out_batch_size);
         alloc_assert (_encoder);
 
-        _decoder = new (std::nothrow) raw_decoder_t (in_batch_size);
+        _decoder = new (std::nothrow) raw_decoder_t(in_batch_size);
         alloc_assert (_decoder);
 
         // disable handshaking for raw socket
@@ -198,13 +198,17 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
         // start optional timer, to prevent handshake hanging on no input
         set_handshake_timer();
 
+        printf("%s %s %d > size:%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize, (int)_options.routing_id_size);
+
         //  Send the 'length' and 'flags' fields of the routing id message.
         //  The 'length' field is encoded in the long format.
         _outpos = _greeting_send;
         _outpos[_outsize++] = UCHAR_MAX;
-        put_uint64 (&_outpos[_outsize], _options.routing_id_size + 1);
+        put_uint64(&_outpos[_outsize], _options.routing_id_size + 1);  // _options.routing_id_size = 0
         _outsize += 8;
         _outpos[_outsize++] = 0x7f;
+
+        printf("%s %s %d > size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize);
     }
 
     set_pollin (_handle);
@@ -260,14 +264,20 @@ void zmq::stream_engine_t::terminate()
 
 void zmq::stream_engine_t::in_event()
 {
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
     zmq_assert (!_io_error);
 
     //  If still handshaking, receive and process the greeting message.
     if (unlikely(_handshaking))
     {
-        if (!handshake())
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
+        if (handshake() == false)
             return;
     }
+
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     zmq_assert (_decoder);
 
@@ -280,7 +290,7 @@ void zmq::stream_engine_t::in_event()
     }
 
     //  If there's no data to process in the buffer...
-    if (!_insize) 
+    if (_insize == 0) 
     {
         //  Retrieve the buffer and read as much data as possible.
         //  Note that buffer can be arbitrarily large. However, we assume
@@ -291,10 +301,10 @@ void zmq::stream_engine_t::in_event()
 
         const int rc = tcp_read(_s, _inpos, bufsize);
 
+        printf("%s %s %d > rc:%d %d\n", __FILE__, __FUNCTION__, __LINE__, rc, (int)bufsize);
+
         if (rc == 0) 
         {
-            printf("%s %s %d==\n", __FILE__, __FUNCTION__, __LINE__);
-
             // connection closed by peer
             errno = EPIPE;
             error(connection_error);
@@ -312,10 +322,12 @@ void zmq::stream_engine_t::in_event()
         }
 
         //  Adjust input size
-        _insize = static_cast<size_t> (rc);
+        _insize = static_cast<size_t>(rc);
         // Adjust buffer size to received bytes
         _decoder->resize_buffer(_insize);
     }
+
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     int rc = 0;
     size_t processed = 0;
@@ -326,10 +338,12 @@ void zmq::stream_engine_t::in_event()
         zmq_assert (processed <= _insize);
         _inpos  += processed;
         _insize -= processed;
+
         if (rc == 0 || rc == -1)
             break;
 
-        rc = (this->*_process_msg) (_decoder->msg ());
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+        rc = (this->*_process_msg)(_decoder->msg());
 
         if (rc == -1)
             break;
@@ -340,7 +354,7 @@ void zmq::stream_engine_t::in_event()
     {
         if (errno != EAGAIN) 
         {
-            error (protocol_error);
+            error(protocol_error);
             return;
         }
 
@@ -356,30 +370,43 @@ void zmq::stream_engine_t::out_event()
     zmq_assert (!_io_error);
 
     //  If write buffer is empty, try to read new data from the encoder.
-    if (!_outsize) 
+    if (_outsize == 0) 
     {
+        printf("%s %s %d > _outsize:%d %s\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize, (_outpos ? "not null" : "null"));
+
         //  Even when we stop polling as soon as there is no
         //  data to send, the poller may invoke out_event one
         //  more time due to 'speculative write' optimisation.
         if (unlikely (_encoder == NULL)) 
         {
-            zmq_assert (_handshaking);
+            zmq_assert(_handshaking);
             return;
         }
 
         _outpos  = NULL;
         _outsize = _encoder->encode(&_outpos, 0);
 
-        while (_outsize < static_cast<size_t> (out_batch_size)) 
+        printf("%s %s %d > _outsize:%d %s\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize, (_outpos?"not null":"null"));
+
+        while (_outsize < static_cast<size_t>(out_batch_size)) 
         {
-            if ((this->*_next_msg) (&_tx_msg) == -1)
+            if ((this->*_next_msg)(&_tx_msg) == -1)    // 获取新的需要发送的结构体
+            {
                 break;
-            _encoder->load_msg (&_tx_msg);
+            }
+            printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+            _encoder->load_msg(&_tx_msg);
+            printf("%s %s %d > _outsize:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize);
+
             unsigned char *bufptr = _outpos + _outsize;
             size_t n = _encoder->encode(&bufptr, out_batch_size - _outsize);
+
+            printf("%s %s %d > n:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)n);
+
             zmq_assert (n > 0);
             if (_outpos == NULL)
                 _outpos = bufptr;
+
             _outsize += n;
         }
 
@@ -387,7 +414,7 @@ void zmq::stream_engine_t::out_event()
         if (_outsize == 0) 
         {
             _output_stopped = true;
-            reset_pollout (_handle);
+            reset_pollout(_handle);
             return;
         }
     }
@@ -397,6 +424,9 @@ void zmq::stream_engine_t::out_event()
     //  arbitrarily large. However, we assume that underlying TCP layer has
     //  limited transmission buffer and thus the actual number of bytes
     //  written should be reasonably modest.
+
+    printf("%s %s %d > _outsize:%d  \n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize);
+
     const int nbytes = tcp_write(_s, _outpos, _outsize);
 
     //  IO error has occurred. We stop waiting for output events.
@@ -404,7 +434,7 @@ void zmq::stream_engine_t::out_event()
     //  this is necessary to prevent losing incoming messages.
     if (nbytes == -1) 
     {
-        reset_pollout (_handle);
+        reset_pollout(_handle);
         return;
     }
 
@@ -499,22 +529,34 @@ bool zmq::stream_engine_t::restart_input ()
 //  Position of the revision field in the greeting.
 const size_t revision_pos = 10;
 
-bool zmq::stream_engine_t::handshake ()
+bool zmq::stream_engine_t::handshake()
 {
+    printf("%s %s %d | _greeting_size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_greeting_size);
+
     zmq_assert (_handshaking);
     zmq_assert (_greeting_bytes_read < _greeting_size);
     //  Receive the greeting.
-    const int rc = receive_greeting ();
+    const int rc = receive_greeting();
+
     if (rc == -1)
         return false;
+    
+    printf("%s %s %d | version:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_greeting_recv[revision_pos]);
+    
     const bool unversioned = rc != 0;
 
-    if (!(this->*select_handshake_fun (unversioned, _greeting_recv[revision_pos]))())
+    if (!(this->*select_handshake_fun(unversioned, _greeting_recv[revision_pos]))())
+    {
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
         return false;
+    }
 
     // Start polling for output if necessary.
     if (_outsize == 0)
         set_pollout(_handle);
+
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     //  Handshaking was successful.
     //  Switch into the normal message flow.
@@ -529,25 +571,32 @@ bool zmq::stream_engine_t::handshake ()
     return true;
 }
 
-int zmq::stream_engine_t::receive_greeting ()
+int zmq::stream_engine_t::receive_greeting()
 {
+    printf("%s %s %d | %d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_greeting_bytes_read, (int)_greeting_size);
+
     bool unversioned = false;
     while (_greeting_bytes_read < _greeting_size) 
     {
-        const int n = tcp_read (_s, _greeting_recv + _greeting_bytes_read, _greeting_size - _greeting_bytes_read);
+        const int n = tcp_read(_s, _greeting_recv + _greeting_bytes_read, _greeting_size - _greeting_bytes_read);
         if (n == 0) 
         {
             errno = EPIPE;
-            error (connection_error);
+            error(connection_error);
             return -1;
         }
-        
+
         if (n == -1) 
         {
             if (errno != EAGAIN)
-                error (connection_error);
+            {
+                error(connection_error);
+            }
+
             return -1;
         }
+
+        printf("%s %s %d > size:%d n:%d _greeting_size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_greeting_bytes_read, (int)n, (int)_greeting_size);
 
         _greeting_bytes_read += n;
 
@@ -567,78 +616,89 @@ int zmq::stream_engine_t::receive_greeting ()
         //  with the 'flags' field if a regular message was sent).
         //  Zero indicates this is a header of a routing id message
         //  (i.e. the peer is using the unversioned protocol).
-        if (!(_greeting_recv[9] & 0x01)) 
+        if ((_greeting_recv[9] & 0x01) == 0) 
         {
             unversioned = true;
             break;
         }
 
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
         //  The peer is using versioned protocol.
-        receive_greeting_versioned ();
+        receive_greeting_versioned();
     }
+
     return unversioned ? 1 : 0;
 }
 
-void zmq::stream_engine_t::receive_greeting_versioned ()
+void zmq::stream_engine_t::receive_greeting_versioned()
 {
+    printf("%s %s %d > outsize:%d %d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize, (int)_greeting_bytes_read, (int)_greeting_size);
+
     //  Send the major version number.
-    if (_outpos + _outsize == _greeting_send + signature_size) {
+    if (_outpos + _outsize == _greeting_send + signature_size) 
+    {
+        printf("%s %s %d > outsize:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize);
+
         if (_outsize == 0)
-            set_pollout (_handle);
+            set_pollout(_handle);
         _outpos[_outsize++] = 3; //  Major version number
     }
 
-    if (_greeting_bytes_read > signature_size) {
-        if (_outpos + _outsize == _greeting_send + signature_size + 1) {
+    if (_greeting_bytes_read > signature_size) 
+    {
+        if (_outpos + _outsize == _greeting_send + signature_size + 1) 
+        {
             if (_outsize == 0)
-                set_pollout (_handle);
+                set_pollout(_handle);
 
             //  Use ZMTP/2.0 to talk to older peers.
-            if (_greeting_recv[revision_pos] == ZMTP_1_0
-                || _greeting_recv[revision_pos] == ZMTP_2_0)
+            if (_greeting_recv[revision_pos] == ZMTP_1_0 || _greeting_recv[revision_pos] == ZMTP_2_0)
+            {
                 _outpos[_outsize++] = _options.type;
-            else {
+            }
+            else 
+            {
                 _outpos[_outsize++] = 0; //  Minor version number
-                memset (_outpos + _outsize, 0, 20);
+                memset(_outpos + _outsize, 0, 20);
 
-                zmq_assert (_options.mechanism == ZMQ_NULL
-                            || _options.mechanism == ZMQ_PLAIN
-                            || _options.mechanism == ZMQ_CURVE
-                            || _options.mechanism == ZMQ_GSSAPI);
+                zmq_assert (_options.mechanism == ZMQ_NULL || _options.mechanism == ZMQ_PLAIN || _options.mechanism == ZMQ_CURVE || _options.mechanism == ZMQ_GSSAPI);
 
-                if (_options.mechanism == ZMQ_NULL)
-                    memcpy (_outpos + _outsize, "NULL", 4);
+                printf("%s %s %d > outsize:%d | %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize, (int)_options.mechanism);
+
+                if      (_options.mechanism == ZMQ_NULL)
+                    memcpy(_outpos + _outsize, "NULL", 4);
                 else if (_options.mechanism == ZMQ_PLAIN)
-                    memcpy (_outpos + _outsize, "PLAIN", 5);
+                    memcpy(_outpos + _outsize, "PLAIN", 5);
                 else if (_options.mechanism == ZMQ_GSSAPI)
-                    memcpy (_outpos + _outsize, "GSSAPI", 6);
+                    memcpy(_outpos + _outsize, "GSSAPI", 6);
                 else if (_options.mechanism == ZMQ_CURVE)
-                    memcpy (_outpos + _outsize, "CURVE", 5);
+                    memcpy(_outpos + _outsize, "CURVE", 5);
                 _outsize += 20;
-                memset (_outpos + _outsize, 0, 32);
+                memset(_outpos + _outsize, 0, 32);
                 _outsize += 32;
                 _greeting_size = v3_greeting_size;
             }
         }
     }
+
+    printf("%s %s %d > outsize:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize);
 }
 
-zmq::stream_engine_t::handshake_fun_t zmq::stream_engine_t::select_handshake_fun (bool unversioned, unsigned char revision)
+zmq::stream_engine_t::handshake_fun_t zmq::stream_engine_t::select_handshake_fun(bool unversioned, unsigned char revision)
 {
+    printf("%s %s %d | unversioned:%s revision:%d\n", __FILE__, __FUNCTION__, __LINE__, (unversioned?"true":"false"), (int)revision);
+
     //  Is the peer using ZMTP/1.0 with no revision number?
     if (unversioned) 
     {
         return &stream_engine_t::handshake_v1_0_unversioned;
     }
-    
+
     switch (revision) 
     {
-        case ZMTP_1_0:
-            return &stream_engine_t::handshake_v1_0;
-        case ZMTP_2_0:
-            return &stream_engine_t::handshake_v2_0;
-        default:
-            return &stream_engine_t::handshake_v3_0;
+        case ZMTP_1_0 : return &stream_engine_t::handshake_v1_0;
+        case ZMTP_2_0 : return &stream_engine_t::handshake_v2_0;
+        default       : return &stream_engine_t::handshake_v3_0;
     }
 }
 
@@ -732,6 +792,8 @@ bool zmq::stream_engine_t::handshake_v2_0 ()
 
 bool zmq::stream_engine_t::handshake_v3_0 ()
 {
+    printf("%s %s %d  handshake_v3_0 :: _options.maxmsgsize:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_options.maxmsgsize);
+
     _encoder = new (std::nothrow) v2_encoder_t(out_batch_size);
     alloc_assert (_encoder);
 
@@ -740,11 +802,13 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
 
     if      (_options.mechanism == ZMQ_NULL && memcmp (_greeting_recv + 12, "NULL\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) 
     {
+        printf("%s %s %d  handshake_v3_0\n", __FILE__, __FUNCTION__, __LINE__);
         _mechanism = new (std::nothrow) null_mechanism_t (_session, _peer_address, _options);
         alloc_assert (_mechanism);
     } 
     else if (_options.mechanism == ZMQ_PLAIN && memcmp (_greeting_recv + 12, "PLAIN\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) 
     {
+        printf("%s %s %d  handshake_v3_0\n", __FILE__, __FUNCTION__, __LINE__);
         if (_options.as_server)
             _mechanism = new (std::nothrow) plain_server_t (_session, _peer_address, _options);
         else
@@ -754,6 +818,7 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
 #ifdef ZMQ_HAVE_CURVE
     else if (_options.mechanism == ZMQ_CURVE && memcmp (_greeting_recv + 12, "CURVE\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) 
     {
+        printf("%s %s %d  handshake_v3_0\n", __FILE__, __FUNCTION__, __LINE__);
         if (_options.as_server)
             _mechanism = new (std::nothrow) curve_server_t (_session, _peer_address, _options);
         else
@@ -765,6 +830,7 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
 #ifdef HAVE_LIBGSSAPI_KRB5
     else if (_options.mechanism == ZMQ_GSSAPI && memcmp (_greeting_recv + 12, "GSSAPI\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) 
     {
+        printf("%s %s %d  handshake_v3_0\n", __FILE__, __FUNCTION__, __LINE__);
         if (_options.as_server)
             _mechanism = new (std::nothrow) gssapi_server_t (_session, _peer_address, _options);
         else
@@ -774,6 +840,7 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
 #endif
     else 
     {
+        printf("%s %s %d  handshake_v3_0\n", __FILE__, __FUNCTION__, __LINE__);
         _session->get_socket()->event_handshake_failed_protocol(_session->get_endpoint(), ZMQ_PROTOCOL_ERROR_ZMTP_MECHANISM_MISMATCH);
         error (protocol_error);
         return false;
@@ -825,19 +892,30 @@ int zmq::stream_engine_t::process_routing_id_msg (msg_t *msg_)
     return 0;
 }
 
-int zmq::stream_engine_t::next_handshake_command (msg_t *msg_)
+int zmq::stream_engine_t::next_handshake_command(msg_t *msg_)
 {
     zmq_assert (_mechanism != NULL);
 
-    if (_mechanism->status () == mechanism_t::ready) {
+    printf("%s %s %d | status:%d\n", __FILE__, __FUNCTION__, __LINE__, _mechanism->status());
+
+    if (_mechanism->status() == mechanism_t::ready) 
+    {
+        printf("%s %s %d | status:%d\n", __FILE__, __FUNCTION__, __LINE__, _mechanism->status());
+
         mechanism_ready ();
-        return pull_and_encode (msg_);
+        return pull_and_encode(msg_);
     }
-    if (_mechanism->status () == mechanism_t::error) {
+
+    if (_mechanism->status() == mechanism_t::error) 
+    {
         errno = EPROTO;
         return -1;
-    } else {
-        const int rc = _mechanism->next_handshake_command (msg_);
+    } 
+    else 
+    {
+        printf("%s %s %d | status:%d\n", __FILE__, __FUNCTION__, __LINE__, _mechanism->status());
+
+        const int rc = _mechanism->next_handshake_command(msg_);
 
         if (rc == 0)
             msg_->set_flags (msg_t::command);
@@ -846,19 +924,27 @@ int zmq::stream_engine_t::next_handshake_command (msg_t *msg_)
     }
 }
 
-int zmq::stream_engine_t::process_handshake_command (msg_t *msg_)
+int zmq::stream_engine_t::process_handshake_command(msg_t * msg_)
 {
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
     zmq_assert (_mechanism != NULL);
-    const int rc = _mechanism->process_handshake_command (msg_);
-    if (rc == 0) {
-        if (_mechanism->status () == mechanism_t::ready)
-            mechanism_ready ();
-        else if (_mechanism->status () == mechanism_t::error) {
+    const int rc = _mechanism->process_handshake_command(msg_);
+
+    if (rc == 0) 
+    {
+        if (_mechanism->status() == mechanism_t::ready)
+        {
+            mechanism_ready();
+        }
+        else if (_mechanism->status() == mechanism_t::error) 
+        {
             errno = EPROTO;
             return -1;
         }
+
         if (_output_stopped)
-            restart_output ();
+            restart_output();
     }
 
     return rc;
@@ -880,7 +966,7 @@ void zmq::stream_engine_t::zap_msg_available ()
         restart_output ();
 }
 
-const char *zmq::stream_engine_t::get_endpoint () const
+const char *zmq::stream_engine_t::get_endpoint() const
 {
     return _endpoint.c_str ();
 }
@@ -990,13 +1076,15 @@ int zmq::stream_engine_t::write_credential (msg_t *msg_)
     return decode_and_push (msg_);
 }
 
-int zmq::stream_engine_t::pull_and_encode (msg_t *msg_)
+int zmq::stream_engine_t::pull_and_encode(msg_t *msg_)
 {
     zmq_assert (_mechanism != NULL);
 
-    if (_session->pull_msg (msg_) == -1)
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
+    if (_session->pull_msg(msg_) == -1)
         return -1;
-    if (_mechanism->encode (msg_) == -1)
+    if (_mechanism->encode(msg_) == -1)
         return -1;
     return 0;
 }
@@ -1087,7 +1175,7 @@ void zmq::stream_engine_t::set_handshake_timer ()
 
     if (!_options.raw_socket && _options.handshake_ivl > 0) 
     {
-        add_timer (_options.handshake_ivl, handshake_timer_id);
+        add_timer(_options.handshake_ivl, handshake_timer_id);
         _has_handshake_timer = true;
     }
 }
@@ -1110,27 +1198,47 @@ bool zmq::stream_engine_t::init_properties (properties_t &properties_)
 
 void zmq::stream_engine_t::timer_event (int id_)
 {
-    if (id_ == handshake_timer_id) {
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
+    if (id_ == handshake_timer_id) 
+    {
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
         _has_handshake_timer = false;
         //  handshake timer expired before handshake completed, so engine fail
         error (timeout_error);
-    } else if (id_ == heartbeat_ivl_timer_id) {
+    } 
+    else if (id_ == heartbeat_ivl_timer_id) 
+    {
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
         _next_msg = &stream_engine_t::produce_ping_message;
         out_event ();
         add_timer (_options.heartbeat_interval, heartbeat_ivl_timer_id);
-    } else if (id_ == heartbeat_ttl_timer_id) {
+    } 
+    else if (id_ == heartbeat_ttl_timer_id) 
+    {
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
         _has_ttl_timer = false;
         error (timeout_error);
-    } else if (id_ == heartbeat_timeout_timer_id) {
+    } 
+    else if (id_ == heartbeat_timeout_timer_id) 
+    {
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
         _has_timeout_timer = false;
         error (timeout_error);
-    } else
+    } 
+    else
         // There are no other valid timer ids!
         assert (false);
 }
 
 int zmq::stream_engine_t::produce_ping_message (msg_t *msg_)
 {
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
     // 16-bit TTL + \4PING == 7
     const size_t ping_ttl_len = msg_t::ping_cmd_name_size + 2;
     zmq_assert (_mechanism != NULL);
@@ -1214,29 +1322,25 @@ int zmq::stream_engine_t::process_heartbeat_message (msg_t *msg_)
     return 0;
 }
 
-int zmq::stream_engine_t::process_command_message (msg_t *msg_)
+int zmq::stream_engine_t::process_command_message(msg_t *msg_)
 {
-    const uint8_t cmd_name_size =
-      *(static_cast<const uint8_t *> (msg_->data ()));
-    const size_t ping_name_size = msg_t::ping_cmd_name_size - 1;
-    const size_t sub_name_size = msg_t::sub_cmd_name_size - 1;
-    const size_t cancel_name_size = msg_t::cancel_cmd_name_size - 1;
+    const uint8_t cmd_name_size    = *(static_cast<const uint8_t *> (msg_->data ()));
+    const size_t  ping_name_size   = msg_t::ping_cmd_name_size - 1;
+    const size_t  sub_name_size    = msg_t::sub_cmd_name_size - 1;
+    const size_t  cancel_name_size = msg_t::cancel_cmd_name_size - 1;
+
     //  Malformed command
     if (unlikely (msg_->size () < cmd_name_size + sizeof (cmd_name_size)))
         return -1;
 
     uint8_t *cmd_name = (static_cast<uint8_t *> (msg_->data ())) + 1;
-    if (cmd_name_size == ping_name_size
-        && memcmp (cmd_name, "PING", cmd_name_size) == 0)
+    if (cmd_name_size == ping_name_size && memcmp (cmd_name, "PING", cmd_name_size) == 0)
         msg_->set_flags (zmq::msg_t::ping);
-    if (cmd_name_size == ping_name_size
-        && memcmp (cmd_name, "PONG", cmd_name_size) == 0)
+    if (cmd_name_size == ping_name_size && memcmp (cmd_name, "PONG", cmd_name_size) == 0)
         msg_->set_flags (zmq::msg_t::pong);
-    if (cmd_name_size == sub_name_size
-        && memcmp (cmd_name, "SUBSCRIBE", cmd_name_size) == 0)
+    if (cmd_name_size == sub_name_size  && memcmp (cmd_name, "SUBSCRIBE", cmd_name_size) == 0)
         msg_->set_flags (zmq::msg_t::subscribe);
-    if (cmd_name_size == cancel_name_size
-        && memcmp (cmd_name, "CANCEL", cmd_name_size) == 0)
+    if (cmd_name_size == cancel_name_size && memcmp (cmd_name, "CANCEL", cmd_name_size) == 0)
         msg_->set_flags (zmq::msg_t::cancel);
 
     if (msg_->is_ping () || msg_->is_pong ())

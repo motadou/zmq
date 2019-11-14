@@ -154,6 +154,8 @@ void zmq::epoll_t::loop ()
         {
             poll_entry_t *pe = (static_cast<poll_entry_t *>(ev_buf[i].data.ptr));
 
+            printf("%s %s %d | fd:%d\n", __FILE__, __FUNCTION__, __LINE__, pe->fd);
+
             if (pe->fd == retired_fd)
                 continue;
 
@@ -167,7 +169,6 @@ void zmq::epoll_t::loop ()
             if (pe->fd == retired_fd)
                 continue;
 
-            printf("%s %s %d %d\n", __FILE__, __FUNCTION__, __LINE__, pe->fd);
             if (ev_buf[i].events & EPOLLIN)
                 pe->events->in_event();
         }

@@ -71,7 +71,6 @@ void zmq::own_t::term_child(own_t *object_)
 
 void zmq::own_t::process_term_req(own_t * object_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
     //  When shutting down we can ignore termination requests from owned
     //  objects. The termination request was already sent to the object.
     if (_terminating)
@@ -122,7 +121,6 @@ void zmq::own_t::terminate ()
         return;
     }
 
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
     //  If I am an owned object, I'll ask my owner to terminate me.
     send_term_req(_owner, this);
 }
@@ -134,8 +132,6 @@ bool zmq::own_t::is_terminating ()
 
 void zmq::own_t::process_term(int linger_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  Double termination should never happen.
     zmq_assert (!_terminating);
 

@@ -89,14 +89,14 @@ inline void put_uint64 (unsigned char *buffer_, uint64_t value_)
 
 inline uint64_t get_uint64 (const unsigned char *buffer_)
 {
-    return ((static_cast<uint64_t> (buffer_[0])) << 56)
+    return   ((static_cast<uint64_t> (buffer_[0])) << 56)
            | ((static_cast<uint64_t> (buffer_[1])) << 48)
            | ((static_cast<uint64_t> (buffer_[2])) << 40)
            | ((static_cast<uint64_t> (buffer_[3])) << 32)
            | ((static_cast<uint64_t> (buffer_[4])) << 24)
            | ((static_cast<uint64_t> (buffer_[5])) << 16)
            | ((static_cast<uint64_t> (buffer_[6])) << 8)
-           | (static_cast<uint64_t> (buffer_[7]));
+           |  (static_cast<uint64_t> (buffer_[7]));
 }
 }
 

@@ -78,8 +78,6 @@ void zmq::thread_t::applySchedulingParameters() // to be called in secondary thr
     int rc = pthread_getschedparam(pthread_self(), &policy, &param);
     posix_assert (rc);
 
-    printf("%s %s %d %d %d %d\n", __FILE__, __FUNCTION__, __LINE__, _thread_sched_policy, param.sched_priority, _thread_priority);
-
     if (_thread_sched_policy != ZMQ_THREAD_SCHED_POLICY_DFLT) 
     {
         policy = _thread_sched_policy;

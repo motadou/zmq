@@ -34,13 +34,13 @@ class stream_engine_t : public io_object_t, public i_engine
 public:
     enum error_reason_t
     {
-        protocol_error,
-        connection_error,
-        timeout_error
+        protocol_error   = 0,
+        connection_error = 1,
+        timeout_error    = 2
     };
 
     stream_engine_t(fd_t fd_, const options_t &options_, const std::string &endpoint_);
-   
+
     ~stream_engine_t ();
 
 public:
@@ -150,7 +150,7 @@ private:
     unsigned char _greeting_send[v3_greeting_size];
 
     //  Size of greeting received so far
-    unsigned int _greeting_bytes_read;
+    unsigned int  _greeting_bytes_read;
 
     //  The session this engine is attached to.
     zmq::session_base_t *_session;

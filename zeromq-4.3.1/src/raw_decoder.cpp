@@ -52,18 +52,14 @@ void zmq::raw_decoder_t::get_buffer (unsigned char **data_, size_t *size_)
     *size_ = _allocator.size ();
 }
 
-int zmq::raw_decoder_t::decode (const uint8_t *data_,
-                                size_t size_,
-                                size_t &bytes_used_)
+int zmq::raw_decoder_t::decode (const uint8_t *data_, size_t size_, size_t &bytes_used_)
 {
-    const int rc =
-      _in_progress.init (const_cast<unsigned char *> (data_), size_,
-                         shared_message_memory_allocator::call_dec_ref,
-                         _allocator.buffer (), _allocator.provide_content ());
+    const int rc = _in_progress.init (const_cast<unsigned char *>(data_), size_, shared_message_memory_allocator::call_dec_ref, _allocator.buffer(), _allocator.provide_content());
 
     // if the buffer serves as memory for a zero-copy message, release it
     // and allocate a new buffer in get_buffer for the next decode
-    if (_in_progress.is_zcmsg ()) {
+    if (_in_progress.is_zcmsg ()) 
+    {
         _allocator.advance_content ();
         _allocator.release ();
     }

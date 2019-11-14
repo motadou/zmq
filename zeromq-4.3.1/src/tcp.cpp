@@ -265,52 +265,21 @@ int zmq::tcp_write (fd_t s_, const void *data_, size_t size_)
 #endif
 }
 
-int zmq::tcp_read (fd_t s_, void *data_, size_t size_)
+int zmq::tcp_read(fd_t s_, void *data_, size_t size_)
 {
-#ifdef ZMQ_HAVE_WINDOWS
-
-    const int rc =
-      recv (s_, static_cast<char *> (data_), static_cast<int> (size_), 0);
-
-    //  If not a single byte can be read from the socket in non-blocking mode
-    //  we'll get an error (this may happen during the speculative read).
-    if (rc == SOCKET_ERROR) {
-        const int last_error = WSAGetLastError ();
-        if (last_error == WSAEWOULDBLOCK) {
-            errno = EAGAIN;
-        } else {
-            wsa_assert (
-              last_error == WSAENETDOWN || last_error == WSAENETRESET
-              || last_error == WSAECONNABORTED || last_error == WSAETIMEDOUT
-              || last_error == WSAECONNRESET || last_error == WSAECONNREFUSED
-              || last_error == WSAENOTCONN || last_error == WSAENOBUFS);
-            errno = wsa_error_to_errno (last_error);
-        }
-    }
-
-    return rc == SOCKET_ERROR ? -1 : rc;
-
-#else
-
-    const ssize_t rc = recv (s_, static_cast<char *> (data_), size_, 0);
+    const ssize_t rc = recv(s_, static_cast<char *>(data_), size_, 0);
 
     //  Several errors are OK. When speculative read is being done we may not
     //  be able to read a single byte from the socket. Also, SIGSTOP issued
     //  by a debugging tool can result in EINTR error.
-    if (rc == -1) {
-#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
-        errno_assert (errno != EBADF && errno != EFAULT && errno != ENOMEM
-                      && errno != ENOTSOCK);
-#else
-        errno_assert (errno != EFAULT && errno != ENOMEM && errno != ENOTSOCK);
-#endif
+    if (rc == -1) 
+    {
+        errno_assert (errno != EBADF && errno != EFAULT && errno != ENOMEM    && errno != ENOTSOCK);
         if (errno == EWOULDBLOCK || errno == EINTR)
             errno = EAGAIN;
     }
 
     return static_cast<int> (rc);
-
-#endif
 }
 
 void zmq::tcp_assert_tuning_error (zmq::fd_t s_, int rc_)

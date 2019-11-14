@@ -89,8 +89,8 @@ public:
         integer_t nv = __atomic_sub_fetch (&_value, decrement_, __ATOMIC_ACQ_REL);
         return nv != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_CXX11
-        integer_t old = _value.fetch_sub (decrement_, std::memory_order_acq_rel);
-        return old - decrement_ != 0;
+        integer_t old = _value.fetch_sub(decrement_, std::memory_order_acq_rel);
+        return (old - decrement_) != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_X86
         integer_t oldval = -decrement_;
         volatile integer_t *val = &_value;

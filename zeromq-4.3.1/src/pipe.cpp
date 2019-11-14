@@ -107,8 +107,7 @@ uint32_t zmq::pipe_t::get_server_socket_routing_id () const
     return _server_socket_routing_id;
 }
 
-void zmq::pipe_t::set_router_socket_routing_id (
-  const blob_t &router_socket_routing_id_)
+void zmq::pipe_t::set_router_socket_routing_id(const blob_t &router_socket_routing_id_)
 {
     _router_socket_routing_id.set_deep_copy (router_socket_routing_id_);
 }
@@ -126,14 +125,16 @@ bool zmq::pipe_t::check_read ()
         return false;
 
     //  Check if there's an item in the pipe.
-    if (!_in_pipe->check_read ()) {
+    if (!_in_pipe->check_read ()) 
+    {
         _in_active = false;
         return false;
     }
 
     //  If the next item in the pipe is message delimiter,
     //  initiate termination process.
-    if (_in_pipe->probe (is_delimiter)) {
+    if (_in_pipe->probe (is_delimiter)) 
+    {
         msg_t msg;
         const bool ok = _in_pipe->read (&msg);
         zmq_assert (ok);
@@ -144,14 +145,14 @@ bool zmq::pipe_t::check_read ()
     return true;
 }
 
-bool zmq::pipe_t::read (msg_t *msg_)
+bool zmq::pipe_t::read(msg_t *msg_)
 {
     if (unlikely (!_in_active))
         return false;
     if (unlikely (_state != active && _state != waiting_for_delimiter))
         return false;
 
-    for (bool payload_read = false; !payload_read;) 
+    for (bool payload_read = false; !payload_read; )
     {
         if (!_in_pipe->read(msg_)) 
         {
@@ -172,9 +173,9 @@ bool zmq::pipe_t::read (msg_t *msg_)
     }
 
     //  If delimiter was read, start termination process of the pipe.
-    if (msg_->is_delimiter ()) 
+    if (msg_->is_delimiter()) 
     {
-        process_delimiter ();
+        process_delimiter();
         return false;
     }
 
@@ -182,12 +183,12 @@ bool zmq::pipe_t::read (msg_t *msg_)
         _msgs_read++;
 
     if (_lwm > 0 && _msgs_read % _lwm == 0)
-        send_activate_write (_peer, _msgs_read);
+        send_activate_write(_peer, _msgs_read);
 
     return true;
 }
 
-bool zmq::pipe_t::check_write ()
+bool zmq::pipe_t::check_write()
 {
     if (unlikely (!_out_active || _state != active))
         return false;
@@ -385,7 +386,6 @@ void zmq::pipe_t::set_nodelay ()
 
 void zmq::pipe_t::terminate(bool delay_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
     //  Overload the value specified at pipe creation.
     _delay = delay_;
 

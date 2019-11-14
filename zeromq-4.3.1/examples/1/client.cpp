@@ -11,15 +11,11 @@ int main(int argc, char * argv[])
     //通信使用的网络端口 为7766 
     const char * pAddr = "tcp://127.0.0.1:7766";
 
-    printf("%s %s %d CLIENT PTHREAD_SELF:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
     //创建context 
     if((pCtx = zmq_ctx_new()) == NULL)
     {
         return 0;
     }
-
-    printf("%s %s %d CLIENT PTHREAD_SELF:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
 
     //创建socket 
     if((pSock = zmq_socket(pCtx, ZMQ_DEALER)) == NULL)
@@ -27,8 +23,6 @@ int main(int argc, char * argv[])
         zmq_ctx_destroy(pCtx);
         return 0;
     }
-    
-    printf("%s %s %d CLIENT PTHREAD_SELF:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
 
     int iSndTimeout = 5000*1000;// millsecond
     //设置接收超时 
@@ -39,8 +33,6 @@ int main(int argc, char * argv[])
         return 0;
     }
 
-    printf("%s %s %d CLIENT PTHREAD_SELF:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
     //连接目标IP192.168.1.2，端口7766 
     if (zmq_connect(pSock, pAddr) < 0)
     {
@@ -49,22 +41,32 @@ int main(int argc, char * argv[])
         return 0;
     }
 
-    printf("%s %s %d CLIENT PTHREAD_SELF:%ld\n", __FILE__, __FUNCTION__, __LINE__, pthread_self());
-
     //循环发送消息 
     for (int n = 0; n < 2; n++)
     {
         static int i = 0;
-        char szMsg[1024] = {0};
-        snprintf(szMsg, sizeof(szMsg), "hello world : %3d", i++);
+        //char szMsg[1024] = {0};
+
+        const int iLen = 8192 * 4;
+
+        char * szMsg = new char[iLen];
+
+        snprintf(szMsg, iLen, "hello world : %3d", i++);
         printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
         printf("Enter to send...\n");
-        if (zmq_send(pSock, szMsg, sizeof(szMsg), 0) < 0)
+        if (zmq_send(pSock, szMsg, iLen, 0) < 0)
         {
             fprintf(stderr, "send message faild\n");
+
+            delete[] szMsg;
+
             continue;
         }
+
         printf("send message : [%s] succeed\n", szMsg);
+
+        delete[] szMsg;
+
         getchar();
     }
 

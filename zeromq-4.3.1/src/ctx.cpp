@@ -128,8 +128,6 @@ int zmq::ctx_t::terminate()
         //  First attempt to terminate the context.
         if (!restarted) 
         {
-            printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
             //  First send stop command to sockets so that any blocking calls
             //  can be interrupted. If there are no sockets we can ask reaper
             //  thread to stop.
