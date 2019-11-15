@@ -22,7 +22,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 
-zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_, socket_base_t *socket_, const options_t &options_) :
+zmq::tcp_listener_t::tcp_listener_t(io_thread_t *io_thread_, socket_base_t *socket_, const options_t &options_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     _s (retired_fd),
@@ -32,20 +32,20 @@ zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_, socket_base_t *soc
 
 }
 
-zmq::tcp_listener_t::~tcp_listener_t ()
+zmq::tcp_listener_t::~tcp_listener_t()
 {
     zmq_assert (_s == retired_fd);
     zmq_assert (!_handle);
 }
 
-void zmq::tcp_listener_t::process_plug ()
+void zmq::tcp_listener_t::process_plug()
 {
     //  Start polling for incoming connections.
-    _handle = add_fd (_s);
-    set_pollin (_handle);
+    _handle = add_fd(_s);
+    set_pollin(_handle);
 }
 
-void zmq::tcp_listener_t::process_term (int linger_)
+void zmq::tcp_listener_t::process_term(int linger_)
 {
     rm_fd (_handle);
     _handle = static_cast<handle_t> (NULL);
@@ -109,11 +109,9 @@ int zmq::tcp_listener_t::get_address (std::string &addr_)
 {
     // Get the details of the TCP socket
     struct sockaddr_storage ss;
-#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_VXWORKS
-    int sl = sizeof (ss);
-#else
+
     socklen_t sl = sizeof (ss);
-#endif
+
     int rc = getsockname (_s, reinterpret_cast<struct sockaddr *> (&ss), &sl);
 
     if (rc != 0) {
@@ -178,28 +176,28 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
 
     //  Set the socket buffer limits for the underlying socket.
     if (options.sndbuf >= 0)
-        set_tcp_send_buffer (_s, options.sndbuf);
+        set_tcp_send_buffer(_s, options.sndbuf);
 
     if (options.rcvbuf >= 0)
-        set_tcp_receive_buffer (_s, options.rcvbuf);
+        set_tcp_receive_buffer(_s, options.rcvbuf);
 
     //  Allow reusing of the address.
     int flag = 1;
-    rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
+    rc = setsockopt(_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int));
     errno_assert (rc == 0);
 
     //  Bind the socket to the network interface and port.
-    rc = bind (_s, _address.addr (), _address.addrlen ());
+    rc = bind(_s, _address.addr(), _address.addrlen());
 
     if (rc != 0)
         goto error;
 
     //  Listen for incoming connections.
-    rc = listen (_s, options.backlog);
+    rc = listen(_s, options.backlog);
     if (rc != 0)
         goto error;
 
-    _socket->event_listening (_endpoint, _s);
+    _socket->event_listening(_endpoint, _s);
     return 0;
 
 error:
@@ -229,49 +227,39 @@ zmq::fd_t zmq::tcp_listener_t::accept()
 
     if (sock == retired_fd) 
     {
-#if defined ZMQ_HAVE_WINDOWS
-        const int last_error = WSAGetLastError ();
-        wsa_assert (last_error == WSAEWOULDBLOCK || last_error == WSAECONNRESET || last_error == WSAEMFILE || last_error == WSAENOBUFS);
-#elif defined ZMQ_HAVE_ANDROID
-        errno_assert (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED || errno == EPROTO || errno == ENOBUFS || errno == ENOMEM || errno == EMFILE || errno == ENFILE || errno == EINVAL);
-#else
         errno_assert (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED || errno == EPROTO || errno == ENOBUFS || errno == ENOMEM || errno == EMFILE || errno == ENFILE);
-#endif
+
         return retired_fd;
     }
 
     make_socket_noninheritable (sock);
 
-    if (!options.tcp_accept_filters.empty ()) {
+    if (!options.tcp_accept_filters.empty ()) 
+    {
         bool matched = false;
-        for (options_t::tcp_accept_filters_t::size_type i = 0;
-             i != options.tcp_accept_filters.size (); ++i) {
-            if (options.tcp_accept_filters[i].match_address (
-                  reinterpret_cast<struct sockaddr *> (&ss), ss_len)) {
+        for (options_t::tcp_accept_filters_t::size_type i = 0; i != options.tcp_accept_filters.size (); ++i) 
+        {
+            if (options.tcp_accept_filters[i].match_address(reinterpret_cast<struct sockaddr *> (&ss), ss_len)) 
+            {
                 matched = true;
                 break;
             }
         }
-        if (!matched) {
-#ifdef ZMQ_HAVE_WINDOWS
-            int rc = closesocket (sock);
-            wsa_assert (rc != SOCKET_ERROR);
-#else
+
+        if (!matched) 
+        {
             int rc = ::close (sock);
             errno_assert (rc == 0);
-#endif
+
             return retired_fd;
         }
     }
 
-    if (zmq::set_nosigpipe (sock)) {
-#ifdef ZMQ_HAVE_WINDOWS
-        int rc = closesocket (sock);
-        wsa_assert (rc != SOCKET_ERROR);
-#else
+    if (zmq::set_nosigpipe(sock)) 
+    {
         int rc = ::close (sock);
         errno_assert (rc == 0);
-#endif
+
         return retired_fd;
     }
 

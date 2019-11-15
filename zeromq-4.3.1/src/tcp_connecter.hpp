@@ -99,6 +99,7 @@ private:
     // Socket
     zmq::socket_base_t *const _socket;
 
+private:
     tcp_connecter_t (const tcp_connecter_t &);
     const tcp_connecter_t &operator= (const tcp_connecter_t &);
 };

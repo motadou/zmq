@@ -75,11 +75,11 @@ int zmq::socket_base_t::inprocs_t::erase_pipes(const std::string &endpoint_uri_s
     return 0;
 }
 
-void zmq::socket_base_t::inprocs_t::erase_pipe (pipe_t *pipe_)
+void zmq::socket_base_t::inprocs_t::erase_pipe(pipe_t *pipe_)
 {
-    for (map_t::iterator it = _inprocs.begin (), end = _inprocs.end ();
-         it != end; ++it)
-        if (it->second == pipe_) {
+    for (map_t::iterator it = _inprocs.begin(), end = _inprocs.end(); it != end; ++it)
+        if (it->second == pipe_) 
+        {
             _inprocs.erase (it);
             break;
         }
@@ -1630,10 +1630,9 @@ void zmq::socket_base_t::event_bind_failed (const std::string &endpoint_uri_,
     event (endpoint_uri_, err_, ZMQ_EVENT_BIND_FAILED);
 }
 
-void zmq::socket_base_t::event_accepted (const std::string &endpoint_uri_,
-                                         zmq::fd_t fd_)
+void zmq::socket_base_t::event_accepted(const std::string &endpoint_uri_, zmq::fd_t fd_)
 {
-    event (endpoint_uri_, fd_, ZMQ_EVENT_ACCEPTED);
+    event(endpoint_uri_, fd_, ZMQ_EVENT_ACCEPTED);
 }
 
 void zmq::socket_base_t::event_accept_failed (const std::string &endpoint_uri_,
@@ -1666,63 +1665,56 @@ void zmq::socket_base_t::event_handshake_failed_no_detail (
     event (endpoint_uri_, err_, ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL);
 }
 
-void zmq::socket_base_t::event_handshake_failed_protocol (
-  const std::string &endpoint_uri_, int err_)
+void zmq::socket_base_t::event_handshake_failed_protocol(const std::string &endpoint_uri_, int err_)
 {
     event (endpoint_uri_, err_, ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL);
 }
 
-void zmq::socket_base_t::event_handshake_failed_auth (
-  const std::string &endpoint_uri_, int err_)
+void zmq::socket_base_t::event_handshake_failed_auth(const std::string &endpoint_uri_, int err_)
 {
     event (endpoint_uri_, err_, ZMQ_EVENT_HANDSHAKE_FAILED_AUTH);
 }
 
-void zmq::socket_base_t::event_handshake_succeeded (
-  const std::string &endpoint_uri_, int err_)
+void zmq::socket_base_t::event_handshake_succeeded(const std::string &endpoint_uri_, int err_)
 {
     event (endpoint_uri_, err_, ZMQ_EVENT_HANDSHAKE_SUCCEEDED);
 }
 
-void zmq::socket_base_t::event (const std::string &endpoint_uri_,
-                                intptr_t value_,
-                                int type_)
+void zmq::socket_base_t::event(const std::string &endpoint_uri_, intptr_t value_, int type_)
 {
     scoped_lock_t lock (_monitor_sync);
-    if (_monitor_events & type_) {
+    if (_monitor_events & type_) 
+    {
         monitor_event (type_, value_, endpoint_uri_);
     }
 }
 
 //  Send a monitor event
-void zmq::socket_base_t::monitor_event (int event_,
-                                        intptr_t value_,
-                                        const std::string &endpoint_uri_) const
+void zmq::socket_base_t::monitor_event(int event_, intptr_t value_, const std::string &endpoint_uri_) const
 {
     // this is a private method which is only called from
     // contexts where the mutex has been locked before
-
-    if (_monitor_socket) {
+    if (_monitor_socket) 
+    {
         //  Send event in first frame
         const uint16_t event = static_cast<uint16_t> (event_);
         const uint32_t value = static_cast<uint32_t> (value_);
         zmq_msg_t msg;
-        zmq_msg_init_size (&msg, sizeof (event) + sizeof (value));
-        uint8_t *data = static_cast<uint8_t *> (zmq_msg_data (&msg));
+        zmq_msg_init_size(&msg, sizeof (event) + sizeof (value));
+        uint8_t *data = static_cast<uint8_t *>(zmq_msg_data(&msg));
         //  Avoid dereferencing uint32_t on unaligned address
-        memcpy (data + 0, &event, sizeof (event));
-        memcpy (data + sizeof (event), &value, sizeof (value));
-        zmq_sendmsg (_monitor_socket, &msg, ZMQ_SNDMORE);
+        memcpy(data + 0, &event, sizeof(event));
+        memcpy(data + sizeof(event), &value, sizeof(value));
+        zmq_sendmsg(_monitor_socket, &msg, ZMQ_SNDMORE);
 
         //  Send address in second frame
-        zmq_msg_init_size (&msg, endpoint_uri_.size ());
-        memcpy (zmq_msg_data (&msg), endpoint_uri_.c_str (),
-                endpoint_uri_.size ());
-        zmq_sendmsg (_monitor_socket, &msg, 0);
+        zmq_msg_init_size(&msg, endpoint_uri_.size());
+        memcpy(zmq_msg_data(&msg), endpoint_uri_.c_str(), endpoint_uri_.size());
+        zmq_sendmsg(_monitor_socket, &msg, 0);
     }
 }
 
-void zmq::socket_base_t::stop_monitor (bool send_monitor_stopped_event_)
+void zmq::socket_base_t::stop_monitor(bool send_monitor_stopped_event_)
 {
     // this is a private method which is only called from contexts where the mutex has been locked before
     if (_monitor_socket) 
@@ -1732,7 +1724,7 @@ void zmq::socket_base_t::stop_monitor (bool send_monitor_stopped_event_)
             monitor_event(ZMQ_EVENT_MONITOR_STOPPED, 0, "");
         }
 
-        zmq_close (_monitor_socket);
+        zmq_close(_monitor_socket);
         _monitor_socket = NULL;
         _monitor_events = 0;
     }
@@ -1832,14 +1824,15 @@ void zmq::routing_socket_base_t::erase_out_pipe (pipe_t *pipe_)
     zmq_assert (erased);
 }
 
-zmq::routing_socket_base_t::out_pipe_t
-zmq::routing_socket_base_t::try_erase_out_pipe (const blob_t &routing_id_)
+zmq::routing_socket_base_t::out_pipe_t zmq::routing_socket_base_t::try_erase_out_pipe(const blob_t &routing_id_)
 {
     const out_pipes_t::iterator it = _out_pipes.find (routing_id_);
     out_pipe_t res = {NULL, false};
-    if (it != _out_pipes.end ()) {
+    if (it != _out_pipes.end ()) 
+    {
         res = it->second;
         _out_pipes.erase (it);
     }
+
     return res;
 }

@@ -79,7 +79,7 @@ void zmq::epoll_t::rm_fd(handle_t handle_)
 void zmq::epoll_t::set_pollin(handle_t handle_)
 {
     check_thread ();
-    poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
+    poll_entry_t *pe = static_cast<poll_entry_t *>(handle_);
     pe->ev.events |= EPOLLIN;
     int rc = epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
@@ -107,22 +107,22 @@ void zmq::epoll_t::reset_pollout(handle_t handle_)
 {
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
-    pe->ev.events &= ~(static_cast<short> (EPOLLOUT));
+    pe->ev.events &= ~(static_cast<short>(EPOLLOUT));
     int rc = epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
-void zmq::epoll_t::stop ()
+void zmq::epoll_t::stop()
 {
-    check_thread ();
+    check_thread();
 }
 
-int zmq::epoll_t::max_fds ()
+int zmq::epoll_t::max_fds()
 {
     return -1;
 }
 
-void zmq::epoll_t::loop ()
+void zmq::epoll_t::loop()
 {
     epoll_event ev_buf[max_io_events];
 

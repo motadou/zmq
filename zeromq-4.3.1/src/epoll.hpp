@@ -2,9 +2,6 @@
 #define __ZMQ_EPOLL_HPP_INCLUDED__
 
 #include "poller.hpp"
-
-#if defined ZMQ_IOTHREAD_POLLER_USE_EPOLL
-
 #include <vector>
 #include <sys/epoll.h>
 
@@ -74,7 +71,5 @@ private:
 
 typedef epoll_t poller_t;
 }
-
-#endif
 
 #endif

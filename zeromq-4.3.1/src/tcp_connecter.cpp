@@ -24,17 +24,17 @@
 #include <fcntl.h>
 
 zmq::tcp_connecter_t::tcp_connecter_t(class io_thread_t *io_thread_, class session_base_t *session_, const options_t &options_, address_t *addr_, bool delayed_start_) :
-    own_t (io_thread_, options_),
-    io_object_t (io_thread_),
-    _addr (addr_),
-    _s (retired_fd),
-    _handle (static_cast<handle_t> (NULL)),
-    _delayed_start (delayed_start_),
-    _connect_timer_started (false),
-    _reconnect_timer_started (false),
-    _session (session_),
-    _current_reconnect_ivl (options.reconnect_ivl),
-    _socket (_session->get_socket())
+    own_t(io_thread_, options_),
+    io_object_t(io_thread_),
+    _addr(addr_),
+    _s(retired_fd),
+    _handle(static_cast<handle_t>(NULL)),
+    _delayed_start(delayed_start_),
+    _connect_timer_started(false),
+    _reconnect_timer_started(false),
+    _session(session_),
+    _current_reconnect_ivl(options.reconnect_ivl),
+    _socket(_session->get_socket())
 {
     zmq_assert (_addr);
     zmq_assert (_addr->protocol == protocol_name::tcp);
@@ -44,7 +44,7 @@ zmq::tcp_connecter_t::tcp_connecter_t(class io_thread_t *io_thread_, class sessi
     // initializer, and make endpoint const
 }
 
-zmq::tcp_connecter_t::~tcp_connecter_t ()
+zmq::tcp_connecter_t::~tcp_connecter_t()
 {
     zmq_assert (!_connect_timer_started);
     zmq_assert (!_reconnect_timer_started);
@@ -81,13 +81,13 @@ void zmq::tcp_connecter_t::process_term(int linger_)
 
     if (_handle) 
     {
-        rm_handle ();
+        rm_handle();
     }
 
     if (_s != retired_fd)
-        close ();
+        close();
 
-    own_t::process_term (linger_);
+    own_t::process_term(linger_);
 }
 
 void zmq::tcp_connecter_t::in_event ()
@@ -95,10 +95,10 @@ void zmq::tcp_connecter_t::in_event ()
     //  We are not polling for incoming data, so we are actually called
     //  because of error here. However, we can get error on out event as well
     //  on some platforms, so we'll simply handle both events in the same way.
-    out_event ();
+    out_event();
 }
 
-void zmq::tcp_connecter_t::out_event ()
+void zmq::tcp_connecter_t::out_event()
 {
     if (_connect_timer_started) 
     {
@@ -106,15 +106,15 @@ void zmq::tcp_connecter_t::out_event ()
         _connect_timer_started = false;
     }
 
-    rm_handle ();
+    rm_handle();
 
     const fd_t fd = connect();
 
     //  Handle the error condition by attempt to reconnect.
     if (fd == retired_fd || !tune_socket (fd)) 
     {
-        close ();
-        add_reconnect_timer ();
+        close();
+        add_reconnect_timer();
         return;
     }
 
@@ -128,7 +128,7 @@ void zmq::tcp_connecter_t::out_event ()
     //  Shut the connecter down.
     terminate();
 
-    _socket->event_connected (_endpoint, fd);
+    _socket->event_connected(_endpoint, fd);
 }
 
 void zmq::tcp_connecter_t::rm_handle ()
@@ -151,30 +151,30 @@ void zmq::tcp_connecter_t::timer_event(int id_)
     else if (id_ == reconnect_timer_id) 
     {
         _reconnect_timer_started = false;
-        start_connecting ();
+        start_connecting();
     }
 }
 
-void zmq::tcp_connecter_t::start_connecting ()
+void zmq::tcp_connecter_t::start_connecting()
 {
     //  Open the connecting socket.
-    const int rc = open ();
+    const int rc = open();
 
     //  Connect may succeed in synchronous manner.
     if (rc == 0) 
     {
         _handle = add_fd(_s);
-        out_event ();
+        out_event();
     }
     //  Connection establishment may be delayed. Poll for its completion.
     else if (rc == -1 && errno == EINPROGRESS)
     {
-        _handle = add_fd (_s);
+        _handle = add_fd(_s);
         set_pollout(_handle);
         _socket->event_connect_delayed(_endpoint, zmq_errno ());
 
         // add userspace connect timeout
-        add_connect_timer ();
+        add_connect_timer();
     }
     //  Handle any other error condition by eventual reconnect.
     else 
@@ -194,18 +194,18 @@ void zmq::tcp_connecter_t::add_connect_timer()
     }
 }
 
-void zmq::tcp_connecter_t::add_reconnect_timer ()
+void zmq::tcp_connecter_t::add_reconnect_timer()
 {
     if (options.reconnect_ivl != -1)
     {
-        const int interval = get_new_reconnect_ivl ();
+        const int interval = get_new_reconnect_ivl();
         add_timer(interval, reconnect_timer_id);
         _socket->event_connect_retried (_endpoint, interval);
         _reconnect_timer_started = true;
     }
 }
 
-int zmq::tcp_connecter_t::get_new_reconnect_ivl ()
+int zmq::tcp_connecter_t::get_new_reconnect_ivl()
 {
     //  The new interval is the current interval + random value.
     const int interval = _current_reconnect_ivl + generate_random () % options.reconnect_ivl;
@@ -214,12 +214,12 @@ int zmq::tcp_connecter_t::get_new_reconnect_ivl ()
     //  interval was set and if it's larger than the reconnect interval.
     if (options.reconnect_ivl_max > 0 && options.reconnect_ivl_max > options.reconnect_ivl)
         //  Calculate the next interval
-        _current_reconnect_ivl = std::min (_current_reconnect_ivl * 2, options.reconnect_ivl_max);
+        _current_reconnect_ivl = std::min(_current_reconnect_ivl*2, options.reconnect_ivl_max);
 
     return interval;
 }
 
-int zmq::tcp_connecter_t::open ()
+int zmq::tcp_connecter_t::open()
 {
     zmq_assert (_s == retired_fd);
 
@@ -241,18 +241,18 @@ int zmq::tcp_connecter_t::open ()
     const tcp_address_t *const tcp_addr = _addr->resolved.tcp_addr;
 
     //  Create the socket.
-    _s = open_socket (tcp_addr->family (), SOCK_STREAM, IPPROTO_TCP);
+    _s = open_socket(tcp_addr->family(), SOCK_STREAM, IPPROTO_TCP);
 
     //  IPv6 address family not supported, try automatic downgrade to IPv4.
-    if (_s == zmq::retired_fd && tcp_addr->family () == AF_INET6 && errno == EAFNOSUPPORT && options.ipv6) 
+    if ((_s == zmq::retired_fd) && (tcp_addr->family () == AF_INET6) && (errno == EAFNOSUPPORT) && options.ipv6) 
     {
-        rc = _addr->resolved.tcp_addr->resolve (_addr->address.c_str (), false, false);
+        rc = _addr->resolved.tcp_addr->resolve(_addr->address.c_str (), false, false);
         if (rc != 0) 
         {
             LIBZMQ_DELETE (_addr->resolved.tcp_addr);
             return -1;
         }
-        _s = open_socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        _s = open_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
 
     if (_s == retired_fd) 
@@ -262,12 +262,12 @@ int zmq::tcp_connecter_t::open ()
 
     //  On some systems, IPv4 mapping in IPv6 sockets is disabled by default.
     //  Switch it on in such cases.
-    if (tcp_addr->family () == AF_INET6)
-        enable_ipv4_mapping (_s);
+    if (tcp_addr->family() == AF_INET6)
+        enable_ipv4_mapping(_s);
 
     // Set the IP Type-Of-Service priority for this socket
     if (options.tos != 0)
-        set_ip_type_of_service (_s, options.tos);
+        set_ip_type_of_service(_s, options.tos);
 
     // Bind the socket to a device if applicable
     if (!options.bound_device.empty ())
@@ -279,42 +279,30 @@ int zmq::tcp_connecter_t::open ()
 
     // Set the socket to loopback fastpath if configured.
     if (options.loopback_fastpath)
-        tcp_tune_loopback_fast_path (_s);
+        tcp_tune_loopback_fast_path(_s);
 
     //  Set the socket buffer limits for the underlying socket.
     if (options.sndbuf >= 0)
-        set_tcp_send_buffer (_s, options.sndbuf);
+        set_tcp_send_buffer(_s, options.sndbuf);
     if (options.rcvbuf >= 0)
-        set_tcp_receive_buffer (_s, options.rcvbuf);
+        set_tcp_receive_buffer(_s, options.rcvbuf);
 
     // Set the IP Type-Of-Service for the underlying socket
     if (options.tos != 0)
         set_ip_type_of_service (_s, options.tos);
 
     // Set a source address for conversations
-    if (tcp_addr->has_src_addr ()) {
+    if (tcp_addr->has_src_addr()) 
+    {
         //  Allow reusing of the address, to connect to different servers
         //  using the same source port on the client.
         int flag = 1;
-#ifdef ZMQ_HAVE_WINDOWS
-        rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR,
-                         reinterpret_cast<const char *> (&flag), sizeof (int));
-        wsa_assert (rc != SOCKET_ERROR);
-#elif defined ZMQ_HAVE_VXWORKS
-        rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, (char *) &flag,
-                         sizeof (int));
-        errno_assert (rc == 0);
-#else
+
         rc = setsockopt (_s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
         errno_assert (rc == 0);
-#endif
 
-#if defined ZMQ_HAVE_VXWORKS
-        rc = ::bind (_s, (sockaddr *) tcp_addr->src_addr (),
-                     tcp_addr->src_addrlen ());
-#else
         rc = ::bind (_s, tcp_addr->src_addr (), tcp_addr->src_addrlen ());
-#endif
+
         if (rc == -1)
             return -1;
     }
@@ -328,29 +316,22 @@ int zmq::tcp_connecter_t::open ()
         return 0;
     }
 
-        //  Translate error codes indicating asynchronous connect has been
-        //  launched to a uniform EINPROGRESS.
-#ifdef ZMQ_HAVE_WINDOWS
-    const int last_error = WSAGetLastError ();
-    if (last_error == WSAEINPROGRESS || last_error == WSAEWOULDBLOCK)
-        errno = EINPROGRESS;
-    else
-        errno = wsa_error_to_errno (last_error);
-#else
+    //  Translate error codes indicating asynchronous connect has been
+    //  launched to a uniform EINPROGRESS.
     if (errno == EINTR)
         errno = EINPROGRESS;
-#endif
+
     return -1;
 }
 
-zmq::fd_t zmq::tcp_connecter_t::connect ()
+zmq::fd_t zmq::tcp_connecter_t::connect()
 {
     //  Async connect has finished. Check whether an error occurred
     int err = 0;
 
     socklen_t len = sizeof err;
 
-    const int rc = getsockopt (_s, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *> (&err), &len);
+    const int rc = getsockopt(_s, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&err), &len);
 
     //  Assert if the error was caused by 0MQ bug.
     //  Networking problems are OK. No need to assert.
@@ -365,11 +346,9 @@ zmq::fd_t zmq::tcp_connecter_t::connect ()
     if (err != 0) 
     {
         errno = err;
-#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
-        errno_assert (errno != EBADF && errno != ENOPROTOOPT && errno != ENOTSOCK && errno != ENOBUFS);
-#else
-        errno_assert (errno != ENOPROTOOPT && errno != ENOTSOCK && errno != ENOBUFS);
-#endif
+
+        errno_assert(errno != EBADF && errno != ENOPROTOOPT && errno != ENOTSOCK && errno != ENOBUFS);
+
         return retired_fd;
     }
 
@@ -382,17 +361,17 @@ zmq::fd_t zmq::tcp_connecter_t::connect ()
 bool zmq::tcp_connecter_t::tune_socket (const fd_t fd_)
 {
     const int rc = tune_tcp_socket (fd_) | tune_tcp_keepalives(fd_, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl) | tune_tcp_maxrt (fd_, options.tcp_maxrt);
-    
+
     return rc == 0;
 }
 
-void zmq::tcp_connecter_t::close ()
+void zmq::tcp_connecter_t::close()
 {
     zmq_assert (_s != retired_fd);
 
-    const int rc = ::close (_s);
+    const int rc = ::close(_s);
     errno_assert (rc == 0);
 
-    _socket->event_closed (_endpoint, _s);
+    _socket->event_closed(_endpoint, _s);
     _s = retired_fd;
 }
