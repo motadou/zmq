@@ -38,6 +38,8 @@ int zmq::msg_t::init (void *data_, size_t size_, msg_free_fn *ffn_, void *hint_,
 
     if (content_) 
     {
+        printf("%s %s %d > ======================\n", __FILE__, __FUNCTION__, __LINE__);
+
         return init_external_storage(content_, data_, size_, ffn_, hint_);
     }
 
@@ -59,12 +61,12 @@ int zmq::msg_t::init_size (size_t size_)
 {
     if (size_ <= max_vsm_size) 
     {
-        _u.vsm.metadata   = NULL;
-        _u.vsm.type       = type_vsm;
-        _u.vsm.flags      = 0;
-        _u.vsm.size       = static_cast<unsigned char> (size_);
-        _u.vsm.group[0]   = '\0';
-        _u.vsm.routing_id = 0;
+        _u.vsm.metadata    = NULL;
+        _u.vsm.type        = type_vsm;
+        _u.vsm.flags       = 0;
+        _u.vsm.size        = static_cast<unsigned char> (size_);
+        _u.vsm.group[0]    = '\0';
+        _u.vsm.routing_id  = 0;
     } 
     else 
     {
@@ -103,18 +105,18 @@ int zmq::msg_t::init_external_storage(content_t *content_, void *data_, size_t s
     zmq_assert (NULL != data_);
     zmq_assert (NULL != content_);
 
-    _u.zclmsg.metadata = NULL;
-    _u.zclmsg.type = type_zclmsg;
-    _u.zclmsg.flags = 0;
-    _u.zclmsg.group[0] = '\0';
-    _u.zclmsg.routing_id = 0;
+    _u.zclmsg.metadata      = NULL;
+    _u.zclmsg.type          = type_zclmsg;
+    _u.zclmsg.flags         = 0;
+    _u.zclmsg.group[0]      = '\0';
+    _u.zclmsg.routing_id    = 0;
 
-    _u.zclmsg.content = content_;
+    _u.zclmsg.content       = content_;
     _u.zclmsg.content->data = data_;
     _u.zclmsg.content->size = size_;
     _u.zclmsg.content->ffn  = ffn_;
     _u.zclmsg.content->hint = hint_;
-    new (&_u.zclmsg.content->refcnt) zmq::atomic_counter_t ();
+    new (&_u.zclmsg.content->refcnt)zmq::atomic_counter_t();
 
     return 0;
 }
@@ -143,18 +145,18 @@ int zmq::msg_t::init_data(void *data_, size_t size_, msg_free_fn *ffn_, void *hi
         _u.lmsg.flags = 0;
         _u.lmsg.group[0] = '\0';
         _u.lmsg.routing_id = 0;
-        _u.lmsg.content =
-          static_cast<content_t *> (malloc (sizeof (content_t)));
-        if (!_u.lmsg.content) {
+        _u.lmsg.content = static_cast<content_t *> (malloc (sizeof (content_t)));
+        if (!_u.lmsg.content) 
+        {
             errno = ENOMEM;
             return -1;
         }
 
         _u.lmsg.content->data = data_;
         _u.lmsg.content->size = size_;
-        _u.lmsg.content->ffn = ffn_;
+        _u.lmsg.content->ffn  = ffn_;
         _u.lmsg.content->hint = hint_;
-        new (&_u.lmsg.content->refcnt) zmq::atomic_counter_t ();
+        new (&_u.lmsg.content->refcnt) zmq::atomic_counter_t();
     }
     return 0;
 }
@@ -211,28 +213,30 @@ int zmq::msg_t::close ()
             if (_u.lmsg.content->ffn)
                 _u.lmsg.content->ffn(_u.lmsg.content->data, _u.lmsg.content->hint);
 
-            free (_u.lmsg.content);
+            free(_u.lmsg.content);
         }
     }
 
-    if (is_zcmsg ()) {
+    if (is_zcmsg ()) 
+    {
         zmq_assert (_u.zclmsg.content->ffn);
 
         //  If the content is not shared, or if it is shared and the reference
         //  count has dropped to zero, deallocate it.
-        if (!(_u.zclmsg.flags & msg_t::shared)
-            || !_u.zclmsg.content->refcnt.sub (1)) {
+        if (!(_u.zclmsg.flags & msg_t::shared) || !_u.zclmsg.content->refcnt.sub (1)) 
+        {
             //  We used "placement new" operator to initialize the reference
             //  counter so we call the destructor explicitly now.
-            _u.zclmsg.content->refcnt.~atomic_counter_t ();
+            _u.zclmsg.content->refcnt.~atomic_counter_t();
 
-            _u.zclmsg.content->ffn (_u.zclmsg.content->data,
-                                    _u.zclmsg.content->hint);
+            _u.zclmsg.content->ffn(_u.zclmsg.content->data, _u.zclmsg.content->hint);
         }
     }
 
-    if (_u.base.metadata != NULL) {
-        if (_u.base.metadata->drop_ref ()) {
+    if (_u.base.metadata != NULL) 
+    {
+        if (_u.base.metadata->drop_ref ()) 
+        {
             LIBZMQ_DELETE (_u.base.metadata);
         }
         _u.base.metadata = NULL;

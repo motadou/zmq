@@ -289,17 +289,18 @@ int zmq::socket_base_t::check_protocol (const std::string &protocol_) const
 void zmq::socket_base_t::attach_pipe(pipe_t *pipe_, bool subscribe_to_all_, bool locally_initiated_)
 {
     //  First, register the pipe so that we can terminate it later on.
-    pipe_->set_event_sink (this);
-    _pipes.push_back (pipe_);
+    pipe_->set_event_sink(this);
+    _pipes.push_back(pipe_);
 
     //  Let the derived socket type know about new pipe.
-    xattach_pipe (pipe_, subscribe_to_all_, locally_initiated_);
+    xattach_pipe(pipe_, subscribe_to_all_, locally_initiated_);
 
     //  If the socket is already being closed, ask any new pipes to terminate
     //  straight away.
-    if (is_terminating ()) {
-        register_term_acks (1);
-        pipe_->terminate (false);
+    if (is_terminating()) 
+    {
+        register_term_acks(1);
+        pipe_->terminate(false);
     }
 }
 
@@ -769,7 +770,7 @@ int zmq::socket_base_t::connect(const char * endpoint_uri_)
         if (*check == 0) 
         {
             //  Do we have a valid port string? (cannot be '*' in connect
-            check = strrchr (address.c_str (), ':');
+            check = strrchr(address.c_str (), ':');
             if (check) 
             {
                 check++;
@@ -1342,7 +1343,7 @@ void zmq::socket_base_t::process_stop()
 
 void zmq::socket_base_t::process_bind (pipe_t *pipe_)
 {
-    attach_pipe (pipe_);
+    attach_pipe(pipe_);
 }
 
 void zmq::socket_base_t::process_term(int linger_)
@@ -1490,6 +1491,10 @@ void zmq::socket_base_t::check_destroy ()
 
 void zmq::socket_base_t::read_activated (pipe_t *pipe_)
 {
+    printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n", __FILE__, __FUNCTION__, __LINE__);
+
+
+
     xread_activated (pipe_);
 }
 

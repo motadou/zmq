@@ -54,6 +54,7 @@ private:
     fq_t (const fq_t &);
     const fq_t &operator= (const fq_t &);
 };
+
 }
 
 #endif

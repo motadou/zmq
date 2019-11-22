@@ -37,11 +37,11 @@ public:
     //  references.
     struct content_t
     {
-        void        * data;
-        size_t        size;
-        msg_free_fn * ffn;
-        void        * hint;
-        zmq::atomic_counter_t refcnt;
+        void                  * data;
+        size_t                  size;
+        msg_free_fn           * ffn;
+        void                  * hint;
+        zmq::atomic_counter_t   refcnt;
     };
 
     //  Message flags.
@@ -177,30 +177,30 @@ private:
     {
         struct
         {
-            metadata_t *metadata;
-            unsigned char unused[msg_t_size - (sizeof (metadata_t *) + 2 + 16 + sizeof (uint32_t))];
-            unsigned char type;
-            unsigned char flags;
-            char group[16];
-            uint32_t routing_id;
+            metadata_t    * metadata;
+            unsigned char   unused[msg_t_size - (sizeof(metadata_t *) + 2 + 16 + sizeof(uint32_t))];
+            unsigned char   type;
+            unsigned char   flags;
+            char            group[16];
+            uint32_t        routing_id;
         } base;
-        
+
         struct
         {
-            metadata_t *metadata;
-            unsigned char data[max_vsm_size];
-            unsigned char size;
-            unsigned char type;
-            unsigned char flags;
-            char group[16];
-            uint32_t routing_id;
+            metadata_t    * metadata;
+            unsigned char   data[max_vsm_size];
+            unsigned char   size;
+            unsigned char   type;
+            unsigned char   flags;
+            char            group[16];
+            uint32_t        routing_id;
         } vsm;
 
         struct
         {
             metadata_t    * metadata;
             content_t     * content;
-            unsigned char   unused[msg_t_size - (sizeof (metadata_t *) + sizeof (content_t *) + 2 + 16 + sizeof (uint32_t))];
+            unsigned char   unused[msg_t_size - (sizeof (metadata_t *) + sizeof (content_t *) + 2 + 16 + sizeof(uint32_t))];
             unsigned char   type;
             unsigned char   flags;
             char            group[16];

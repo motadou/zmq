@@ -40,9 +40,9 @@ public:
     //  Returns a buffer to be filled with binary data.
     void get_buffer (unsigned char **data_, std::size_t *size_)
     {
-        printf("%s %s %d > allocator.size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_allocator.size());
-
         _buf = _allocator.allocate();
+
+        printf("%s %s %d > to_read:%d allocator.size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read, (int)_allocator.size());
 
         //  If we are expected to read large message, we'll opt for zero-
         //  copy, i.e. we'll ask caller to fill the data directly to the
@@ -52,12 +52,16 @@ public:
         //  As a consequence, large messages being received won't block
         //  other engines running in the same I/O thread for excessive
         //  amounts of time.
-        if (_to_read >= _allocator.size()) 
+        if (_to_read >= _allocator.size())
         {
+            printf("%s %s %d > to_read:%d allocator.size:%d #######################################\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read, (int)_allocator.size());
+
             *data_ = _read_pos;
             *size_ = _to_read;
             return;
         }
+
+        printf("%s %s %d > to_read:%d allocator.size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read, (int)_allocator.size());
 
         *data_ = _buf;
         *size_ = _allocator.size();
@@ -70,7 +74,7 @@ public:
     //  whole message was decoded or 0 when more data is required.
     //  On error, -1 is returned and errno set accordingly.
     //  Number of bytes processed is returned in bytes_used_.
-    int decode(const unsigned char *data_, std::size_t size_, std::size_t &bytes_used_)
+    int decode(const unsigned char * data_, std::size_t size_, std::size_t &bytes_used_)
     {
         bytes_used_ = 0;
 
@@ -79,22 +83,25 @@ public:
         //  were processed.
         if (data_ == _read_pos) 
         {
+            printf("%s %s %d > AAAAAAAAAAAAAAAA\n", __FILE__, __FUNCTION__, __LINE__);
             zmq_assert (size_ <= _to_read);
             _read_pos    += size_;
             _to_read     -= size_;
             bytes_used_   = size_;
 
-            while (!_to_read) 
+            while (!_to_read)
             {
                 const int rc = (static_cast<T *>(this)->*_next)(data_ + bytes_used_);
                 if (rc != 0)
                     return rc;
             }
+
             return 0;
         }
 
         while (bytes_used_ < size_) 
         {
+            printf("%s %s %d > AAAAAAAAAAAAAAAA _to_read:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read);
             //  Copy the data from buffer to the message.
             const size_t to_copy = std::min(_to_read, size_ - bytes_used_);
             // Only copy when destination address is different from the
@@ -124,9 +131,9 @@ public:
         return 0;
     }
 
-    virtual void resize_buffer (std::size_t new_size_)
+    virtual void resize_buffer(std::size_t new_size_)
     {
-        _allocator.resize (new_size_);
+        _allocator.resize(new_size_);
     }
 
 protected:

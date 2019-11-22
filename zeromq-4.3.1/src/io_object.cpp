@@ -31,12 +31,12 @@ void zmq::io_object_t::unplug()
     _poller = NULL;
 }
 
-zmq::io_object_t::handle_t zmq::io_object_t::add_fd (fd_t fd_)
+zmq::io_object_t::handle_t zmq::io_object_t::add_fd(fd_t fd_)
 {
-    return _poller->add_fd (fd_, this);
+    return _poller->add_fd(fd_, this);
 }
 
-void zmq::io_object_t::rm_fd (handle_t handle_)
+void zmq::io_object_t::rm_fd(handle_t handle_)
 {
     _poller->rm_fd(handle_);
 }
@@ -56,24 +56,24 @@ void zmq::io_object_t::set_pollout(handle_t handle_)
     _poller->set_pollout(handle_);
 }
 
-void zmq::io_object_t::reset_pollout (handle_t handle_)
+void zmq::io_object_t::reset_pollout(handle_t handle_)
 {
     _poller->reset_pollout(handle_);
 }
 
-void zmq::io_object_t::add_timer (int timeout_, int id_)
+void zmq::io_object_t::add_timer(int timeout_, int id_)
 {
-    _poller->add_timer (timeout_, this, id_);
+    _poller->add_timer(timeout_, this, id_);
 }
 
-void zmq::io_object_t::cancel_timer (int id_)
+void zmq::io_object_t::cancel_timer(int id_)
 {
-    _poller->cancel_timer (this, id_);
+    _poller->cancel_timer(this, id_);
 }
 
 void zmq::io_object_t::in_event ()
 {
-    zmq_assert (false);
+    zmq_assert(false);
 }
 
 void zmq::io_object_t::out_event ()

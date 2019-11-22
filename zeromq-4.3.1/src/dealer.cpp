@@ -15,16 +15,15 @@ zmq::dealer_t::~dealer_t ()
 {
 }
 
-void zmq::dealer_t::xattach_pipe (pipe_t *pipe_,
-                                  bool subscribe_to_all_,
-                                  bool locally_initiated_)
+void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool locally_initiated_)
 {
     LIBZMQ_UNUSED (subscribe_to_all_);
     LIBZMQ_UNUSED (locally_initiated_);
 
     zmq_assert (pipe_);
 
-    if (_probe_router) {
+    if (_probe_router) 
+    {
         msg_t probe_msg;
         int rc = probe_msg.init ();
         errno_assert (rc == 0);
@@ -39,8 +38,8 @@ void zmq::dealer_t::xattach_pipe (pipe_t *pipe_,
         errno_assert (rc == 0);
     }
 
-    _fq.attach (pipe_);
-    _lb.attach (pipe_);
+    _fq.attach(pipe_);
+    _lb.attach(pipe_);
 }
 
 int zmq::dealer_t::xsetsockopt (int option_,

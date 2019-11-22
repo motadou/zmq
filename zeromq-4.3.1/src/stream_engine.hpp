@@ -59,7 +59,7 @@ public:
 
 private:
     //  Unplug the engine from the session.
-    void unplug ();
+    void unplug();
 
     //  Function to handle network disconnections.
     void error (error_reason_t reason_);

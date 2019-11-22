@@ -21,7 +21,8 @@ public:
     static session_base_t * create(zmq::io_thread_t *io_thread_, bool active_, zmq::socket_base_t *socket_, const options_t &options_, address_t *addr_);
 
     //  To be used once only, when creating the session.
-    void attach_pipe (zmq::pipe_t *pipe_);
+    // ¹Ò½Ó¹ÜµÀ
+    void attach_pipe(zmq::pipe_t *pipe_);
 
     //  Following functions are the interface exposed towards the engine.
     virtual void reset();
@@ -91,9 +92,9 @@ private:
     void reconnect ();
 
     //  Handlers for incoming commands.
-    void process_plug ();
-    void process_attach (zmq::i_engine *engine_);
-    void process_term (int linger_);
+    void process_plug();
+    void process_attach(zmq::i_engine *engine_);
+    void process_term(int linger_);
 
     //  i_poll_events handlers.
     void timer_event (int id_);
@@ -119,8 +120,7 @@ private:
     //  is still in the in pipe.
     bool _incomplete_in;
 
-    //  True if termination have been suspended to push the pending
-    //  messages to the network.
+    //  True if termination have been suspended to push the pending messages to the network.
     bool _pending;
 
     //  The protocol I/O engine connected to the session.

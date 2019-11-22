@@ -108,7 +108,7 @@ int zmq::tune_tcp_maxrt(fd_t sockfd_, int timeout_)
 // FIXME: should be ZMQ_HAVE_TCP_USER_TIMEOUT
 #if defined(TCP_USER_TIMEOUT) // ∏√∫Í”––ß
     int rc = setsockopt(sockfd_, IPPROTO_TCP, TCP_USER_TIMEOUT, &timeout_, sizeof(timeout_));
-    tcp_assert_tuning_error (sockfd_, rc);
+    tcp_assert_tuning_error(sockfd_, rc);
     return rc;
 #else
     return 0;

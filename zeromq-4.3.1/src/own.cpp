@@ -114,7 +114,7 @@ void zmq::own_t::terminate ()
     //  As for the root of the ownership tree, there's no one to terminate it,
     //  so it has to terminate itself.
     // 如果它是拥有树的根节点，没有节点可以来结束它，只有它自己结束自己
-    if (!_owner) 
+    if (_owner == NULL) 
     {
         process_term(options.linger.load());
 

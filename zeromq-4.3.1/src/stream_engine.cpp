@@ -154,7 +154,7 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
     _socket   = _session->get_socket();
 
     //  Connect to I/O threads poller object.
-    io_object_t::plug(io_thread_);
+    io_object_t::plug(io_thread_); // 设置驱动epoll
     _handle   = add_fd(_s);
     _io_error = false;
 
@@ -187,7 +187,7 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
             //  For raw sockets, send an initial 0-length message to the
             // application so that it knows a peer has connected.
             msg_t connector;
-            connector.init ();
+            connector.init();
             push_raw_msg_to_session (&connector);
             connector.close ();
             _session->flush ();
@@ -198,13 +198,12 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
         // start optional timer, to prevent handshake hanging on no input
         set_handshake_timer();
 
-        printf("%s %s %d > size:%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_outsize, (int)_options.routing_id_size);
-
+       // 发送签名包
         //  Send the 'length' and 'flags' fields of the routing id message.
         //  The 'length' field is encoded in the long format.
         _outpos = _greeting_send;
         _outpos[_outsize++] = UCHAR_MAX;
-        put_uint64(&_outpos[_outsize], _options.routing_id_size + 1);  // _options.routing_id_size = 0
+        put_uint64(&_outpos[_outsize], _options.routing_id_size + 1);  // 现在发现_options.routing_id_size = 0
         _outsize += 8;
         _outpos[_outsize++] = 0x7f;
 
@@ -213,7 +212,9 @@ void zmq::stream_engine_t::plug(io_thread_t *io_thread_, session_base_t *session
 
     set_pollin (_handle);
     set_pollout(_handle);
+
     //  Flush all the data that may have been already received downstream.
+    // 由于系统采用的是异步连接模式，connect成功返回有可能和数据一起到达，先进行连接成功判断，如果不接着读取网络数据，可能会丢掉该次的读事件。
     in_event();
 }
 
@@ -246,8 +247,9 @@ void zmq::stream_engine_t::unplug()
         cancel_timer (heartbeat_ivl_timer_id);
         _has_heartbeat_timer = false;
     }
+
     //  Cancel all fd subscriptions.
-    if (!_io_error)
+    if (_io_error == false)
         rm_fd(_handle);
 
     //  Disconnect from I/O threads poller object.
@@ -266,7 +268,7 @@ void zmq::stream_engine_t::in_event()
 {
     printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
-    zmq_assert (!_io_error);
+    zmq_assert (_io_error == false);
 
     //  If still handshaking, receive and process the greeting message.
     if (unlikely(_handshaking))
@@ -281,7 +283,7 @@ void zmq::stream_engine_t::in_event()
 
     zmq_assert (_decoder);
 
-    //  If there has been an I/O error, stop polling.
+    // If there has been an I/O error, stop polling. 当处于_input_stoppend状态时，如果出现inevent，这表示可能是EPOLLERR | EPOLLHUP进来的状态
     if (_input_stopped) 
     {
         rm_fd(_handle);
@@ -303,7 +305,7 @@ void zmq::stream_engine_t::in_event()
 
         printf("%s %s %d > rc:%d %d\n", __FILE__, __FUNCTION__, __LINE__, rc, (int)bufsize);
 
-        if (rc == 0) 
+        if (rc == 0)
         {
             // connection closed by peer
             errno = EPIPE;
@@ -339,10 +341,12 @@ void zmq::stream_engine_t::in_event()
         _inpos  += processed;
         _insize -= processed;
 
+        printf("%s %s %d |_insize:%d rc:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_insize, rc);
+
         if (rc == 0 || rc == -1)
             break;
 
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+        
         rc = (this->*_process_msg)(_decoder->msg());
 
         if (rc == -1)
@@ -357,6 +361,8 @@ void zmq::stream_engine_t::in_event()
             error(protocol_error);
             return;
         }
+
+        printf("%s %s %d | ================================================================\n", __FILE__, __FUNCTION__, __LINE__);
 
         _input_stopped = true;
         reset_pollin(_handle);
@@ -377,7 +383,7 @@ void zmq::stream_engine_t::out_event()
         //  Even when we stop polling as soon as there is no
         //  data to send, the poller may invoke out_event one
         //  more time due to 'speculative write' optimisation.
-        if (unlikely (_encoder == NULL)) 
+        if (unlikely(_encoder == NULL)) 
         {
             zmq_assert(_handshaking);
             return;
@@ -452,7 +458,7 @@ void zmq::stream_engine_t::out_event()
     }
 }
 
-void zmq::stream_engine_t::restart_output ()
+void zmq::stream_engine_t::restart_output()
 {
     if (unlikely (_io_error))
         return;
@@ -470,13 +476,15 @@ void zmq::stream_engine_t::restart_output ()
     out_event ();
 }
 
-bool zmq::stream_engine_t::restart_input ()
+bool zmq::stream_engine_t::restart_input()
 {
+    printf("%s %s %d | ================================================================\n", __FILE__, __FUNCTION__, __LINE__);
+
     zmq_assert (_input_stopped);
     zmq_assert (_session != NULL);
     zmq_assert (_decoder != NULL);
 
-    int rc = (this->*_process_msg) (_decoder->msg ());
+    int rc = (this->*_process_msg) (_decoder->msg());
     if (rc == -1) 
     {
         if (errno == EAGAIN)
@@ -492,32 +500,39 @@ bool zmq::stream_engine_t::restart_input ()
         return true;
     }
 
-    while (_insize > 0) {
+    while (_insize > 0) 
+    {
         size_t processed = 0;
         rc = _decoder->decode (_inpos, _insize, processed);
         zmq_assert (processed <= _insize);
-        _inpos += processed;
+        _inpos  += processed;
         _insize -= processed;
         if (rc == 0 || rc == -1)
             break;
-        rc = (this->*_process_msg) (_decoder->msg ());
+        rc = (this->*_process_msg)(_decoder->msg());
         if (rc == -1)
             break;
     }
 
     if (rc == -1 && errno == EAGAIN)
-        _session->flush ();
-    else if (_io_error) {
+    {
+        _session->flush();
+    }
+    else if (_io_error) 
+    {
         error (connection_error);
         return false;
-    } else if (rc == -1) {
+    } 
+    else if (rc == -1) 
+    {
         error (protocol_error);
         return false;
     }
-    else {
+    else 
+    {
         _input_stopped = false;
-        set_pollin (_handle);
-        _session->flush ();
+        set_pollin(_handle);
+        _session->flush();
 
         //  Speculative read.
         in_event ();
@@ -815,7 +830,6 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
             _mechanism = new (std::nothrow) plain_client_t (_session, _options);
         alloc_assert (_mechanism);
     }
-#ifdef ZMQ_HAVE_CURVE
     else if (_options.mechanism == ZMQ_CURVE && memcmp (_greeting_recv + 12, "CURVE\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) 
     {
         printf("%s %s %d  handshake_v3_0\n", __FILE__, __FUNCTION__, __LINE__);
@@ -825,8 +839,6 @@ bool zmq::stream_engine_t::handshake_v3_0 ()
             _mechanism = new (std::nothrow) curve_client_t (_session, _options);
         alloc_assert (_mechanism);
     }
-#endif
-
 #ifdef HAVE_LIBGSSAPI_KRB5
     else if (_options.mechanism == ZMQ_GSSAPI && memcmp (_greeting_recv + 12, "GSSAPI\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20) == 0) 
     {
@@ -955,13 +967,18 @@ void zmq::stream_engine_t::zap_msg_available ()
     zmq_assert (_mechanism != NULL);
 
     const int rc = _mechanism->zap_msg_available ();
-    if (rc == -1) {
+    if (rc == -1) 
+    {
         error (protocol_error);
         return;
     }
+    
     if (_input_stopped)
-        if (!restart_input ())
+    {
+        if (!restart_input())
             return;
+    }
+
     if (_output_stopped)
         restart_output ();
 }
@@ -1122,7 +1139,7 @@ int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
     return 0;
 }
 
-int zmq::stream_engine_t::push_one_then_decode_and_push (msg_t *msg_)
+int zmq::stream_engine_t::push_one_then_decode_and_push(msg_t *msg_)
 {
     const int rc = _session->push_msg (msg_);
     if (rc == 0)
@@ -1184,19 +1201,17 @@ bool zmq::stream_engine_t::init_properties (properties_t &properties_)
 {
     if (_peer_address.empty ())
         return false;
-    properties_.ZMQ_MAP_INSERT_OR_EMPLACE (
-      std::string (ZMQ_MSG_PROPERTY_PEER_ADDRESS), _peer_address);
+    properties_.ZMQ_MAP_INSERT_OR_EMPLACE(std::string (ZMQ_MSG_PROPERTY_PEER_ADDRESS), _peer_address);
 
     //  Private property to support deprecated SRCFD
     std::ostringstream stream;
     stream << static_cast<int> (_s);
     std::string fd_string = stream.str ();
-    properties_.ZMQ_MAP_INSERT_OR_EMPLACE (std::string ("__fd"),
-                                           ZMQ_MOVE (fd_string));
+    properties_.ZMQ_MAP_INSERT_OR_EMPLACE(std::string ("__fd"), ZMQ_MOVE(fd_string));
     return true;
 }
 
-void zmq::stream_engine_t::timer_event (int id_)
+void zmq::stream_engine_t::timer_event(int id_)
 {
     printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 

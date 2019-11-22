@@ -20,7 +20,7 @@ zmq::clock_t::clock_t () : _last_tsc(rdtsc()), _last_time(now_us()/usecs_per_mse
 
 uint64_t zmq::clock_t::now_us ()
 {
-#if defined HAVE_CLOCK_GETTIME && (defined CLOCK_MONOTONIC || defined ZMQ_HAVE_VXWORKS)
+#if defined HAVE_CLOCK_GETTIME && (defined CLOCK_MONOTONIC || defined ZMQ_HAVE_VXWORKS) // ◊ﬂ’‚¿Ô
     //  Use POSIX clock_gettime function to get precise monotonic time.
     struct timespec tv;
 
@@ -81,7 +81,7 @@ uint64_t zmq::clock_t::rdtsc()
 #else
     struct timespec ts;
 
-    clock_gettime (CLOCK_MONOTONIC, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
 
     return static_cast<uint64_t> (ts.tv_sec) * nsecs_per_usec * usecs_per_sec + ts.tv_nsec;
 #endif

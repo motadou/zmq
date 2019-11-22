@@ -168,6 +168,7 @@ private:
     //  Handle of the physical thread doing the I/O work.
     thread_t _worker;
 };
+
 }
 
 #endif

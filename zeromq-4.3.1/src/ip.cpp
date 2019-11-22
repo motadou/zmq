@@ -4,41 +4,19 @@
 #include "macros.hpp"
 #include "config.hpp"
 
-#if !defined ZMQ_HAVE_WINDOWS
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#else
-#include "tcp.hpp"
-#endif
-
-#if defined ZMQ_HAVE_OPENVMS || defined ZMQ_HAVE_VXWORKS
-#include <ioctl.h>
-#endif
-
-#if defined ZMQ_HAVE_VXWORKS
-#include <unistd.h>
-#include <sockLib.h>
-#include <ioLib.h>
-#endif
 
 #if defined ZMQ_HAVE_EVENTFD
 #include <sys/eventfd.h>
 #endif
 
 #if defined ZMQ_HAVE_OPENPGM
-#ifdef ZMQ_HAVE_WINDOWS
-#define __PGM_WININT_H__
-#endif
-
 #include <pgm/pgm.h>
-#endif
-
-#ifdef __APPLE__
-#include <TargetConditionals.h>
 #endif
 
 zmq::fd_t zmq::open_socket (int domain_, int type_, int protocol_)
@@ -51,17 +29,17 @@ zmq::fd_t zmq::open_socket (int domain_, int type_, int protocol_)
     type_ |= SOCK_CLOEXEC;
 #endif
 
-    const fd_t s = socket (domain_, type_, protocol_);
+    const fd_t s = socket(domain_, type_, protocol_);
 
     if (s == retired_fd) 
     {
         return retired_fd;
     }
 
-    make_socket_noninheritable (s);
+    make_socket_noninheritable(s);
 
     //  Socket is not yet connected so EINVAL is not a valid networking error
-    rc = zmq::set_nosigpipe (s);
+    rc = zmq::set_nosigpipe(s);
     errno_assert (rc == 0);
 
     return s;
@@ -81,55 +59,32 @@ void zmq::enable_ipv4_mapping(fd_t s_)
     LIBZMQ_UNUSED (s_);
 
 #if defined IPV6_V6ONLY && !defined ZMQ_HAVE_OPENBSD
-#ifdef ZMQ_HAVE_WINDOWS
-    DWORD flag = 0;
-#else
     int flag = 0;
-#endif
-    int rc = setsockopt (s_, IPPROTO_IPV6, IPV6_V6ONLY,
-                         reinterpret_cast<char *> (&flag), sizeof (flag));
-#ifdef ZMQ_HAVE_WINDOWS
-    wsa_assert (rc != SOCKET_ERROR);
-#else
+
+    int rc = setsockopt (s_, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char *> (&flag), sizeof (flag));
+
     errno_assert (rc == 0);
-#endif
 #endif
 }
 
-int zmq::get_peer_ip_address (fd_t sockfd_, std::string &ip_addr_)
+int zmq::get_peer_ip_address(fd_t sockfd_, std::string &ip_addr_)
 {
     int rc;
     struct sockaddr_storage ss;
 
-#if defined ZMQ_HAVE_HPUX || defined ZMQ_HAVE_WINDOWS                          \
-  || defined ZMQ_HAVE_VXWORKS
-    int addrlen = static_cast<int> (sizeof ss);
-#else
     socklen_t addrlen = sizeof ss;
-#endif
-    rc = getpeername (sockfd_, reinterpret_cast<struct sockaddr *> (&ss),
-                      &addrlen);
-#ifdef ZMQ_HAVE_WINDOWS
-    if (rc == SOCKET_ERROR) {
-        const int last_error = WSAGetLastError ();
-        wsa_assert (last_error != WSANOTINITIALISED && last_error != WSAEFAULT
-                    && last_error != WSAEINPROGRESS
-                    && last_error != WSAENOTSOCK);
-        return 0;
-    }
-#else
-    if (rc == -1) {
-#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
+
+    rc = getpeername(sockfd_, reinterpret_cast<struct sockaddr *>(&ss), &addrlen);
+
+    if (rc == -1) 
+    {
         errno_assert (errno != EBADF && errno != EFAULT && errno != ENOTSOCK);
-#else
-        errno_assert (errno != EFAULT && errno != ENOTSOCK);
-#endif
+
         return 0;
     }
-#endif
 
     char host[NI_MAXHOST];
-    rc = getnameinfo (reinterpret_cast<struct sockaddr *> (&ss), addrlen, host, sizeof host, NULL, 0, NI_NUMERICHOST);
+    rc = getnameinfo(reinterpret_cast<struct sockaddr *> (&ss), addrlen, host, sizeof host, NULL, 0, NI_NUMERICHOST);
     if (rc != 0)
         return 0;
 
@@ -145,7 +100,7 @@ int zmq::get_peer_ip_address (fd_t sockfd_, std::string &ip_addr_)
     return static_cast<int> (u.sa.sa_family);
 }
 
-void zmq::set_ip_type_of_service (fd_t s_, int iptos_)
+void zmq::set_ip_type_of_service(fd_t s_, int iptos_)
 {
     int rc = setsockopt (s_, IPPROTO_IP, IP_TOS, reinterpret_cast<char *> (&iptos_), sizeof (iptos_));
 
@@ -323,14 +278,7 @@ int zmq::make_fdpair (fd_t *r_, fd_t *w_)
 
 void zmq::make_socket_noninheritable (fd_t sock_)
 {
-#if defined ZMQ_HAVE_WINDOWS && !defined _WIN32_WCE                            \
-  && !defined ZMQ_HAVE_WINDOWS_UWP
-    //  On Windows, preventing sockets to be inherited by child processes.
-    const BOOL brc = SetHandleInformation (reinterpret_cast<HANDLE> (sock_),
-                                           HANDLE_FLAG_INHERIT, 0);
-    win_assert (brc);
-#elif (!defined ZMQ_HAVE_SOCK_CLOEXEC || !defined HAVE_ACCEPT4)                \
-  && defined FD_CLOEXEC
+#if (!defined ZMQ_HAVE_SOCK_CLOEXEC || !defined HAVE_ACCEPT4) && defined FD_CLOEXEC
     //  If there 's no SOCK_CLOEXEC, let's try the second best option.
     //  Race condition can cause socket not to be closed (if fork happens
     //  between accept and this point).

@@ -42,7 +42,7 @@ int zmq::pipepair(class object_t *parents_[2], class pipe_t *pipes_[2], int hwms
     return 0;
 }
 
-void zmq::send_routing_id (pipe_t *pipe_, const options_t &options_)
+void zmq::send_routing_id(pipe_t *pipe_, const options_t &options_)
 {
     zmq::msg_t id;
     const int rc = id.init_size (options_.routing_id_size);
@@ -96,8 +96,7 @@ void zmq::pipe_t::set_event_sink (i_pipe_events *sink_)
     _sink = sink_;
 }
 
-void zmq::pipe_t::set_server_socket_routing_id (
-  uint32_t server_socket_routing_id_)
+void zmq::pipe_t::set_server_socket_routing_id(uint32_t server_socket_routing_id_)
 {
     _server_socket_routing_id = server_socket_routing_id_;
 }
@@ -112,12 +111,12 @@ void zmq::pipe_t::set_router_socket_routing_id(const blob_t &router_socket_routi
     _router_socket_routing_id.set_deep_copy (router_socket_routing_id_);
 }
 
-const zmq::blob_t &zmq::pipe_t::get_routing_id () const
+const zmq::blob_t &zmq::pipe_t::get_routing_id() const
 {
     return _router_socket_routing_id;
 }
 
-bool zmq::pipe_t::check_read ()
+bool zmq::pipe_t::check_read()
 {
     if (unlikely (!_in_active))
         return false;
@@ -125,7 +124,7 @@ bool zmq::pipe_t::check_read ()
         return false;
 
     //  Check if there's an item in the pipe.
-    if (!_in_pipe->check_read ()) 
+    if (!_in_pipe->check_read()) 
     {
         _in_active = false;
         return false;
@@ -133,7 +132,7 @@ bool zmq::pipe_t::check_read ()
 
     //  If the next item in the pipe is message delimiter,
     //  initiate termination process.
-    if (_in_pipe->probe (is_delimiter)) 
+    if (_in_pipe->probe(is_delimiter)) 
     {
         msg_t msg;
         const bool ok = _in_pipe->read (&msg);
@@ -161,7 +160,7 @@ bool zmq::pipe_t::read(msg_t *msg_)
         }
 
         //  If this is a credential, ignore it and receive next message.
-        if (unlikely (msg_->is_credential())) 
+        if (unlikely(msg_->is_credential())) 
         {
             const int rc = msg_->close ();
             zmq_assert (rc == 0);
@@ -179,7 +178,7 @@ bool zmq::pipe_t::read(msg_t *msg_)
         return false;
     }
 
-    if (!(msg_->flags () & msg_t::more) && !msg_->is_routing_id ())
+    if (!(msg_->flags() & msg_t::more) && !msg_->is_routing_id())
         _msgs_read++;
 
     if (_lwm > 0 && _msgs_read % _lwm == 0)
@@ -247,8 +246,12 @@ void zmq::pipe_t::flush()
 
 void zmq::pipe_t::process_activate_read ()
 {
+    printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDEE\n", __FILE__, __FUNCTION__, __LINE__);
+
     if (!_in_active && (_state == active || _state == waiting_for_delimiter)) 
     {
+        printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n", __FILE__, __FUNCTION__, __LINE__);
+
         _in_active = true;
         _sink->read_activated (this);
     }
@@ -256,6 +259,9 @@ void zmq::pipe_t::process_activate_read ()
 
 void zmq::pipe_t::process_activate_write (uint64_t msgs_read_)
 {
+    printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n", __FILE__, __FUNCTION__, __LINE__);
+
+
     //  Remember the peer's message sequence number.
     _peers_msgs_read = msgs_read_;
 
@@ -271,7 +277,7 @@ void zmq::pipe_t::process_hiccup (void *pipe_)
     //  Destroy old outpipe. Note that the read end of the pipe was already
     //  migrated to this thread.
     zmq_assert (_out_pipe);
-    _out_pipe->flush ();
+    _out_pipe->flush();
     msg_t msg;
     while (_out_pipe->read (&msg)) {
         if (!(msg.flags () & msg_t::more))

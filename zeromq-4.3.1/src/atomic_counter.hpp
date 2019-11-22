@@ -58,7 +58,7 @@ public:
     inline void set (integer_t value_) ZMQ_NOEXCEPT { _value = value_; }
 
     //  Atomic addition. Returns the old _value.
-    inline integer_t add (integer_t increment_) ZMQ_NOEXCEPT
+    inline integer_t add(integer_t increment_) ZMQ_NOEXCEPT
     {
         integer_t old_value;
 
@@ -85,10 +85,10 @@ public:
     //  Atomic subtraction. Returns false if the counter drops to zero.
     inline bool sub(integer_t decrement_) ZMQ_NOEXCEPT
     {
-#if   defined ZMQ_ATOMIC_COUNTER_INTRINSIC // 使用configure来生成makefile文件时，使用这个
-        integer_t nv = __atomic_sub_fetch (&_value, decrement_, __ATOMIC_ACQ_REL);
+#if   defined ZMQ_ATOMIC_COUNTER_INTRINSIC  // 使用configure来生成makefile文件时，使用这个
+        integer_t nv = __atomic_sub_fetch(&_value, decrement_, __ATOMIC_ACQ_REL);
         return nv != 0;
-#elif defined ZMQ_ATOMIC_COUNTER_CXX11
+#elif defined ZMQ_ATOMIC_COUNTER_CXX11      // 使用cmake来生成makefile文件时，使用这个
         integer_t old = _value.fetch_sub(decrement_, std::memory_order_acq_rel);
         return (old - decrement_) != 0;
 #elif defined ZMQ_ATOMIC_COUNTER_X86

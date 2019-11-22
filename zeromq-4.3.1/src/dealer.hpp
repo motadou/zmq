@@ -38,10 +38,9 @@ protected:
     int  recvpipe(zmq::msg_t *msg_, zmq::pipe_t **pipe_);
 
 private:
-    //  Messages are fair-queued from inbound pipes. And load-balanced to
-    //  the outbound pipes.
-    fq_t _fq;
-    lb_t _lb;
+    //  Messages are fair-queued from inbound pipes. And load-balanced to the outbound pipes.
+    fq_t _fq;   // inbound pipes
+    lb_t _lb;   // outbound pipes
 
     // if true, send an empty message to every connected router peer
     bool _probe_router;

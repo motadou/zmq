@@ -60,32 +60,38 @@ public:
     //
     // This releases the current buffer to be bound to the lifetime of the messages
     // created on this buffer.
-    unsigned char *allocate();
+    unsigned char * allocate();
 
     // force deallocation of buffer.
     void deallocate ();
 
     // Give up ownership of the buffer. The buffer's lifetime is now coupled to
     // the messages constructed on top of it.
-    unsigned char *release ();
+    unsigned char * release();
 
-    void inc_ref ();
+    void inc_ref();
 
     static void call_dec_ref(void *, void *buffer_);
 
     std::size_t size() const;
 
     // Return pointer to the first message data byte.
-    unsigned char *data ();
+    unsigned char *data();
 
     // Return pointer to the first byte of the buffer.
     unsigned char *buffer() { return _buf; }
 
-    void resize (std::size_t new_size_) { _buf_size = new_size_; }
+    void resize(std::size_t new_size_) { _buf_size = new_size_; }
 
-    zmq::msg_t::content_t * provide_content () { return _msg_content; }
+    zmq::msg_t::content_t * provide_content() { return _msg_content; }
 
-    void advance_content () { _msg_content++; }
+    void advance_content() { _msg_content++; }
+
+
+    int get_ref() 
+    {
+        return (reinterpret_cast<zmq::atomic_counter_t *>(_buf))->get();
+    }
 
 private:
     void clear ();

@@ -26,6 +26,8 @@ zmq::v2_decoder_t::~v2_decoder_t ()
 
 int zmq::v2_decoder_t::flags_ready(unsigned char const *)
 {
+    printf("%s %s %d > aaaaa\n", __FILE__, __FUNCTION__, __LINE__);
+
     _msg_flags = 0;
     if (_tmpbuf[0] & v2_protocol_t::more_flag)
         _msg_flags |= msg_t::more;
@@ -49,6 +51,8 @@ int zmq::v2_decoder_t::one_byte_size_ready(unsigned char const *read_from_)
 
 int zmq::v2_decoder_t::eight_byte_size_ready(unsigned char const *read_from_)
 {
+    printf("%s %s %d > bbbb\n", __FILE__, __FUNCTION__, __LINE__);
+
     //  The payload size is encoded as 64-bit unsigned integer.
     //  The most significant byte comes first.
     const uint64_t msg_size = get_uint64(_tmpbuf);
@@ -85,7 +89,7 @@ int zmq::v2_decoder_t::size_ready(uint64_t msg_size_, unsigned char const *read_
 
     printf("%s %s %d > allocator.size:%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)allocator.size(), (int)msg_size_);
 
-    if (unlikely (!_zero_copy || msg_size_ > (size_t) (allocator.data() + allocator.size() - read_pos_))) 
+    if (unlikely ((_zero_copy == false) || (msg_size_ > (size_t)(allocator.data() + allocator.size() - read_pos_))))
     {
         printf("%s %s %d > allocator.size:%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)allocator.size(), (int)msg_size_);
         // a new message has started, but the size would exceed the pre-allocated arena
@@ -94,8 +98,7 @@ int zmq::v2_decoder_t::size_ready(uint64_t msg_size_, unsigned char const *read_
     }
     else
     {
-        printf("%s %s %d > allocator.size:%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)allocator.size(), (int)msg_size_);
-
+        printf("%s %s %d > allocator.size:%d %d ===================================================\n", __FILE__, __FUNCTION__, __LINE__, (int)allocator.size(), (int)msg_size_);
         // construct message using n bytes from the buffer as storage
         // increase buffer ref count
         // if the message will be a large message, pass a valid refcnt memory location as well
@@ -108,6 +111,8 @@ int zmq::v2_decoder_t::size_ready(uint64_t msg_size_, unsigned char const *read_
             allocator.advance_content();
             allocator.inc_ref();
         }
+
+        printf("%s %s %d > allocator.size:%d %d %d===================================================\n", __FILE__, __FUNCTION__, __LINE__, (int)allocator.size(), (int)msg_size_, allocator.get_ref());
     }
 
     if (unlikely (rc)) 

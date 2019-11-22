@@ -4,22 +4,23 @@
 #include "err.hpp"
 #include "msg.hpp"
 
-zmq::lb_t::lb_t () : _active (0), _current (0), _more (false), _dropping (false)
+zmq::lb_t::lb_t() : _active(0), _current(0), _more(false), _dropping(false)
 {
+
 }
 
-zmq::lb_t::~lb_t ()
+zmq::lb_t::~lb_t()
 {
     zmq_assert (_pipes.empty ());
 }
 
-void zmq::lb_t::attach (pipe_t *pipe_)
+void zmq::lb_t::attach(pipe_t *pipe_)
 {
-    _pipes.push_back (pipe_);
-    activated (pipe_);
+    _pipes.push_back(pipe_);
+    activated(pipe_);
 }
 
-void zmq::lb_t::pipe_terminated (pipe_t *pipe_)
+void zmq::lb_t::pipe_terminated(pipe_t *pipe_)
 {
     pipes_t::size_type index = _pipes.index (pipe_);
 

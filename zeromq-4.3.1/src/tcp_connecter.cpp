@@ -111,7 +111,7 @@ void zmq::tcp_connecter_t::out_event()
     const fd_t fd = connect();
 
     //  Handle the error condition by attempt to reconnect.
-    if (fd == retired_fd || !tune_socket (fd)) 
+    if (fd == retired_fd || !tune_socket(fd)) 
     {
         close();
         add_reconnect_timer();
@@ -119,7 +119,7 @@ void zmq::tcp_connecter_t::out_event()
     }
 
     //  Create the engine object for this connection.
-    stream_engine_t *engine = new (std::nothrow) stream_engine_t (fd, options, _endpoint);
+    stream_engine_t *engine = new (std::nothrow) stream_engine_t(fd, options, _endpoint);
     alloc_assert (engine);
 
     //  Attach the engine to the corresponding session object.
@@ -181,7 +181,7 @@ void zmq::tcp_connecter_t::start_connecting()
     {
         if (_s != retired_fd)
             close ();
-        add_reconnect_timer ();
+        add_reconnect_timer();
     }
 }
 
@@ -213,8 +213,10 @@ int zmq::tcp_connecter_t::get_new_reconnect_ivl()
     //  Only change the current reconnect interval  if the maximum reconnect
     //  interval was set and if it's larger than the reconnect interval.
     if (options.reconnect_ivl_max > 0 && options.reconnect_ivl_max > options.reconnect_ivl)
+    {
         //  Calculate the next interval
-        _current_reconnect_ivl = std::min(_current_reconnect_ivl*2, options.reconnect_ivl_max);
+        _current_reconnect_ivl = std::min(_current_reconnect_ivl * 2, options.reconnect_ivl_max);
+    }
 
     return interval;
 }
@@ -231,7 +233,7 @@ int zmq::tcp_connecter_t::open()
 
     _addr->resolved.tcp_addr = new (std::nothrow) tcp_address_t ();
     alloc_assert (_addr->resolved.tcp_addr);
-    int rc = _addr->resolved.tcp_addr->resolve (_addr->address.c_str (), false, options.ipv6);
+    int rc = _addr->resolved.tcp_addr->resolve(_addr->address.c_str (), false, options.ipv6);
     if (rc != 0) 
     {
         LIBZMQ_DELETE (_addr->resolved.tcp_addr);
@@ -270,7 +272,7 @@ int zmq::tcp_connecter_t::open()
         set_ip_type_of_service(_s, options.tos);
 
     // Bind the socket to a device if applicable
-    if (!options.bound_device.empty ())
+    if (!options.bound_device.empty())
         bind_to_device(_s, options.bound_device);
 
     // 设置异步属性，进行异步连接
@@ -358,9 +360,9 @@ zmq::fd_t zmq::tcp_connecter_t::connect()
     return result;
 }
 
-bool zmq::tcp_connecter_t::tune_socket (const fd_t fd_)
+bool zmq::tcp_connecter_t::tune_socket(const fd_t fd_)
 {
-    const int rc = tune_tcp_socket (fd_) | tune_tcp_keepalives(fd_, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl) | tune_tcp_maxrt (fd_, options.tcp_maxrt);
+    const int rc = tune_tcp_socket(fd_) | tune_tcp_keepalives(fd_, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl) | tune_tcp_maxrt(fd_, options.tcp_maxrt);
 
     return rc == 0;
 }

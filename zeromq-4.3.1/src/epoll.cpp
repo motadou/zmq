@@ -29,7 +29,7 @@ zmq::epoll_t::epoll_t (const zmq::thread_ctx_t &ctx_) : worker_poller_base_t (ct
 zmq::epoll_t::~epoll_t ()
 {
     //  Wait till the worker thread exits.
-    stop_worker ();
+    stop_worker();
 
     close (_epoll_fd);
 
@@ -90,7 +90,7 @@ void zmq::epoll_t::reset_pollin(handle_t handle_)
     check_thread ();
     poll_entry_t *pe = static_cast<poll_entry_t *> (handle_);
     pe->ev.events &= ~(static_cast<short> (EPOLLIN));
-    int rc = epoll_ctl (_epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
+    int rc = epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, pe->fd, &pe->ev);
     errno_assert (rc != -1);
 }
 
@@ -154,7 +154,7 @@ void zmq::epoll_t::loop()
         {
             poll_entry_t *pe = (static_cast<poll_entry_t *>(ev_buf[i].data.ptr));
 
-            printf("%s %s %d | fd:%d\n", __FILE__, __FUNCTION__, __LINE__, pe->fd);
+            printf("        %s %s %d | fd:%d\n", __FILE__, __FUNCTION__, __LINE__, pe->fd);
 
             if (pe->fd == retired_fd)
                 continue;
