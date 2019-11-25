@@ -150,7 +150,7 @@ public:
             //  'o' has been more recently used than _spare_chunk,
             //  so for cache reasons we'll get rid of the spare and
             //  use 'o' as the spare.
-            chunk_t *cs = _spare_chunk.xchg (o);
+            chunk_t *cs = _spare_chunk.xchg(o);
             free (cs);
         }
     }
