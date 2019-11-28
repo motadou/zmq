@@ -36,8 +36,6 @@ zmq::null_mechanism_t::~null_mechanism_t()
 
 int zmq::null_mechanism_t::next_handshake_command(msg_t *msg_)
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (_ready_command_sent || _error_command_sent) 
     {
         errno = EAGAIN;
@@ -46,15 +44,11 @@ int zmq::null_mechanism_t::next_handshake_command(msg_t *msg_)
 
     if (zap_required() && !_zap_reply_received) 
     {
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
         if (_zap_request_sent) 
         {
             errno = EAGAIN;
             return -1;
         }
-
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
         //  Given this is a backward-incompatible change, it's behind a socket option disabled by default.
         int rc = session->zap_connect();
@@ -104,8 +98,6 @@ int zmq::null_mechanism_t::next_handshake_command(msg_t *msg_)
         errno = EAGAIN;
         return -1;
     }
-
-    printf("%s %s %d | ready_command_name_len:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)ready_command_name_len);
 
     make_command_with_basic_properties(msg_, ready_command_name, ready_command_name_len);
 

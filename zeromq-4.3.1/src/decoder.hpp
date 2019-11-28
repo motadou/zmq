@@ -77,7 +77,6 @@ public:
         //  were processed.
         if (data_ == _read_pos) 
         {
-            printf("%s %s %d > AAAAAAAAAAAAAAAA\n", __FILE__, __FUNCTION__, __LINE__);
             zmq_assert (size_ <= _to_read);
             _read_pos    += size_;
             _to_read     -= size_;
@@ -95,7 +94,6 @@ public:
 
         while (bytes_used_ < size_) 
         {
-            printf("%s %s %d > AAAAAAAAAAAAAAAA _to_read:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read);
             //  Copy the data from buffer to the message.
             const size_t to_copy = std::min(_to_read, size_ - bytes_used_);
             // Only copy when destination address is different from the
