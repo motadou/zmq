@@ -31,9 +31,9 @@ int zmq::pipepair(class object_t *parents_[2], class pipe_t *pipes_[2], int hwms
         upipe2 = new (std::nothrow) upipe_normal_t();
     alloc_assert (upipe2);
 
-    pipes_[0] = new (std::nothrow) pipe_t (parents_[0], upipe1, upipe2, hwms_[1], hwms_[0], conflate_[0]);
+    pipes_[0] = new (std::nothrow) pipe_t(parents_[0], upipe1, upipe2, hwms_[1], hwms_[0], conflate_[0]);
     alloc_assert (pipes_[0]);
-    pipes_[1] = new (std::nothrow) pipe_t (parents_[1], upipe2, upipe1, hwms_[0], hwms_[1], conflate_[1]);
+    pipes_[1] = new (std::nothrow) pipe_t(parents_[1], upipe2, upipe1, hwms_[0], hwms_[1], conflate_[1]);
     alloc_assert (pipes_[1]);
 
     pipes_[0]->set_peer(pipes_[1]);
@@ -246,29 +246,22 @@ void zmq::pipe_t::flush()
 
 void zmq::pipe_t::process_activate_read ()
 {
-    printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDEE\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (!_in_active && (_state == active || _state == waiting_for_delimiter)) 
     {
-        printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n", __FILE__, __FUNCTION__, __LINE__);
-
         _in_active = true;
-        _sink->read_activated (this);
+        _sink->read_activated(this);
     }
 }
 
 void zmq::pipe_t::process_activate_write (uint64_t msgs_read_)
 {
-    printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n", __FILE__, __FUNCTION__, __LINE__);
-
-
     //  Remember the peer's message sequence number.
     _peers_msgs_read = msgs_read_;
 
     if (!_out_active && _state == active) 
     {
         _out_active = true;
-        _sink->write_activated (this);
+        _sink->write_activated(this);
     }
 }
 
@@ -488,7 +481,7 @@ int zmq::pipe_t::compute_lwm (int hwm_)
     return result;
 }
 
-void zmq::pipe_t::process_delimiter ()
+void zmq::pipe_t::process_delimiter()
 {
     zmq_assert (_state == active || _state == waiting_for_delimiter);
 
@@ -499,7 +492,7 @@ void zmq::pipe_t::process_delimiter ()
     else 
     {
         _out_pipe = NULL;
-        send_pipe_term_ack (_peer);
+        send_pipe_term_ack(_peer);
         _state = term_ack_sent;
     }
 }
@@ -514,10 +507,7 @@ void zmq::pipe_t::hiccup ()
     //  responsible for deallocating it.
 
     //  Create new inpipe.
-    _in_pipe =
-      _conflate
-        ? static_cast<upipe_t *> (new (std::nothrow) ypipe_conflate_t<msg_t> ())
-        : new (std::nothrow) ypipe_t<msg_t, message_pipe_granularity> ();
+    _in_pipe = _conflate ? static_cast<upipe_t *>(new (std::nothrow) ypipe_conflate_t<msg_t>()) : new (std::nothrow) ypipe_t<msg_t, message_pipe_granularity>();
 
     alloc_assert (_in_pipe);
     _in_active = true;
@@ -550,12 +540,12 @@ void zmq::pipe_t::set_hwms_boost (int inhwmboost_, int outhwmboost_)
 
 bool zmq::pipe_t::check_hwm () const
 {
-    const bool full =
-      _hwm > 0 && _msgs_written - _peers_msgs_read >= uint64_t (_hwm);
+    const bool full = _hwm > 0 && _msgs_written - _peers_msgs_read >= uint64_t (_hwm);
+
     return (!full);
 }
 
-void zmq::pipe_t::send_hwms_to_peer (int inhwm_, int outhwm_)
+void zmq::pipe_t::send_hwms_to_peer(int inhwm_, int outhwm_)
 {
     send_pipe_hwm (_peer, inhwm_, outhwm_);
 }

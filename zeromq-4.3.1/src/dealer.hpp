@@ -29,7 +29,7 @@ protected:
     int  xrecv(zmq::msg_t *msg_);
     bool xhas_in();
     bool xhas_out();
-    void xread_activated(zmq::pipe_t *pipe_);
+    void xread_activated (zmq::pipe_t *pipe_);
     void xwrite_activated(zmq::pipe_t *pipe_);
     void xpipe_terminated(zmq::pipe_t *pipe_);
 

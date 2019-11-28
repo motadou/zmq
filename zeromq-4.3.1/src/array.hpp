@@ -84,8 +84,10 @@ public:
     {
         if (_items[index1_])
             ((item_t *) _items[index1_])->set_array_index((int)index2_);
+
         if (_items[index2_])
             ((item_t *) _items[index2_])->set_array_index((int)index1_);
+
         std::swap(_items[index1_], _items[index2_]);
     }
 

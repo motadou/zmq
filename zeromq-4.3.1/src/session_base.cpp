@@ -154,9 +154,10 @@ int zmq::session_base_t::read_zap_msg(msg_t *msg_)
     return 0;
 }
 
-int zmq::session_base_t::write_zap_msg (msg_t *msg_)
+int zmq::session_base_t::write_zap_msg(msg_t *msg_)
 {
-    if (_zap_pipe == NULL || !_zap_pipe->write (msg_)) {
+    if (_zap_pipe == NULL || !_zap_pipe->write (msg_)) 
+    {
         errno = ENOTCONN;
         return -1;
     }
@@ -212,9 +213,6 @@ void zmq::session_base_t::clean_pipes()
 
 void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
 {
-    printf("%s %s %d | >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", __FILE__, __FUNCTION__, __LINE__);
-
-
      // Drop the reference to the deallocated pipe if required.
     zmq_assert (pipe_ == _pipe || pipe_ == _zap_pipe || _terminating_pipes.count (pipe_) == 1);
 
@@ -240,7 +238,7 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
 
     if (!is_terminating() && options.raw_socket) 
     {
-        printf("%s %s %d | >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", __FILE__, __FUNCTION__, __LINE__);
+
         if (_engine) 
         {
             _engine->terminate ();
@@ -254,7 +252,7 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
     //  with termination safely.
     if (_pending && (_pipe == NULL) && (_zap_pipe == NULL) && _terminating_pipes.empty()) 
     {
-        printf("%s %s %d | >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", __FILE__, __FUNCTION__, __LINE__);
+
         _pending = false;
         own_t::process_term(0);
     }
@@ -262,7 +260,6 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
 
 void zmq::session_base_t::read_activated(pipe_t *pipe_)
 {
-    printf("%s %s %d | EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n", __FILE__, __FUNCTION__, __LINE__);
 
 
     // Skip activating if we're detaching this pipe
@@ -291,8 +288,6 @@ void zmq::session_base_t::read_activated(pipe_t *pipe_)
 
 void zmq::session_base_t::write_activated(pipe_t *pipe_)
 {
-    printf("%s %s %d | CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\n", __FILE__, __FUNCTION__, __LINE__);
-
     // Skip activating if we're detaching this pipe
     if (_pipe != pipe_) 
     {

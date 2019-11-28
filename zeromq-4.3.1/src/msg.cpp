@@ -38,8 +38,6 @@ int zmq::msg_t::init (void *data_, size_t size_, msg_free_fn *ffn_, void *hint_,
 
     if (content_) 
     {
-        printf("%s %s %d > ======================\n", __FILE__, __FUNCTION__, __LINE__);
-
         return init_external_storage(content_, data_, size_, ffn_, hint_);
     }
 
@@ -80,8 +78,6 @@ int zmq::msg_t::init_size (size_t size_)
         if (sizeof(content_t) + size_ > size_)
         {
             _u.lmsg.content = static_cast<content_t *>(malloc(sizeof(content_t) + size_));
-
-            printf("%s %s %d | malloc:%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)(sizeof(content_t) + size_), (int)size_);
         }
 
         if (unlikely (!_u.lmsg.content)) 

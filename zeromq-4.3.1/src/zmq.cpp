@@ -417,6 +417,7 @@ int zmq_sendiov (void *s_, iovec *a_, size_t count_, int flags_)
 static int s_recvmsg (zmq::socket_base_t *s_, zmq_msg_t *msg_, int flags_)
 {
     int rc = s_->recv(reinterpret_cast<zmq::msg_t *>(msg_), flags_);
+
     if (unlikely (rc < 0))
         return -1;
 
@@ -443,7 +444,9 @@ int zmq_recv (void *s_, void *buf_, size_t len_, int flags_)
     int rc = zmq_msg_init (&msg);
     errno_assert (rc == 0);
 
+
     int nbytes = s_recvmsg (s, &msg, flags_);
+
     if (unlikely (nbytes < 0)) 
     {
         int err = errno;

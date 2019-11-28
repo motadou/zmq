@@ -53,7 +53,7 @@ int zmq::lb_t::send(msg_t *msg_)
     return sendpipe(msg_, NULL);
 }
 
-int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
+int zmq::lb_t::sendpipe(msg_t *msg_, pipe_t **pipe_)
 {
     //  Drop the message if required. If we are at the end of the message
     //  switch back to non-dropping mode.
@@ -84,7 +84,8 @@ int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
         // If send fails for multi-part msg rollback other
         // parts sent earlier and return EAGAIN.
         // Application should handle this as suitable
-        if (_more) {
+        if (_more) 
+        {
             _pipes[_current]->rollback ();
             // At this point the pipe is already being deallocated
             // and the first N frames are unreachable (_outpipe is
@@ -101,14 +102,14 @@ int zmq::lb_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
             // -2/EAGAIN will make sure socket_base caller does not re-enter
             // immediately or after a short sleep in blocking mode.
             _dropping = (msg_->flags () & msg_t::more) != 0;
-            _more = false;
-            errno = EAGAIN;
+            _more     = false;
+            errno     = EAGAIN;
             return -2;
         }
 
         _active--;
         if (_current < _active)
-            _pipes.swap (_current, _active);
+            _pipes.swap(_current, _active);
         else
             _current = 0;
     }

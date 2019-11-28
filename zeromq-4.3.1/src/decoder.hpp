@@ -42,8 +42,6 @@ public:
     {
         _buf = _allocator.allocate();
 
-        printf("%s %s %d > to_read:%d allocator.size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read, (int)_allocator.size());
-
         //  If we are expected to read large message, we'll opt for zero-
         //  copy, i.e. we'll ask caller to fill the data directly to the
         //  message. Note that subsequent read(s) are non-blocking, thus
@@ -54,15 +52,11 @@ public:
         //  amounts of time.
         if (_to_read >= _allocator.size())
         {
-            printf("%s %s %d > to_read:%d allocator.size:%d #######################################\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read, (int)_allocator.size());
-
             *data_ = _read_pos;
             *size_ = _to_read;
             return;
         }
-
-        printf("%s %s %d > to_read:%d allocator.size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_read, (int)_allocator.size());
-
+         
         *data_ = _buf;
         *size_ = _allocator.size();
     }

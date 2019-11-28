@@ -39,8 +39,6 @@ public:
     //  points to NULL) decoder object will provide buffer of its own.
     inline size_t encode(unsigned char **data_, size_t size_)
     {
-        printf("%s %s %d | _to_write:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_to_write);
-
         unsigned char *buffer = !*data_ ? _buf      : *data_;
         size_t buffersize     = !*data_ ? _buf_size : size_;
 
@@ -64,7 +62,6 @@ public:
                     break;
                 }
 
-                printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
                 (static_cast<T *>(this)->*_next)();
             }
 
@@ -80,8 +77,6 @@ public:
             //  amounts of time.
             if ((pos == 0) && (*data_ == NULL) && (_to_write >= buffersize))
             {
-                printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
                 *data_     = _write_pos;
                 pos        = _to_write;
                 _write_pos = NULL;
@@ -89,7 +84,6 @@ public:
                 return pos;
             }
 
-            printf("%s %s %d > pos:%d %d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)pos, (int)_to_write, (int)buffersize);
 
             //  Copy data to the buffer. If the buffer is full, return.
             size_t to_copy = std::min(_to_write, buffersize - pos);
@@ -98,7 +92,6 @@ public:
             _write_pos += to_copy;
             _to_write  -= to_copy;
 
-            printf("%s %s %d > pos:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)pos);
         }
 
         *data_ = buffer;
@@ -109,7 +102,7 @@ public:
     {
         zmq_assert (in_progress() == NULL);
         _in_progress = msg_;
-        printf("%s %s %d >>>>> %d #%s#\n", __FILE__, __FUNCTION__, __LINE__, (int)_in_progress->size(), (char*)(_in_progress->data()));
+
         (static_cast<T *>(this)->*_next)();
     }
 

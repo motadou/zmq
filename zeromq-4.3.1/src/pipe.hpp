@@ -22,7 +22,7 @@ class pipe_t;
 //  terminates straight away.
 //  If conflate is true, only the most recently arrived message could be
 //  read (older messages are discarded)
-int pipepair (zmq::object_t *parents_[2], zmq::pipe_t *pipes_[2], int hwms_[2], bool conflate_[2]);
+int pipepair(zmq::object_t *parents_[2], zmq::pipe_t *pipes_[2], int hwms_[2], bool conflate_[2]);
 
 struct i_pipe_events
 {
@@ -123,7 +123,7 @@ private:
 
     //  Constructor is private. Pipe can only be created using
     //  pipepair function.
-    pipe_t (object_t * parent_, upipe_t * inpipe_, upipe_t * outpipe_,  int inhwm_, int outhwm_, bool conflate_);
+    pipe_t(object_t * parent_, upipe_t * inpipe_, upipe_t * outpipe_,  int inhwm_, int outhwm_, bool conflate_);
 
     //  Pipepair uses this function to let us know about
     //  the peer pipe object.

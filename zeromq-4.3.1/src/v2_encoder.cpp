@@ -20,8 +20,6 @@ zmq::v2_encoder_t::~v2_encoder_t ()
 
 void zmq::v2_encoder_t::message_ready()
 {
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     //  Encode flags.
     unsigned char & protocol_flags = _tmp_buf[0];
     protocol_flags = 0;

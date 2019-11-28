@@ -14,7 +14,7 @@ zmq::fq_t::~fq_t ()
     zmq_assert (_pipes.empty());
 }
 
-void zmq::fq_t::attach(pipe_t *pipe_)
+void zmq::fq_t::attach(pipe_t * pipe_)
 {
     _pipes.push_back(pipe_);
     _pipes.swap(_active, _pipes.size() - 1);
@@ -48,7 +48,7 @@ void zmq::fq_t::activated(pipe_t *pipe_)
     _active++;
 }
 
-int zmq::fq_t::recv(msg_t *msg_)
+int zmq::fq_t::recv(msg_t * msg_)
 {
     return recvpipe(msg_, NULL);
 }
@@ -106,7 +106,7 @@ int zmq::fq_t::recvpipe(msg_t *msg_, pipe_t **pipe_)
     return -1;
 }
 
-bool zmq::fq_t::has_in ()
+bool zmq::fq_t::has_in()
 {
     //  There are subsequent parts of the partly-read message available.
     if (_more)

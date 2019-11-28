@@ -137,7 +137,6 @@ size_t zmq::mechanism_t::add_basic_properties(unsigned char *ptr_, size_t ptr_ca
     const char *socket_type = socket_type_string(options.type);
     ptr += add_property(ptr, ptr_capacity_, ZMTP_PROPERTY_SOCKET_TYPE, socket_type, strlen(socket_type));
 
-    printf("%s %s %d | socket_type:%s options.routing_id_size:%d\n", __FILE__, __FUNCTION__, __LINE__, socket_type, (int)options.routing_id_size);
 
     //  Add identity (aka routing id) property
     if (options.type == ZMQ_REQ || options.type == ZMQ_DEALER || options.type == ZMQ_ROUTER) 
@@ -145,11 +144,11 @@ size_t zmq::mechanism_t::add_basic_properties(unsigned char *ptr_, size_t ptr_ca
         ptr += add_property(ptr, ptr_capacity_ - (ptr - ptr_), ZMTP_PROPERTY_IDENTITY, options.routing_id, options.routing_id_size);
     }
 
-    printf("%s %s %d | size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)options.app_metadata.size());
+
 
     for (std::map<std::string, std::string>::const_iterator it = options.app_metadata.begin(), end = options.app_metadata.end(); it != end; ++it) 
     {
-        printf("%s %s %d | first:%s second:%s\n", __FILE__, __FUNCTION__, __LINE__, it->first.c_str(), it->second.c_str());
+
 
         ptr += add_property(ptr, ptr_capacity_ - (ptr - ptr_), it->first.c_str(), it->second.c_str(), strlen(it->second.c_str()));
     }
@@ -177,7 +176,7 @@ void zmq::mechanism_t::make_command_with_basic_properties(msg_t *msg_, const cha
     const int rc = msg_->init_size(command_size);
     errno_assert (rc == 0);
 
-    printf("%s %s %d | command_size:%d\n", __FILE__, __FUNCTION__, __LINE__, (int)command_size);
+
 
     unsigned char *ptr = static_cast<unsigned char *>(msg_->data());
 

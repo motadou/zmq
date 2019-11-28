@@ -1132,6 +1132,7 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
     //  Note that 'recv' uses different command throttling algorithm (the one
     //  described above) from the one used by 'send'. This is because counting
     //  ticks is more efficient than doing RDTSC all the time.
+
     if (++_ticks == inbound_poll_rate) {
         if (unlikely (process_commands (0, false) != 0)) {
             return -1;
@@ -1141,6 +1142,8 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
 
     //  Get the message.
     int rc = xrecv (msg_);
+
+
     if (unlikely (rc != 0 && errno != EAGAIN)) {
         return -1;
     }
@@ -1491,10 +1494,6 @@ void zmq::socket_base_t::check_destroy ()
 
 void zmq::socket_base_t::read_activated (pipe_t *pipe_)
 {
-    printf("%s %s %d | DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\n", __FILE__, __FUNCTION__, __LINE__);
-
-
-
     xread_activated (pipe_);
 }
 

@@ -17,7 +17,7 @@ template <typename T, int N> class ypipe_t : public ypipe_base_t<T>
 {
 public:
     //  Initialises the pipe.
-    inline ypipe_t ()
+    inline ypipe_t()
     {
         //  Insert terminator element into the queue.
         _queue.push();
@@ -40,14 +40,14 @@ public:
     //  set to true the item is assumed to be continued by items
     //  subsequently written to the pipe. Incomplete items are never
     //  flushed down the stream.
-    inline void write(const T &value_, bool incomplete_)
+    inline void write(const T & value_, bool incomplete_)
     {
         //  Place the value to the queue, add new terminator element.
         _queue.back() = value_;
         _queue.push();
 
         //  Move the "flush up to here" poiter.
-        if (!incomplete_)
+        if (incomplete_ == false)
             _f = &_queue.back();
     }
 
@@ -57,7 +57,7 @@ public:
     {
         if (_f == &_queue.back())
             return false;
-        _queue.unpush ();
+        _queue.unpush();
         *value_ = _queue.back();
         return true;
     }
@@ -165,6 +165,7 @@ protected:
     ypipe_t (const ypipe_t &);
     const ypipe_t &operator= (const ypipe_t &);
 };
+
 }
 
 #endif

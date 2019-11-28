@@ -4,15 +4,14 @@
 #include "err.hpp"
 #include "msg.hpp"
 
-zmq::dealer_t::dealer_t (class ctx_t *parent_, uint32_t tid_, int sid_) :
-    socket_base_t (parent_, tid_, sid_),
-    _probe_router (false)
+zmq::dealer_t::dealer_t (class ctx_t *parent_, uint32_t tid_, int sid_) : socket_base_t (parent_, tid_, sid_), _probe_router (false)
 {
     options.type = ZMQ_DEALER;
 }
 
 zmq::dealer_t::~dealer_t ()
 {
+
 }
 
 void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool locally_initiated_)
@@ -28,7 +27,7 @@ void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool lo
         int rc = probe_msg.init ();
         errno_assert (rc == 0);
 
-        rc = pipe_->write (&probe_msg);
+        rc = pipe_->write(&probe_msg);
         // zmq_assert (rc) is not applicable here, since it is not a bug.
         LIBZMQ_UNUSED (rc);
 
@@ -42,9 +41,7 @@ void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool lo
     _lb.attach(pipe_);
 }
 
-int zmq::dealer_t::xsetsockopt (int option_,
-                                const void *optval_,
-                                size_t optvallen_)
+int zmq::dealer_t::xsetsockopt (int option_, const void *optval_, size_t optvallen_)
 {
     bool is_int = (optvallen_ == sizeof (int));
     int value = 0;
