@@ -209,19 +209,6 @@ void zmq::shutdown_network ()
 #endif
 }
 
-#if defined ZMQ_HAVE_WINDOWS
-static void tune_socket (const SOCKET socket_)
-{
-    BOOL tcp_nodelay = 1;
-    int rc =
-      setsockopt (socket_, IPPROTO_TCP, TCP_NODELAY,
-                  reinterpret_cast<char *> (&tcp_nodelay), sizeof tcp_nodelay);
-    wsa_assert (rc != SOCKET_ERROR);
-
-    zmq::tcp_tune_loopback_fast_path (socket_);
-}
-#endif
-
 int zmq::make_fdpair (fd_t *r_, fd_t *w_)
 {
 #if defined ZMQ_HAVE_EVENTFD

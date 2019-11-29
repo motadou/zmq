@@ -29,7 +29,7 @@ zmq::tcp_listener_t::tcp_listener_t(io_thread_t *io_thread_, socket_base_t *sock
     _handle (static_cast<handle_t> (NULL)),
     _socket (socket_)
 {
-
+    iFlag = 11111;
 }
 
 zmq::tcp_listener_t::~tcp_listener_t()

@@ -105,7 +105,7 @@ public:
         //  During pipe's lifetime r should never be NULL, however,
         //  it can happen during pipe shutdown when items
         //  are being deallocated.
-        if (&_queue.front() == _r || !_r)
+        if (&_queue.front() == _r || _r == NULL)
             return false;
 
         //  There was at least one value prefetched.

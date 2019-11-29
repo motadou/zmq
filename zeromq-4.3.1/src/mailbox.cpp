@@ -2,7 +2,7 @@
 #include "mailbox.hpp"
 #include "err.hpp"
 
-zmq::mailbox_t::mailbox_t ()
+zmq::mailbox_t::mailbox_t()
 {
     //  Get the pipe into passive state. That way, if the users starts by
     //  polling on the associated file descriptor it will get woken up when
@@ -12,14 +12,14 @@ zmq::mailbox_t::mailbox_t ()
     _active = false;
 }
 
-zmq::mailbox_t::~mailbox_t ()
+zmq::mailbox_t::~mailbox_t()
 {
     //  TODO: Retrieve and deallocate commands inside the _cpipe.
 
     // Work around problem that other threads might still be in our
     // send() method, by waiting on the mutex before disappearing.
-    _sync.lock ();
-    _sync.unlock ();
+    _sync.lock();
+    _sync.unlock();
 }
 
 zmq::fd_t zmq::mailbox_t::get_fd() const
@@ -34,7 +34,7 @@ void zmq::mailbox_t::send(const command_t & cmd_)
     const bool ok = _cpipe.flush();
     _sync.unlock();
 
-    if (!ok)
+    if (ok == false)
     {
         _signaler.send();
     }
@@ -77,7 +77,7 @@ int zmq::mailbox_t::recv(command_t *cmd_, int timeout_)
     return 0;
 }
 
-bool zmq::mailbox_t::valid () const
+bool zmq::mailbox_t::valid() const
 {
-    return _signaler.valid ();
+    return _signaler.valid();
 }

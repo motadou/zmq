@@ -30,7 +30,7 @@ public:
 
     // close the file descriptors in a forked child process so that they
     // do not interfere with the context in the parent process.
-    void forked ();
+    void forked();
 
 private:
     //  Underlying write & read file descriptor

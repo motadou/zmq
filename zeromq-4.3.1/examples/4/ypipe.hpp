@@ -1,11 +1,11 @@
 #ifndef __ZMQ_YPIPE_HPP_INCLUDED__
 #define __ZMQ_YPIPE_HPP_INCLUDED__
 
-#include "atomic_ptr.hpp"
-#include "yqueue.hpp"
-#include "ypipe_base.hpp"
 #include <assert.h>
 #include <stdio.h>
+#include "atomic_ptr.hpp"
+#include "ypipe_base.hpp"
+#include "yqueue.hpp"
 
 namespace zmq
 {
@@ -59,15 +59,18 @@ public:
     inline bool check_read()
     {
         if (&_queue.front() != _r && _r)
+        {
             return true;
+        }
 
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
         _r = _c.cas(&_queue.front(), NULL);
-
 
         if (&_queue.front() == _r)
         {
             printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
+
             return false;
         }
 
@@ -83,21 +86,17 @@ public:
 
     inline bool read (T *value_)
     {
-
         if (!check_read ())
             return false;
-
 
         *value_ = _queue.front();
         _queue.pop ();
         return true;
     }
 
-
     inline bool probe(bool (*fn_) (const T &))
     {
-        bool rc = check_read ();
-        assert (rc);
+        bool rc = check_read();
 
         return (*fn_) (_queue.front ());
     }

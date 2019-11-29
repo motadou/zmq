@@ -4,14 +4,15 @@
 
 int main()
 {
-    zmq::ypipe_t<int, 100> mPipe;
+    zmq::ypipe_t<int, 2> mPipe;
 
 
 
     mPipe.write(1, false);
     mPipe.write(2, false);
     mPipe.flush();
-       
+
+
 
 
     int a = 0;

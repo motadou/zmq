@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <assert.h>
+#include <iostream>
 #include "atomic_ptr.hpp"
 
 namespace zmq
 {
 
 template <typename T, int N> class yqueue_t
-
 {
 public:
     inline yqueue_t ()
@@ -29,16 +29,16 @@ public:
         {
             if (_begin_chunk == _end_chunk) 
             {
-                free (_begin_chunk);
+                free(_begin_chunk);
                 break;
             }
 
             chunk_t *o   = _begin_chunk;
             _begin_chunk = _begin_chunk->next;
-            free (o);
+            free(o);
         }
 
-        chunk_t *sc = _spare_chunk.xchg (NULL);
+        chunk_t *sc = _spare_chunk.xchg(NULL);
         free (sc);
     }
 
@@ -95,7 +95,7 @@ public:
         }
     }
 
-    inline void pop ()
+    inline void pop()
     {
         if (++_begin_pos == N) 
         {
@@ -105,6 +105,12 @@ public:
             _begin_pos         = 0;
 
             chunk_t *cs = _spare_chunk.xchg(o);
+
+            if (cs == NULL)
+            {
+                std::cout << "null" << std::endl;
+            }
+
             free (cs);
         }
     }

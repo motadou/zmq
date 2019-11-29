@@ -41,7 +41,7 @@ static int close_wait_ms (int fd_, unsigned int max_ms_ = 2000)
     unsigned int ms_so_far         = 0;
     const unsigned int min_step_ms = 1;
     const unsigned int max_step_ms = 100;
-    const unsigned int step_ms     = std::min (std::max (min_step_ms, max_ms_ / 10), max_step_ms);
+    const unsigned int step_ms     = std::min (std::max(min_step_ms, max_ms_/10), max_step_ms);
 
     int rc = 0; // do not sleep on first attempt
     do 
@@ -100,7 +100,7 @@ zmq::fd_t zmq::signaler_t::get_fd () const
     return _r;
 }
 
-void zmq::signaler_t::send ()
+void zmq::signaler_t::send()
 {
     if (unlikely (pid != getpid ())) 
     {
@@ -110,7 +110,7 @@ void zmq::signaler_t::send ()
 
 #if defined ZMQ_HAVE_EVENTFD
     const uint64_t inc = 1;
-    ssize_t sz = write(_w, &inc, sizeof (inc));
+    ssize_t sz = write(_w, &inc, sizeof(inc));
     errno_assert (sz == sizeof (inc));
 #else
     unsigned char dummy = 0;
@@ -210,7 +210,7 @@ void zmq::signaler_t::recv ()
 //  Attempt to read a signal.
 #if defined ZMQ_HAVE_EVENTFD
     uint64_t dummy;
-    ssize_t sz = read (_r, &dummy, sizeof (dummy));
+    ssize_t sz = read(_r, &dummy, sizeof (dummy));
     errno_assert (sz == sizeof (dummy));
 
     //  If we accidentally grabbed the next signal(s) along with the current
@@ -227,7 +227,7 @@ void zmq::signaler_t::recv ()
 #else
     unsigned char dummy;
 
-    ssize_t nbytes = ::recv(_r, &dummy, sizeof (dummy), 0);
+    ssize_t nbytes = ::recv(_r, &dummy, sizeof(dummy), 0);
     errno_assert (nbytes >= 0);
 
     zmq_assert (nbytes == sizeof (dummy));

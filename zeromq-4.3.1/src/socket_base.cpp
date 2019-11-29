@@ -204,12 +204,12 @@ zmq::socket_base_t::~socket_base_t ()
     zmq_assert (_destroyed);
 }
 
-zmq::i_mailbox *zmq::socket_base_t::get_mailbox () const
+zmq::i_mailbox * zmq::socket_base_t::get_mailbox() const
 {
     return _mailbox;
 }
 
-void zmq::socket_base_t::stop ()
+void zmq::socket_base_t::stop()
 {
     //  Called by ctx when it is terminated (zmq_ctx_term).
     //  'stop' command is sent from the threads that called zmq_ctx_term to
@@ -269,8 +269,9 @@ int zmq::socket_base_t::check_protocol (const std::string &protocol_) const
         //  bi-directional messaging patterns (socket types).
 #if defined ZMQ_HAVE_OPENPGM || defined ZMQ_HAVE_NORM
     if ((protocol_ == "pgm" || protocol_ == "epgm" || protocol_ == "norm")
-        && options.type != ZMQ_PUB && options.type != ZMQ_SUB
-        && options.type != ZMQ_XPUB && options.type != ZMQ_XSUB) {
+        && options.type != ZMQ_PUB  && options.type != ZMQ_SUB
+        && options.type != ZMQ_XPUB && options.type != ZMQ_XSUB) 
+    {
         errno = ENOCOMPATPROTO;
         return -1;
     }
@@ -1265,7 +1266,7 @@ void zmq::socket_base_t::start_reaping(poller_t * poller_)
         zmq_assert (_reaper_signaler);
 
         //  Add signaler to the safe mailbox
-        fd = _reaper_signaler->get_fd ();
+        fd = _reaper_signaler->get_fd();
         (static_cast<mailbox_safe_t *> (_mailbox))->add_signaler (_reaper_signaler);
 
         //  Send a signal to make sure reaper handle existing commands

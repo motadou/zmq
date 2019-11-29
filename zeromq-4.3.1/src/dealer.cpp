@@ -4,7 +4,7 @@
 #include "err.hpp"
 #include "msg.hpp"
 
-zmq::dealer_t::dealer_t (class ctx_t *parent_, uint32_t tid_, int sid_) : socket_base_t (parent_, tid_, sid_), _probe_router (false)
+zmq::dealer_t::dealer_t (class ctx_t * parent_, uint32_t tid_, int sid_) : socket_base_t (parent_, tid_, sid_), _probe_router (false)
 {
     options.type = ZMQ_DEALER;
 }
@@ -14,7 +14,7 @@ zmq::dealer_t::~dealer_t ()
 
 }
 
-void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool locally_initiated_)
+void zmq::dealer_t::xattach_pipe(pipe_t *pipe_, bool subscribe_to_all_, bool locally_initiated_)
 {
     LIBZMQ_UNUSED (subscribe_to_all_);
     LIBZMQ_UNUSED (locally_initiated_);
@@ -33,7 +33,7 @@ void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool lo
 
         pipe_->flush ();
 
-        rc = probe_msg.close ();
+        rc = probe_msg.close();
         errno_assert (rc == 0);
     }
 
@@ -41,14 +41,15 @@ void zmq::dealer_t::xattach_pipe (pipe_t *pipe_, bool subscribe_to_all_, bool lo
     _lb.attach(pipe_);
 }
 
-int zmq::dealer_t::xsetsockopt (int option_, const void *optval_, size_t optvallen_)
+int zmq::dealer_t::xsetsockopt(int option_, const void *optval_, size_t optvallen_)
 {
     bool is_int = (optvallen_ == sizeof (int));
     int value = 0;
     if (is_int)
         memcpy (&value, optval_, sizeof (int));
 
-    switch (option_) {
+    switch (option_) 
+    {
         case ZMQ_PROBE_ROUTER:
             if (is_int && value >= 0) {
                 _probe_router = (value != 0);
@@ -64,48 +65,48 @@ int zmq::dealer_t::xsetsockopt (int option_, const void *optval_, size_t optvall
     return -1;
 }
 
-int zmq::dealer_t::xsend (msg_t *msg_)
+int zmq::dealer_t::xsend(msg_t *msg_)
 {
     return sendpipe(msg_, NULL);
 }
 
-int zmq::dealer_t::xrecv (msg_t *msg_)
+int zmq::dealer_t::xrecv(msg_t *msg_)
 {
     return recvpipe (msg_, NULL);
 }
 
-bool zmq::dealer_t::xhas_in ()
+bool zmq::dealer_t::xhas_in()
 {
     return _fq.has_in ();
 }
 
-bool zmq::dealer_t::xhas_out ()
+bool zmq::dealer_t::xhas_out()
 {
     return _lb.has_out ();
 }
 
-void zmq::dealer_t::xread_activated (pipe_t *pipe_)
+void zmq::dealer_t::xread_activated(pipe_t *pipe_)
 {
-    _fq.activated (pipe_);
+    _fq.activated(pipe_);
 }
 
-void zmq::dealer_t::xwrite_activated (pipe_t *pipe_)
+void zmq::dealer_t::xwrite_activated(pipe_t *pipe_)
 {
-    _lb.activated (pipe_);
+    _lb.activated(pipe_);
 }
 
-void zmq::dealer_t::xpipe_terminated (pipe_t *pipe_)
+void zmq::dealer_t::xpipe_terminated(pipe_t *pipe_)
 {
     _fq.pipe_terminated(pipe_);
     _lb.pipe_terminated(pipe_);
 }
 
-int zmq::dealer_t::sendpipe (msg_t *msg_, pipe_t **pipe_)
+int zmq::dealer_t::sendpipe(msg_t *msg_, pipe_t **pipe_)
 {
-    return _lb.sendpipe (msg_, pipe_);
+    return _lb.sendpipe(msg_, pipe_);
 }
 
-int zmq::dealer_t::recvpipe (msg_t *msg_, pipe_t **pipe_)
+int zmq::dealer_t::recvpipe(msg_t *msg_, pipe_t **pipe_)
 {
-    return _fq.recvpipe (msg_, pipe_);
+    return _fq.recvpipe(msg_, pipe_);
 }
