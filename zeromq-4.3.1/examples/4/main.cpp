@@ -10,10 +10,17 @@ int main()
 
     mPipe.write(1, false);
     mPipe.write(2, false);
-    mPipe.flush();
+    bool bFlush = mPipe.flush();
+
+    std::cout << (bFlush ?"true":"false") << std::endl;
+
+    mPipe.write(3, false);
+    bFlush = mPipe.flush();
+
+    std::cout << (bFlush ? "true" : "false") << std::endl;
 
 
-
+    std::cout << "=========================" << std::endl;
 
     int a = 0;
     bool result = false;

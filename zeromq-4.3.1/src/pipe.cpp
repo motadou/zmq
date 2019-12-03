@@ -146,6 +146,8 @@ bool zmq::pipe_t::check_read()
 
 bool zmq::pipe_t::read(msg_t *msg_)
 {
+    printf("%s %s %d XXXXXXXXXXXXXXXXXX:%d\n", __FILE__, __FUNCTION__, __LINE__, iFlag);
+
     if (unlikely (!_in_active))
         return false;
     if (unlikely (_state != active && _state != waiting_for_delimiter))
@@ -204,6 +206,8 @@ bool zmq::pipe_t::check_write()
 
 bool zmq::pipe_t::write(msg_t *msg_)
 {
+    printf("%s %s %d XXXXXXXXXXXXXXXXXX:%d\n", __FILE__, __FUNCTION__, __LINE__, iFlag);
+
     if (unlikely(!check_write()))
     {
         return false;
@@ -225,8 +229,10 @@ void zmq::pipe_t::rollback () const
 {
     //  Remove incomplete message from the outbound pipe.
     msg_t msg;
-    if (_out_pipe) {
-        while (_out_pipe->unwrite (&msg)) {
+    if (_out_pipe) 
+    {
+        while (_out_pipe->unwrite (&msg)) 
+        {
             zmq_assert (msg.flags () & msg_t::more);
             const int rc = msg.close ();
             errno_assert (rc == 0);
@@ -240,11 +246,15 @@ void zmq::pipe_t::flush()
     if (_state == term_ack_sent)
         return;
 
-    if (_out_pipe && !_out_pipe->flush ())
-        send_activate_read (_peer);
+    if (_out_pipe && (_out_pipe->flush() == false))
+    {
+        printf("%s %s %d >>>>>>>>>>>>>>>>>>>>> %d\n", __FILE__, __FUNCTION__, __LINE__, iFlag);
+
+        send_activate_read(_peer);
+    }
 }
 
-void zmq::pipe_t::process_activate_read ()
+void zmq::pipe_t::process_activate_read()
 {
     if (!_in_active && (_state == active || _state == waiting_for_delimiter)) 
     {
@@ -253,7 +263,7 @@ void zmq::pipe_t::process_activate_read ()
     }
 }
 
-void zmq::pipe_t::process_activate_write (uint64_t msgs_read_)
+void zmq::pipe_t::process_activate_write(uint64_t msgs_read_)
 {
     //  Remember the peer's message sequence number.
     _peers_msgs_read = msgs_read_;
@@ -292,6 +302,8 @@ void zmq::pipe_t::process_hiccup (void *pipe_)
 
 void zmq::pipe_t::process_pipe_term()
 {
+    printf("%s %s %d > %d %d \n", __FILE__, __FUNCTION__, __LINE__, _state, this->iFlag);
+
     zmq_assert (_state == active || _state == delimiter_received || _state == term_req_sent1);
 
     //  This is the simple case of peer-induced termination. If there are no
@@ -333,6 +345,8 @@ void zmq::pipe_t::process_pipe_term()
 
 void zmq::pipe_t::process_pipe_term_ack()
 {
+    printf("%s %s %d > %d %d \n", __FILE__, __FUNCTION__, __LINE__, _state, this->iFlag);
+
     //  Notify the user that all the references to the pipe should be dropped.
     zmq_assert (_sink);
     _sink->pipe_terminated (this);
@@ -385,6 +399,8 @@ void zmq::pipe_t::set_nodelay ()
 
 void zmq::pipe_t::terminate(bool delay_)
 {
+    printf("%s %s %d > %d %d \n", __FILE__, __FUNCTION__, __LINE__, _state, this->iFlag);
+
     //  Overload the value specified at pipe creation.
     _delay = delay_;
 
@@ -393,6 +409,7 @@ void zmq::pipe_t::terminate(bool delay_)
     {
         return;
     }
+
     //  If the pipe is in the final phase of async termination, it's going to
     //  closed anyway. No need to do anything special here.
     if (_state == term_ack_sent) 
@@ -441,6 +458,8 @@ void zmq::pipe_t::terminate(bool delay_)
 
     if (_out_pipe) 
     {
+        printf("%s %s %d > %d %d \n", __FILE__, __FUNCTION__, __LINE__, _state, this->iFlag);
+
         //  Drop any unfinished outbound messages.
         rollback();
 

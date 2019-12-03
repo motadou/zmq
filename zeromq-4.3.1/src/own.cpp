@@ -104,7 +104,7 @@ void zmq::own_t::process_own(own_t * object_)
     _owned.insert(object_);
 }
 
-void zmq::own_t::terminate ()
+void zmq::own_t::terminate()
 {
     //  If termination is already underway, there's no point
     //  in starting it anew.
@@ -114,10 +114,8 @@ void zmq::own_t::terminate ()
     //  As for the root of the ownership tree, there's no one to terminate it,
     //  so it has to terminate itself.
     // 如果它是拥有树的根节点，没有节点可以来结束它，只有它自己结束自己
-    
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
-    
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     if (_owner == NULL) 
     {
@@ -131,13 +129,13 @@ void zmq::own_t::terminate ()
 
     printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
-    // 对服务端的socket_baser而言，它的父节点是tcp_listener_t
+    // 对服务端的session_base而言，它的父节点是tcp_listener_t
 
     //  If I am an owned object, I'll ask my owner to terminate me.
     send_term_req(_owner, this);
 }
 
-bool zmq::own_t::is_terminating ()
+bool zmq::own_t::is_terminating()
 {
     return _terminating;
 }

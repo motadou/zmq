@@ -20,14 +20,14 @@ struct command_t
 
     enum type_t
     {
-        stop,
-        plug,
-        own,
-        attach,
-        bind,
+        stop                = 0,
+        plug                = 1,
+        own                 = 2,
+        attach              = 3,
+        bind                = 4,
         activate_read       = 5,
-        activate_write,
-        hiccup,
+        activate_write      = 6,
+        hiccup              = 7,
         pipe_term           = 8,
         pipe_term_ack       = 9,
         pipe_hwm            = 10,
@@ -38,7 +38,7 @@ struct command_t
         reap                = 15,
         reaped              = 16,
         inproc_connected    = 17,
-        done
+        done                = 18,
     } type;
 
     union args_t

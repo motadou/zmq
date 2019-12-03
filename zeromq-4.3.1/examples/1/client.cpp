@@ -62,8 +62,12 @@ int main(int argc, char * argv[])
 
             continue;
         }
-
+               
         printf("send message : [%s] succeed\n", szMsg);
+
+        zmq_recv(pSock, szMsg, iLen, 0);
+
+        printf("rcv:%s\n", szMsg);
 
         delete[] szMsg;
 

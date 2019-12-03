@@ -10,6 +10,9 @@ namespace zmq
 template <typename T> class ypipe_base_t
 {
 public:
+    int iFlag;
+
+public:
     virtual ~ypipe_base_t () {}
     virtual void write (const T &value_, bool incomplete_) = 0;
     virtual bool unwrite (T *value_) = 0;

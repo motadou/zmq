@@ -84,6 +84,8 @@ void zmq::tcp_listener_t::in_event()
     io_thread_t *io_thread = choose_io_thread(options.affinity);
     zmq_assert(io_thread);
 
+    printf("==============================================================\n");
+
     //  Create and launch a session object.
     session_base_t *session = session_base_t::create(io_thread, false, _socket, options, NULL);
     errno_assert(session);
@@ -217,15 +219,15 @@ zmq::fd_t zmq::tcp_listener_t::accept()
     struct sockaddr_storage ss;
     memset (&ss, 0, sizeof (ss));
 
-    socklen_t ss_len = sizeof (ss);
+    socklen_t ss_len = sizeof(ss);
 
 #if defined ZMQ_HAVE_SOCK_CLOEXEC && defined HAVE_ACCEPT4
-    fd_t sock = ::accept4(_s, reinterpret_cast<struct sockaddr *> (&ss), &ss_len, SOCK_CLOEXEC);
+    fd_t sock = ::accept4(_s, reinterpret_cast<struct sockaddr *>(&ss), &ss_len, SOCK_CLOEXEC);
 #else
-    fd_t sock = ::accept(_s, reinterpret_cast<struct sockaddr *> (&ss), &ss_len);
+    fd_t sock = ::accept (_s, reinterpret_cast<struct sockaddr *>(&ss), &ss_len);
 #endif
 
-    if (sock == retired_fd) 
+    if (sock == retired_fd)
     {
         errno_assert (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR || errno == ECONNABORTED || errno == EPROTO || errno == ENOBUFS || errno == ENOMEM || errno == EMFILE || errno == ENFILE);
 
@@ -234,7 +236,7 @@ zmq::fd_t zmq::tcp_listener_t::accept()
 
     make_socket_noninheritable (sock);
 
-    if (!options.tcp_accept_filters.empty ()) 
+    if (!options.tcp_accept_filters.empty()) 
     {
         bool matched = false;
         for (options_t::tcp_accept_filters_t::size_type i = 0; i != options.tcp_accept_filters.size (); ++i) 
@@ -255,9 +257,10 @@ zmq::fd_t zmq::tcp_listener_t::accept()
         }
     }
 
-    if (zmq::set_nosigpipe(sock)) 
+    if (zmq::set_nosigpipe(sock))
     {
-        int rc = ::close (sock);
+        int rc = ::close(sock);
+
         errno_assert (rc == 0);
 
         return retired_fd;
@@ -265,7 +268,7 @@ zmq::fd_t zmq::tcp_listener_t::accept()
 
     // Set the IP Type-Of-Service priority for this client socket
     if (options.tos != 0)
-        set_ip_type_of_service (sock, options.tos);
+        set_ip_type_of_service(sock, options.tos);
 
     return sock;
 }

@@ -44,6 +44,9 @@ class pipe_t : public object_t, public array_item_t<1>, public array_item_t<2>, 
     friend int pipepair(zmq::object_t *parents_[2], zmq::pipe_t *pipes_[2], int hwms_[2], bool conflate_[2]);
 
 public:
+    int iFlag;
+
+public:
     //  Specifies the object to send events to.
     void set_event_sink (i_pipe_events *sink_);
 
@@ -106,7 +109,9 @@ public:
     void set_endpoint_uri (const char *name_);
     std::string &get_endpoint_uri ();
 
-private:
+//private:
+public:
+
     //  Type of the underlying lock-free pipe.
     typedef ypipe_base_t<msg_t> upipe_t;
 
@@ -119,7 +124,7 @@ private:
     void process_pipe_hwm(int inhwm_, int outhwm_);
 
     //  Handler for delimiter read from the pipe.
-    void process_delimiter ();
+    void process_delimiter();
 
     //  Constructor is private. Pipe can only be created using
     //  pipepair function.
@@ -177,12 +182,12 @@ private:
     //      term command from the peer as well.
     enum
     {
-        active,
-        delimiter_received,
-        waiting_for_delimiter,
-        term_ack_sent,
-        term_req_sent1,
-        term_req_sent2
+        active                  = 0,
+        delimiter_received      = 1,
+        waiting_for_delimiter   = 2,
+        term_ack_sent           = 3,
+        term_req_sent1          = 4,
+        term_req_sent2          = 5,
     } _state;
 
     //  If true, we receive all the pending inbound messages before

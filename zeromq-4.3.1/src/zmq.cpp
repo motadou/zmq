@@ -444,8 +444,9 @@ int zmq_recv (void *s_, void *buf_, size_t len_, int flags_)
     int rc = zmq_msg_init (&msg);
     errno_assert (rc == 0);
 
-
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
     int nbytes = s_recvmsg (s, &msg, flags_);
+    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     if (unlikely (nbytes < 0)) 
     {

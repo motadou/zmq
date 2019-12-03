@@ -131,12 +131,15 @@ int zmq::set_nosigpipe (fd_t s_)
     //  As per POSIX spec, EINVAL will be returned if the socket was valid but
     //  the connection has been reset by the peer. Return an error so that the
     //  socket can be closed and the connection retried if necessary.
+
     int set = 1;
     int rc = setsockopt (s_, SOL_SOCKET, SO_NOSIGPIPE, &set, sizeof (int));
     if (rc != 0 && errno == EINVAL)
         return -1;
     errno_assert (rc == 0);
 #else
+    // 在Linux系统中没有定义SO_NOSIGPIPE
+
     LIBZMQ_UNUSED (s_);
 #endif
 

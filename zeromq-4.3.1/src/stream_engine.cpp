@@ -381,8 +381,6 @@ void zmq::stream_engine_t::out_event()
         _outpos  = NULL;
         _outsize = _encoder->encode(&_outpos, 0);
 
-
-
         while (_outsize < static_cast<size_t>(out_batch_size)) 
         {
             if ((this->*_next_msg)(&_tx_msg) == -1)    // 获取新的需要发送的结构体
@@ -392,11 +390,8 @@ void zmq::stream_engine_t::out_event()
 
             _encoder->load_msg(&_tx_msg);
 
-
             unsigned char *bufptr = _outpos + _outsize;
             size_t n = _encoder->encode(&bufptr, out_batch_size - _outsize);
-
-
 
             zmq_assert (n > 0);
             if (_outpos == NULL)
@@ -462,7 +457,7 @@ void zmq::stream_engine_t::restart_output()
     //  was sent by the user the socket is probably available for writing.
     //  Thus we try to write the data to socket avoiding polling for POLLOUT.
     //  Consequently, the latency should be better in request/reply scenarios.
-    out_event ();
+    out_event();
 }
 
 bool zmq::stream_engine_t::restart_input()

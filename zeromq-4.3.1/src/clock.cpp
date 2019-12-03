@@ -13,7 +13,7 @@ const uint64_t usecs_per_msec = 1000;
 const uint64_t usecs_per_sec  = 1000000;
 const uint64_t nsecs_per_usec = 1000;
 
-zmq::clock_t::clock_t () : _last_tsc(rdtsc()), _last_time(now_us()/usecs_per_msec)
+zmq::clock_t::clock_t() : _last_tsc(rdtsc()), _last_time(now_us()/usecs_per_msec)
 {
 
 }
@@ -30,7 +30,7 @@ uint64_t zmq::clock_t::now_us ()
     // This should be a configuration check, but I looked into it and writing an
     // AC_FUNC_CLOCK_MONOTONIC seems beyond my powers.
 
-    if (rc != 0) 
+    if (rc != 0)
     {
         //  Use POSIX gettimeofday function to get precise time.
         struct timeval tv;
@@ -38,11 +38,12 @@ uint64_t zmq::clock_t::now_us ()
         errno_assert (rc == 0);
         return tv.tv_sec * usecs_per_sec + tv.tv_usec;
     }
+
     return tv.tv_sec * usecs_per_sec + tv.tv_nsec / nsecs_per_usec;
 #else
     //  Use POSIX gettimeofday function to get precise time.
     struct timeval tv;
-    int rc = gettimeofday (&tv, NULL);
+    int rc = gettimeofday(&tv, NULL);
     errno_assert (rc == 0);
     return tv.tv_sec * usecs_per_sec + tv.tv_usec;
 #endif

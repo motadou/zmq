@@ -116,6 +116,8 @@ public:
     //  available.
     inline bool read (T *value_)
     {
+        printf("%s %s %d -------------------------%d\n", __FILE__, __FUNCTION__, __LINE__, ypipe_base_t<T>::iFlag);
+
         //  Try to prefetch a value.
         if (!check_read ())
             return false;

@@ -64,7 +64,12 @@ int zmq::fq_t::recvpipe(msg_t *msg_, pipe_t **pipe_)
     {
         //  Try to fetch new message. If we've already read part of the message
         //  subsequent part should be immediately available.
+
+        printf("%s %s %d >> %d\n", __FILE__, __FUNCTION__, __LINE__, _pipes[_current]->iFlag);
+
         bool fetched = _pipes[_current]->read(msg_);
+
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
         //  Note that when message is not fetched, current pipe is deactivated
         //  and replaced by another active pipe. Thus we don't have to increase

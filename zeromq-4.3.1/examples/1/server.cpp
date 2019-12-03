@@ -46,13 +46,18 @@ int main(int argc, char * argv[])
         printf("waitting...\n");
         errno = 0;
         //循环等待接收到来的消息，当超过5秒没有接到消息时，
-        //zmq_recv函数返回错误信息 ，并使用zmq_strerror函数进行错误定位 
+        //zmq_recv函数返回错误信息，并使用zmq_strerror函数进行错误定位 
         if (zmq_recv(pSock, szMsg, sizeof(szMsg), 0) < 0)
         {
             printf("error = %d %s\n", errno, zmq_strerror(errno));
             continue;
         }
+
         printf("received message : %s\n", szMsg);
+
+        ::snprintf(szMsg, sizeof(szMsg), "%s", "11111111");
+
+        zmq_send(pSock, szMsg, sizeof(szMsg), 0);
     }
 
     return 0;

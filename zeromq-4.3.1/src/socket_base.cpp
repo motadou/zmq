@@ -424,7 +424,7 @@ int zmq::socket_base_t::bind(const char *endpoint_uri_)
     }
 
     //  Process pending commands, if any.
-    int rc = process_commands (0, false);
+    int rc = process_commands(0, false);
     if (unlikely (rc != 0)) 
     {
         return -1;
@@ -1020,7 +1020,7 @@ int zmq::socket_base_t::send(msg_t *msg_, int flags_)
     }
 
     //  Process pending commands, if any.
-    int rc = process_commands (0, true);
+    int rc = process_commands(0, true);
     if (unlikely (rc != 0)) 
     {
         return -1;
@@ -1185,11 +1185,14 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
     bool block = (_ticks != 0);
     while (true) 
     {
+        printf("%s %s %d | %d %d\n", __FILE__, __FUNCTION__, __LINE__, timeout, _ticks);
         if (unlikely (process_commands (block ? timeout : 0, false) != 0)) 
         {
             return -1;
         }
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
         rc = xrecv (msg_);
+        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
         if (rc == 0) 
         {
             _ticks = 0;
@@ -1315,6 +1318,8 @@ int zmq::socket_base_t::process_commands(int timeout_, bool throttle_)
     //  Process all available commands.
     while (rc == 0) 
     {
+        printf("%s %s %d | %d %d\n", __FILE__, __FUNCTION__, __LINE__, cmd.type, (cmd.destination == this)?1:2);
+
         cmd.destination->process_command(cmd);
         rc = _mailbox->recv(&cmd, 0);
     }

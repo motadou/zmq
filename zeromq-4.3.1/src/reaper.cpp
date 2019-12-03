@@ -4,23 +4,23 @@
 #include "socket_base.hpp"
 #include "err.hpp"
 
-zmq::reaper_t::reaper_t (class ctx_t *ctx_, uint32_t tid_) : object_t (ctx_, tid_), _mailbox_handle (static_cast<poller_t::handle_t> (NULL)), _poller (NULL), _sockets (0), _terminating (false)
+zmq::reaper_t::reaper_t(class ctx_t *ctx_, uint32_t tid_) : object_t (ctx_, tid_), _mailbox_handle (static_cast<poller_t::handle_t> (NULL)), _poller (NULL), _sockets (0), _terminating (false)
 {
-    if (!_mailbox.valid ())
+    if (!_mailbox.valid())
         return;
 
     _poller = new (std::nothrow) poller_t (*ctx_);
     alloc_assert (_poller);
 
-    if (_mailbox.get_fd () != retired_fd) 
+    if (_mailbox.get_fd() != retired_fd) 
     {
         _mailbox_handle = _poller->add_fd(_mailbox.get_fd (), this);
-        _poller->set_pollin (_mailbox_handle);
+        _poller->set_pollin(_mailbox_handle);
     }
 
     _poller->iFlag = 11111;
 
-    _pid = getpid ();
+    _pid = getpid();
 }
 
 zmq::reaper_t::~reaper_t ()
@@ -33,19 +33,19 @@ zmq::mailbox_t *zmq::reaper_t::get_mailbox()
     return &_mailbox;
 }
 
-void zmq::reaper_t::start ()
+void zmq::reaper_t::start()
 {
-    zmq_assert (_mailbox.valid ());
+    zmq_assert (_mailbox.valid());
 
     //  Start the thread.
-    _poller->start ();
+    _poller->start();
 }
 
-void zmq::reaper_t::stop ()
+void zmq::reaper_t::stop()
 {
-    if (get_mailbox ()->valid ()) 
+    if (get_mailbox ()->valid()) 
     {
-        send_stop ();
+        send_stop();
     }
 }
 
@@ -73,7 +73,7 @@ void zmq::reaper_t::in_event()
     }
 }
 
-void zmq::reaper_t::out_event ()
+void zmq::reaper_t::out_event()
 {
     zmq_assert (false);
 }
@@ -83,7 +83,7 @@ void zmq::reaper_t::timer_event (int)
     zmq_assert (false);
 }
 
-void zmq::reaper_t::process_stop ()
+void zmq::reaper_t::process_stop()
 {
     _terminating = true;
 
@@ -104,7 +104,7 @@ void zmq::reaper_t::process_reap(socket_base_t *socket_)
     ++_sockets;
 }
 
-void zmq::reaper_t::process_reaped ()
+void zmq::reaper_t::process_reaped()
 {
     --_sockets;
 

@@ -135,7 +135,7 @@ int zmq::tcp_write(fd_t s_, const void *data_, size_t size_)
         return -1;
     }
 
-    return static_cast<int> (nbytes);
+    return static_cast<int>(nbytes);
 }
 
 int zmq::tcp_read(fd_t s_, void *data_, size_t size_)

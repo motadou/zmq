@@ -105,7 +105,7 @@ void zmq::session_base_t::attach_pipe (pipe_t *pipe_)
     _pipe->set_event_sink (this);
 }
 
-int zmq::session_base_t::pull_msg (msg_t *msg_)
+int zmq::session_base_t::pull_msg(msg_t *msg_)
 {
     if ((_pipe == NULL) || (_pipe->read(msg_) == false)) 
     {
@@ -178,7 +178,11 @@ void zmq::session_base_t::reset ()
 void zmq::session_base_t::flush ()
 {
     if (_pipe)
-        _pipe->flush ();
+    {
+        printf("%s %s %d XXXXXXXXXXXXXXXXXX\n", __FILE__, __FUNCTION__, __LINE__);
+
+        _pipe->flush();
+    }
 }
 
 void zmq::session_base_t::rollback()
@@ -260,7 +264,7 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
 
 void zmq::session_base_t::read_activated(pipe_t *pipe_)
 {
-
+    printf("%s %s %d ###\n", __FILE__, __FUNCTION__, __LINE__);
 
     // Skip activating if we're detaching this pipe
     if (unlikely (pipe_ != _pipe && pipe_ != _zap_pipe)) 
@@ -399,6 +403,11 @@ void zmq::session_base_t::process_attach(i_engine * engine_)
         //  Remember the local end of the pipe.
         zmq_assert (!_pipe);
         _pipe = pipes[0];
+
+        printf("%s %s %d##############################\n", __FILE__, __FUNCTION__, __LINE__);
+
+        pipes[0]->_in_pipe->iFlag = 1001;
+        pipes[0]->_out_pipe->iFlag = 1002;
 
         //  Ask socket to plug into the remote end of the pipe.
         send_bind(_socket, pipes[1]);
@@ -620,7 +629,9 @@ zmq::own_t *zmq::session_base_t::create_connecter_tcp(io_thread_t *io_thread_, b
     if (!options.socks_proxy_address.empty ()) 
     {
         address_t *proxy_address = new (std::nothrow) address_t(protocol_name::tcp, options.socks_proxy_address, this->get_ctx ());
+
         alloc_assert (proxy_address);
+
         return new (std::nothrow) socks_connecter_t(io_thread_, this, options, _addr, proxy_address, wait_);
     }
 
@@ -695,11 +706,11 @@ void zmq::session_base_t::start_connecting_norm (io_thread_t *io_thread_)
 }
 #endif
 
-void zmq::session_base_t::start_connecting_udp (io_thread_t * /*io_thread_*/)
+void zmq::session_base_t::start_connecting_udp(io_thread_t * /*io_thread_*/)
 {
     zmq_assert (options.type == ZMQ_DISH || options.type == ZMQ_RADIO || options.type == ZMQ_DGRAM);
 
-    udp_engine_t *engine = new (std::nothrow) udp_engine_t (options);
+    udp_engine_t *engine = new (std::nothrow) udp_engine_t(options);
     alloc_assert (engine);
 
     bool recv = false;
