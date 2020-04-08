@@ -1134,23 +1134,27 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
     //  described above) from the one used by 'send'. This is because counting
     //  ticks is more efficient than doing RDTSC all the time.
 
-    if (++_ticks == inbound_poll_rate) {
-        if (unlikely (process_commands (0, false) != 0)) {
+    if (++_ticks == inbound_poll_rate) 
+    {
+        if (unlikely (process_commands (0, false) != 0)) 
+        {
             return -1;
         }
+
         _ticks = 0;
     }
 
     //  Get the message.
     int rc = xrecv (msg_);
 
-
-    if (unlikely (rc != 0 && errno != EAGAIN)) {
+    if (unlikely (rc != 0 && errno != EAGAIN)) 
+    {
         return -1;
     }
 
     //  If we have the message, return immediately.
-    if (rc == 0) {
+    if (rc == 0) 
+    {
         extract_flags (msg_);
         return 0;
     }
@@ -1186,14 +1190,14 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
     while (true) 
     {
         printf("%s %s %d | %d %d\n", __FILE__, __FUNCTION__, __LINE__, timeout, _ticks);
-        if (unlikely (process_commands (block ? timeout : 0, false) != 0)) 
+        if (unlikely (process_commands(block ? timeout : 0, false) != 0)) 
         {
             return -1;
         }
         printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-        rc = xrecv (msg_);
+        rc = xrecv(msg_);
         printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-        if (rc == 0) 
+        if (rc == 0) // 如果成功读取到一个数据，则返回。否则继续等待
         {
             _ticks = 0;
             break;
@@ -1214,7 +1218,7 @@ int zmq::socket_base_t::recv(msg_t *msg_, int flags_)
         }
     }
 
-    extract_flags (msg_);
+    extract_flags(msg_);
     return 0;
 }
 
@@ -1350,7 +1354,7 @@ void zmq::socket_base_t::process_stop()
     _ctx_terminated = true;
 }
 
-void zmq::socket_base_t::process_bind (pipe_t *pipe_)
+void zmq::socket_base_t::process_bind(pipe_t *pipe_)
 {
     attach_pipe(pipe_);
 }
@@ -1500,12 +1504,12 @@ void zmq::socket_base_t::check_destroy ()
 
 void zmq::socket_base_t::read_activated (pipe_t *pipe_)
 {
-    xread_activated (pipe_);
+    xread_activated(pipe_);
 }
 
 void zmq::socket_base_t::write_activated (pipe_t *pipe_)
 {
-    xwrite_activated (pipe_);
+    xwrite_activated(pipe_);
 }
 
 void zmq::socket_base_t::hiccuped (pipe_t *pipe_)
@@ -1561,20 +1565,23 @@ void zmq::socket_base_t::extract_flags (msg_t *msg_)
     _rcvmore = (msg_->flags () & msg_t::more) != 0;
 }
 
-int zmq::socket_base_t::monitor (const char *endpoint_, int events_)
+int zmq::socket_base_t::monitor(const char * endpoint_, int events_)
 {
     scoped_lock_t lock (_monitor_sync);
 
-    if (unlikely (_ctx_terminated)) {
+    if (unlikely (_ctx_terminated)) 
+    {
         errno = ETERM;
         return -1;
     }
 
     //  Support deregistering monitoring endpoints as well
-    if (endpoint_ == NULL) {
+    if (endpoint_ == NULL) 
+    {
         stop_monitor ();
         return 0;
     }
+
     //  Parse endpoint_uri_ string.
     std::string protocol;
     std::string address;
@@ -1582,42 +1589,43 @@ int zmq::socket_base_t::monitor (const char *endpoint_, int events_)
         return -1;
 
     //  Event notification only supported over inproc://
-    if (protocol != protocol_name::inproc) {
+    if (protocol != protocol_name::inproc) 
+    {
         errno = EPROTONOSUPPORT;
         return -1;
     }
+    
     // already monitoring. Stop previous monitor before starting new one.
-    if (_monitor_socket != NULL) {
+    if (_monitor_socket != NULL) 
+    {
         stop_monitor (true);
     }
     //  Register events to monitor
     _monitor_events = events_;
-    _monitor_socket = zmq_socket (get_ctx (), ZMQ_PAIR);
+    _monitor_socket = zmq_socket(get_ctx(), ZMQ_PAIR);
     if (_monitor_socket == NULL)
         return -1;
 
     //  Never block context termination on pending event messages
     int linger = 0;
-    int rc =
-      zmq_setsockopt (_monitor_socket, ZMQ_LINGER, &linger, sizeof (linger));
+    int rc = zmq_setsockopt (_monitor_socket, ZMQ_LINGER, &linger, sizeof (linger));
     if (rc == -1)
         stop_monitor (false);
 
     //  Spawn the monitor socket endpoint
-    rc = zmq_bind (_monitor_socket, endpoint_);
+    rc = zmq_bind(_monitor_socket, endpoint_);
     if (rc == -1)
         stop_monitor (false);
+
     return rc;
 }
 
-void zmq::socket_base_t::event_connected (const std::string &endpoint_uri_,
-                                          zmq::fd_t fd_)
+void zmq::socket_base_t::event_connected(const std::string & endpoint_uri_, zmq::fd_t fd_)
 {
-    event (endpoint_uri_, fd_, ZMQ_EVENT_CONNECTED);
+    event(endpoint_uri_, fd_, ZMQ_EVENT_CONNECTED);
 }
 
-void zmq::socket_base_t::event_connect_delayed (
-  const std::string &endpoint_uri_, int err_)
+void zmq::socket_base_t::event_connect_delayed(const std::string &endpoint_uri_, int err_)
 {
     event (endpoint_uri_, err_, ZMQ_EVENT_CONNECT_DELAYED);
 }
@@ -1663,8 +1671,7 @@ void zmq::socket_base_t::event_close_failed (const std::string &endpoint_uri_,
     event (endpoint_uri_, err_, ZMQ_EVENT_CLOSE_FAILED);
 }
 
-void zmq::socket_base_t::event_disconnected (const std::string &endpoint_uri_,
-                                             zmq::fd_t fd_)
+void zmq::socket_base_t::event_disconnected (const std::string & endpoint_uri_, zmq::fd_t fd_)
 {
     event (endpoint_uri_, fd_, ZMQ_EVENT_DISCONNECTED);
 }

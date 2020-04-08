@@ -102,10 +102,10 @@ extern "C" {
 #endif
 
 /*  Native 0MQ error codes.                                                   */
-#define EFSM (ZMQ_HAUSNUMERO + 51)
-#define ENOCOMPATPROTO (ZMQ_HAUSNUMERO + 52)
-#define ETERM (ZMQ_HAUSNUMERO + 53)
-#define EMTHREAD (ZMQ_HAUSNUMERO + 54)
+#define EFSM            (ZMQ_HAUSNUMERO + 51)
+#define ENOCOMPATPROTO  (ZMQ_HAUSNUMERO + 52)
+#define ETERM           (ZMQ_HAUSNUMERO + 53)
+#define EMTHREAD        (ZMQ_HAUSNUMERO + 54)
 
 /*  This function retrieves the errno as it is known to 0MQ library. The goal */
 /*  of this function is to make the code 100% portable, including where 0MQ   */
@@ -196,18 +196,18 @@ ZMQ_EXPORT const char *zmq_msg_gets (const zmq_msg_t *msg_, const char *property
 /******************************************************************************/
 
 /*  Socket types.                                                             */
-#define ZMQ_PAIR 0
-#define ZMQ_PUB 1
-#define ZMQ_SUB 2
-#define ZMQ_REQ 3
-#define ZMQ_REP 4
-#define ZMQ_DEALER 5
-#define ZMQ_ROUTER 6
-#define ZMQ_PULL 7
-#define ZMQ_PUSH 8
-#define ZMQ_XPUB 9
-#define ZMQ_XSUB 10
-#define ZMQ_STREAM 11
+#define ZMQ_PAIR    0
+#define ZMQ_PUB     1
+#define ZMQ_SUB     2
+#define ZMQ_REQ     3
+#define ZMQ_REP     4
+#define ZMQ_DEALER  5
+#define ZMQ_ROUTER  6
+#define ZMQ_PULL    7
+#define ZMQ_PUSH    8
+#define ZMQ_XPUB    9
+#define ZMQ_XSUB    10
+#define ZMQ_STREAM  11
 
 /*  Deprecated aliases                                                        */
 #define ZMQ_XREQ ZMQ_DEALER
@@ -309,17 +309,17 @@ ZMQ_EXPORT const char *zmq_msg_gets (const zmq_msg_t *msg_, const char *property
 #define ZMQ_GROUP_MAX_LENGTH 15
 
 /*  Deprecated options and aliases                                            */
-#define ZMQ_IDENTITY ZMQ_ROUTING_ID
-#define ZMQ_CONNECT_RID ZMQ_CONNECT_ROUTING_ID
-#define ZMQ_TCP_ACCEPT_FILTER 38
-#define ZMQ_IPC_FILTER_PID 58
-#define ZMQ_IPC_FILTER_UID 59
-#define ZMQ_IPC_FILTER_GID 60
-#define ZMQ_IPV4ONLY 31
-#define ZMQ_DELAY_ATTACH_ON_CONNECT ZMQ_IMMEDIATE
-#define ZMQ_NOBLOCK ZMQ_DONTWAIT
-#define ZMQ_FAIL_UNROUTABLE ZMQ_ROUTER_MANDATORY
-#define ZMQ_ROUTER_BEHAVIOR ZMQ_ROUTER_MANDATORY
+#define ZMQ_IDENTITY                    ZMQ_ROUTING_ID
+#define ZMQ_CONNECT_RID                 ZMQ_CONNECT_ROUTING_ID
+#define ZMQ_TCP_ACCEPT_FILTER           38
+#define ZMQ_IPC_FILTER_PID              58
+#define ZMQ_IPC_FILTER_UID              59
+#define ZMQ_IPC_FILTER_GID              60
+#define ZMQ_IPV4ONLY                    31
+#define ZMQ_DELAY_ATTACH_ON_CONNECT     ZMQ_IMMEDIATE
+#define ZMQ_NOBLOCK                     ZMQ_DONTWAIT
+#define ZMQ_FAIL_UNROUTABLE             ZMQ_ROUTER_MANDATORY
+#define ZMQ_ROUTER_BEHAVIOR             ZMQ_ROUTER_MANDATORY
 
 /*  Deprecated Message options                                                */
 #define ZMQ_SRCFD 2
@@ -339,29 +339,30 @@ ZMQ_EXPORT const char *zmq_msg_gets (const zmq_msg_t *msg_, const char *property
 
 /*  Socket transport events (TCP, IPC and TIPC only)                          */
 
-#define ZMQ_EVENT_CONNECTED 0x0001
-#define ZMQ_EVENT_CONNECT_DELAYED 0x0002
-#define ZMQ_EVENT_CONNECT_RETRIED 0x0004
-#define ZMQ_EVENT_LISTENING 0x0008
-#define ZMQ_EVENT_BIND_FAILED 0x0010
-#define ZMQ_EVENT_ACCEPTED 0x0020
-#define ZMQ_EVENT_ACCEPT_FAILED 0x0040
-#define ZMQ_EVENT_CLOSED 0x0080
-#define ZMQ_EVENT_CLOSE_FAILED 0x0100
-#define ZMQ_EVENT_DISCONNECTED 0x0200
-#define ZMQ_EVENT_MONITOR_STOPPED 0x0400
-#define ZMQ_EVENT_ALL 0xFFFF
+#define ZMQ_EVENT_CONNECTED                     0x0001
+#define ZMQ_EVENT_CONNECT_DELAYED               0x0002
+#define ZMQ_EVENT_CONNECT_RETRIED               0x0004
+#define ZMQ_EVENT_LISTENING                     0x0008
+#define ZMQ_EVENT_BIND_FAILED                   0x0010
+#define ZMQ_EVENT_ACCEPTED                      0x0020
+#define ZMQ_EVENT_ACCEPT_FAILED                 0x0040
+#define ZMQ_EVENT_CLOSED                        0x0080
+#define ZMQ_EVENT_CLOSE_FAILED                  0x0100
+#define ZMQ_EVENT_DISCONNECTED                  0x0200
+#define ZMQ_EVENT_MONITOR_STOPPED               0x0400
+#define ZMQ_EVENT_ALL                           0xFFFF
 /*  Unspecified system errors during handshake. Event value is an errno.      */
-#define ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL 0x0800
+#define ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL    0x0800
 /*  Handshake complete successfully with successful authentication (if        *
  *  enabled). Event value is unused.                                          */
-#define ZMQ_EVENT_HANDSHAKE_SUCCEEDED 0x1000
+#define ZMQ_EVENT_HANDSHAKE_SUCCEEDED           0x1000
 /*  Protocol errors between ZMTP peers or between server and ZAP handler.     *
  *  Event value is one of ZMQ_PROTOCOL_ERROR_*                                */
-#define ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL 0x2000
+#define ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL     0x2000
 /*  Failed authentication requests. Event value is the numeric ZAP status     *
  *  code, i.e. 300, 400 or 500.                                               */
-#define ZMQ_EVENT_HANDSHAKE_FAILED_AUTH 0x4000
+#define ZMQ_EVENT_HANDSHAKE_FAILED_AUTH         0x4000
+
 #define ZMQ_PROTOCOL_ERROR_ZMTP_UNSPECIFIED 0x10000000
 #define ZMQ_PROTOCOL_ERROR_ZMTP_UNEXPECTED_COMMAND 0x10000001
 #define ZMQ_PROTOCOL_ERROR_ZMTP_INVALID_SEQUENCE 0x10000002
@@ -439,7 +440,7 @@ ZMQ_EXPORT int zmq_has (const char *capability_);
 #define ZMQ_QUEUE     3
 
 /*  Deprecated methods */
-ZMQ_EXPORT int zmq_device (int type_, void *frontend_, void *backend_);
+ZMQ_EXPORT int zmq_device  (int type_, void *frontend_, void *backend_);
 ZMQ_EXPORT int zmq_sendmsg (void *s_, zmq_msg_t *msg_, int flags_);
 ZMQ_EXPORT int zmq_recvmsg (void *s_, zmq_msg_t *msg_, int flags_);
 struct iovec;
@@ -561,14 +562,14 @@ ZMQ_EXPORT int zmq_msg_set_group (zmq_msg_t *msg, const char *group);
 ZMQ_EXPORT const char *zmq_msg_group (zmq_msg_t *msg);
 
 /*  DRAFT Msg property names.                                                 */
-#define ZMQ_MSG_PROPERTY_ROUTING_ID "Routing-Id"
-#define ZMQ_MSG_PROPERTY_SOCKET_TYPE "Socket-Type"
-#define ZMQ_MSG_PROPERTY_USER_ID "User-Id"
-#define ZMQ_MSG_PROPERTY_PEER_ADDRESS "Peer-Address"
+#define ZMQ_MSG_PROPERTY_ROUTING_ID     "Routing-Id"
+#define ZMQ_MSG_PROPERTY_SOCKET_TYPE    "Socket-Type"
+#define ZMQ_MSG_PROPERTY_USER_ID        "User-Id"
+#define ZMQ_MSG_PROPERTY_PEER_ADDRESS   "Peer-Address"
 
 /*  Router notify options                                                     */
-#define ZMQ_NOTIFY_CONNECT 1
-#define ZMQ_NOTIFY_DISCONNECT 2
+#define ZMQ_NOTIFY_CONNECT      1
+#define ZMQ_NOTIFY_DISCONNECT   2
 
 /******************************************************************************/
 /*  Poller polling on sockets,fd and thread-safe sockets                      */
@@ -578,22 +579,18 @@ ZMQ_EXPORT const char *zmq_msg_group (zmq_msg_t *msg);
 
 typedef struct zmq_poller_event_t
 {
-    void *socket;
-#if defined _WIN32
-    SOCKET fd;
-#else
-    int fd;
-#endif
-    void *user_data;
-    short events;
+    void  *socket;
+    int    fd;
+    void  *user_data;
+    short  events;
 } zmq_poller_event_t;
 
-ZMQ_EXPORT void *zmq_poller_new (void);
-ZMQ_EXPORT int zmq_poller_destroy (void **poller_p);
-ZMQ_EXPORT int zmq_poller_add (void *poller, void *socket, void *user_data, short events);
-ZMQ_EXPORT int zmq_poller_modify (void *poller, void *socket, short events);
-ZMQ_EXPORT int zmq_poller_remove (void *poller, void *socket);
-ZMQ_EXPORT int zmq_poller_wait (void *poller, zmq_poller_event_t *event, long timeout);
+ZMQ_EXPORT void *zmq_poller_new(void);
+ZMQ_EXPORT int zmq_poller_destroy(void **poller_p);
+ZMQ_EXPORT int zmq_poller_add(void *poller, void *socket, void *user_data, short events);
+ZMQ_EXPORT int zmq_poller_modify(void *poller, void *socket, short events);
+ZMQ_EXPORT int zmq_poller_remove(void *poller, void *socket);
+ZMQ_EXPORT int zmq_poller_wait(void *poller, zmq_poller_event_t *event, long timeout);
 ZMQ_EXPORT int zmq_poller_wait_all (void *poller, zmq_poller_event_t *events, int n_events, long timeout);
 
 ZMQ_EXPORT int zmq_poller_add_fd    (void *poller, int fd, void *user_data, short events);

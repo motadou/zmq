@@ -273,7 +273,6 @@ void zmq::stream_engine_t::in_event()
             return;
     }
 
-
     zmq_assert (_decoder);
 
     // If there has been an I/O error, stop polling. 当处于_input_stoppend状态时，如果出现inevent，这表示可能是EPOLLERR | EPOLLHUP进来的状态
@@ -295,8 +294,6 @@ void zmq::stream_engine_t::in_event()
         _decoder->get_buffer(&_inpos, &bufsize);
 
         const int rc = tcp_read(_s, _inpos, bufsize);
-
-
 
         if (rc == 0)
         {
@@ -332,12 +329,9 @@ void zmq::stream_engine_t::in_event()
         _inpos  += processed;
         _insize -= processed;
 
-
-
         if (rc == 0 || rc == -1)
             break;
 
-        
         rc = (this->*_process_msg)(_decoder->msg());
 
         if (rc == -1)
@@ -352,8 +346,6 @@ void zmq::stream_engine_t::in_event()
             error(protocol_error);
             return;
         }
-
-
 
         _input_stopped = true;
         reset_pollin(_handle);
@@ -415,14 +407,12 @@ void zmq::stream_engine_t::out_event()
     //  limited transmission buffer and thus the actual number of bytes
     //  written should be reasonably modest.
 
-
-
     const int nbytes = tcp_write(_s, _outpos, _outsize);
 
     //  IO error has occurred. We stop waiting for output events.
     //  The engine is not terminated until we detect input error;
     //  this is necessary to prevent losing incoming messages.
-    if (nbytes == -1) 
+    if (nbytes == -1)
     {
         reset_pollout(_handle);
         return;
@@ -485,7 +475,7 @@ bool zmq::stream_engine_t::restart_input()
     while (_insize > 0) 
     {
         size_t processed = 0;
-        rc = _decoder->decode (_inpos, _insize, processed);
+        rc = _decoder->decode(_inpos, _insize, processed);
         zmq_assert (processed <= _insize);
         _inpos  += processed;
         _insize -= processed;
@@ -772,7 +762,7 @@ bool zmq::stream_engine_t::handshake_v2_0 ()
     return true;
 }
 
-bool zmq::stream_engine_t::handshake_v3_0 ()
+bool zmq::stream_engine_t::handshake_v3_0()
 {
     _encoder = new (std::nothrow) v2_encoder_t(out_batch_size);
     alloc_assert (_encoder);
@@ -902,8 +892,6 @@ int zmq::stream_engine_t::next_handshake_command(msg_t *msg_)
 
 int zmq::stream_engine_t::process_handshake_command(msg_t * msg_)
 {
-
-
     zmq_assert (_mechanism != NULL);
     const int rc = _mechanism->process_handshake_command(msg_);
 
@@ -1070,7 +1058,7 @@ int zmq::stream_engine_t::pull_and_encode(msg_t *msg_)
     return 0;
 }
 
-int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
+int zmq::stream_engine_t::decode_and_push(msg_t *msg_)
 {
     zmq_assert (_mechanism != NULL);
 
@@ -1094,7 +1082,7 @@ int zmq::stream_engine_t::decode_and_push (msg_t *msg_)
     if (_metadata)
         msg_->set_metadata (_metadata);
     
-    if (_session->push_msg (msg_) == -1) 
+    if (_session->push_msg(msg_) == -1) 
     {
         if (errno == EAGAIN)
             _process_msg = &stream_engine_t::push_one_then_decode_and_push;
@@ -1133,7 +1121,7 @@ void zmq::stream_engine_t::error(error_reason_t reason_)
 
         msg_t disconnect_notification;
         disconnect_notification.init();
-        _session->push_msg (&disconnect_notification);
+        _session->push_msg(&disconnect_notification);
     }
 
     // protocol errors have been signaled already at the point where they occurred
@@ -1150,7 +1138,7 @@ void zmq::stream_engine_t::error(error_reason_t reason_)
     delete this;
 }
 
-void zmq::stream_engine_t::set_handshake_timer ()
+void zmq::stream_engine_t::set_handshake_timer()
 {
     zmq_assert (!_has_handshake_timer);
 

@@ -1111,10 +1111,12 @@ static int check_poller (void *const poller_)
 
 static int check_events (const short events_)
 {
-    if (events_ & ~(ZMQ_POLLIN | ZMQ_POLLOUT | ZMQ_POLLERR | ZMQ_POLLPRI)) {
+    if (events_ & ~(ZMQ_POLLIN | ZMQ_POLLOUT | ZMQ_POLLERR | ZMQ_POLLPRI)) 
+    {
         errno = EINVAL;
         return -1;
     }
+
     return 0;
 }
 

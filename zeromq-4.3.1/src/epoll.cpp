@@ -176,8 +176,8 @@ void zmq::epoll_t::loop()
         //  Destroy retired event sources.
         for (retired_t::iterator it = _retired.begin (), end = _retired.end (); it != end; ++it) 
         {
-            LIBZMQ_DELETE (*it);
+            LIBZMQ_DELETE(*it);
         }
-        _retired.clear ();
+        _retired.clear();
     }
 }

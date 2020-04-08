@@ -19,6 +19,8 @@ void zmq::fq_t::attach(pipe_t * pipe_)
     _pipes.push_back(pipe_);
     _pipes.swap(_active, _pipes.size() - 1);
     _active++;
+
+    printf("%s %s %d BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB%d\n", __FILE__, __FUNCTION__, __LINE__, (int)_active);
 }
 
 void zmq::fq_t::pipe_terminated(pipe_t *pipe_)
@@ -43,6 +45,8 @@ void zmq::fq_t::pipe_terminated(pipe_t *pipe_)
 
 void zmq::fq_t::activated(pipe_t *pipe_)
 {
+    printf("%s %s %d aaaaaaaaaaaaaaaaaaaaaaaaa:size:%d %d %d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_pipes.size(), (int)_pipes.index(pipe_), (int)_active, (int)_current);
+
     //  Move the pipe to the list of active pipes.
     _pipes.swap(_pipes.index(pipe_), _active);
     _active++;
@@ -59,17 +63,15 @@ int zmq::fq_t::recvpipe(msg_t *msg_, pipe_t **pipe_)
     int rc = msg_->close();
     errno_assert (rc == 0);
 
+    printf("%s %s %d ccccccccccccccccccccccccccccccc%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_active, (int)_current);
+
     //  Round-robin over the pipes to get the next message.
     while (_active > 0) 
     {
         //  Try to fetch new message. If we've already read part of the message
         //  subsequent part should be immediately available.
 
-        printf("%s %s %d >> %d\n", __FILE__, __FUNCTION__, __LINE__, _pipes[_current]->iFlag);
-
         bool fetched = _pipes[_current]->read(msg_);
-
-        printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
         //  Note that when message is not fetched, current pipe is deactivated
         //  and replaced by another active pipe. Thus we don't have to increase
@@ -101,6 +103,9 @@ int zmq::fq_t::recvpipe(msg_t *msg_, pipe_t **pipe_)
         _pipes.swap(_current, _active);
         if (_current == _active)
             _current = 0;
+
+
+        printf("%s %s %d ##############################%d %d\n", __FILE__, __FUNCTION__, __LINE__, (int)_active, (int)_current);
     }
 
     //  No message is available. Initialise the output parameter

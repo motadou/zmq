@@ -116,8 +116,6 @@ public:
     //  available.
     inline bool read (T *value_)
     {
-        printf("%s %s %d -------------------------%d\n", __FILE__, __FUNCTION__, __LINE__, ypipe_base_t<T>::iFlag);
-
         //  Try to prefetch a value.
         if (!check_read ())
             return false;
@@ -134,7 +132,7 @@ public:
     //  The pipe mustn't be empty or the function crashes.
     inline bool probe(bool (*fn_) (const T &))
     {
-        bool rc = check_read ();
+        bool rc = check_read();
         zmq_assert (rc);
 
         return (*fn_) (_queue.front ());

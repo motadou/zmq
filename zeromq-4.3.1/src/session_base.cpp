@@ -206,9 +206,9 @@ void zmq::session_base_t::clean_pipes()
     while (_incomplete_in) 
     {
         msg_t msg;
-        int rc = msg.init ();
+        int rc = msg.init();
         errno_assert (rc == 0);
-        rc = pull_msg (&msg);
+        rc = pull_msg(&msg);
         errno_assert (rc == 0);
         rc = msg.close ();
         errno_assert (rc == 0);
@@ -226,7 +226,7 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
         _pipe = NULL;
         if (_has_linger_timer) 
         {
-            cancel_timer (linger_timer_id);
+            cancel_timer(linger_timer_id);
             _has_linger_timer = false;
         }
     } 
@@ -242,12 +242,12 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
 
     if (!is_terminating() && options.raw_socket) 
     {
-
         if (_engine) 
         {
             _engine->terminate ();
             _engine = NULL;
         }
+
         terminate ();
     }
 
@@ -256,7 +256,7 @@ void zmq::session_base_t::pipe_terminated(pipe_t *pipe_)
     //  with termination safely.
     if (_pending && (_pipe == NULL) && (_zap_pipe == NULL) && _terminating_pipes.empty()) 
     {
-
+        printf("%s %s %d ### aaaaaaaaaaaaaaaaaaaaaaaaaa\n", __FILE__, __FUNCTION__, __LINE__);
         _pending = false;
         own_t::process_term(0);
     }

@@ -272,7 +272,7 @@ void zmq::make_socket_noninheritable (fd_t sock_)
     //  If there 's no SOCK_CLOEXEC, let's try the second best option.
     //  Race condition can cause socket not to be closed (if fork happens
     //  between accept and this point).
-    const int rc = fcntl (sock_, F_SETFD, FD_CLOEXEC);
+    const int rc = fcntl(sock_, F_SETFD, FD_CLOEXEC);
     errno_assert (rc != -1);
 #else
     LIBZMQ_UNUSED (sock_);

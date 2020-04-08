@@ -43,11 +43,11 @@ private:
     //  is arbitrary number of threads sending. Given that ypipe requires
     //  synchronised access on both of its endpoints, we have to synchronise
     //  the sending side.
-    mutex_t _sync;
+    mutex_t    _sync;
 
     //  True if the underlying pipe is active, ie. when we are allowed to
     //  read commands from it.
-    bool _active;
+    bool       _active;
 
 private:
     //  Disable copying of mailbox_t object.

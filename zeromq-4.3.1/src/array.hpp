@@ -35,6 +35,7 @@ public:
 private:
     int _array_index;
 
+private:
     array_item_t (const array_item_t &);
     const array_item_t &operator= (const array_item_t &);
 };

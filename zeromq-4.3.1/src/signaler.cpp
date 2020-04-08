@@ -51,7 +51,7 @@ static int close_wait_ms (int fd_, unsigned int max_ms_ = 2000)
             sleep_ms (step_ms);
             ms_so_far += step_ms;
         }
-        rc = close (fd_);
+        rc = close(fd_);
     }
     while (ms_so_far < max_ms_ && rc == -1 && errno == EAGAIN);
 
@@ -135,7 +135,7 @@ void zmq::signaler_t::send()
 
 int zmq::signaler_t::wait(int timeout_)
 {
-    if (unlikely (pid != getpid ())) 
+    if (unlikely (pid != getpid())) 
     {
         // we have forked and the file descriptor is closed. Emulate an interrupt
         // response.
@@ -149,6 +149,7 @@ int zmq::signaler_t::wait(int timeout_)
     struct pollfd pfd;
     pfd.fd     = _r;
     pfd.events = POLLIN;
+
     const int rc = poll(&pfd, 1, timeout_);
     if (unlikely (rc < 0)) 
     {
@@ -173,7 +174,6 @@ int zmq::signaler_t::wait(int timeout_)
     zmq_assert (rc == 1);
     zmq_assert (pfd.revents & POLLIN);
     return 0;
-
 #elif defined ZMQ_POLL_BASED_ON_SELECT
     optimized_fd_set_t fds(1);
     FD_ZERO (fds.get ());
@@ -185,7 +185,7 @@ int zmq::signaler_t::wait(int timeout_)
         timeout.tv_usec = timeout_ % 1000 * 1000;
     }
 
-    int rc = select (_r + 1, fds.get (), NULL, NULL, timeout_ >= 0 ? &timeout : NULL);
+    int rc = select (_r + 1, fds.get(), NULL, NULL, timeout_ >= 0 ? &timeout : NULL);
     if (unlikely (rc < 0)) 
     {
         errno_assert (errno == EINTR);
@@ -197,11 +197,11 @@ int zmq::signaler_t::wait(int timeout_)
         errno = EAGAIN;
         return -1;
     }
+
     zmq_assert (rc == 1);
     return 0;
-
 #else
-#error
+    #error
 #endif
 }
 
@@ -290,5 +290,5 @@ void zmq::signaler_t::forked()
     //  Close file descriptors created in the parent and create new pair
     close (_r);
     close (_w);
-    make_fdpair (&_r, &_w);
+    make_fdpair(&_r, &_w);
 }

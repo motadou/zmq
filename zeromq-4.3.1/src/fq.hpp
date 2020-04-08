@@ -34,8 +34,7 @@ private:
     typedef array_t<pipe_t, 1> pipes_t;
     pipes_t _pipes;
 
-    //  Number of active pipes. All the active pipes are located at the
-    //  beginning of the pipes array.
+    //  Number of active pipes. All the active pipes are located at the beginning of the pipes array.
     pipes_t::size_type _active;
 
     //  Pointer to the last pipe we received message from.

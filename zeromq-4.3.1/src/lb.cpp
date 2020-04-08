@@ -22,7 +22,7 @@ void zmq::lb_t::attach(pipe_t *pipe_)
 
 void zmq::lb_t::pipe_terminated(pipe_t *pipe_)
 {
-    pipes_t::size_type index = _pipes.index (pipe_);
+    pipes_t::size_type index = _pipes.index(pipe_);
 
     //  If we are in the middle of multipart message and current pipe
     //  have disconnected, we have to drop the remainder of the message.
@@ -38,13 +38,14 @@ void zmq::lb_t::pipe_terminated(pipe_t *pipe_)
         if (_current == _active)
             _current = 0;
     }
-    _pipes.erase (pipe_);
+
+    _pipes.erase(pipe_);
 }
 
-void zmq::lb_t::activated (pipe_t *pipe_)
+void zmq::lb_t::activated(pipe_t *pipe_)
 {
     //  Move the pipe to the list of active pipes.
-    _pipes.swap (_pipes.index (pipe_), _active);
+    _pipes.swap(_pipes.index (pipe_), _active);
     _active++;
 }
 
@@ -59,10 +60,10 @@ int zmq::lb_t::sendpipe(msg_t *msg_, pipe_t **pipe_)
     //  switch back to non-dropping mode.
     if (_dropping) 
     {
-        _more     = (msg_->flags () & msg_t::more) != 0;
+        _more     = (msg_->flags() & msg_t::more) != 0;
         _dropping = _more;
 
-        int rc = msg_->close ();
+        int rc = msg_->close();
         errno_assert (rc == 0);
         rc = msg_->init ();
         errno_assert (rc == 0);
@@ -86,7 +87,7 @@ int zmq::lb_t::sendpipe(msg_t *msg_, pipe_t **pipe_)
         // Application should handle this as suitable
         if (_more) 
         {
-            _pipes[_current]->rollback ();
+            _pipes[_current]->rollback();
             // At this point the pipe is already being deallocated
             // and the first N frames are unreachable (_outpipe is
             // most likely already NULL so rollback won't actually do
@@ -139,7 +140,7 @@ int zmq::lb_t::sendpipe(msg_t *msg_, pipe_t **pipe_)
     return 0;
 }
 
-bool zmq::lb_t::has_out ()
+bool zmq::lb_t::has_out()
 {
     //  If one part of the message was already written we can definitely
     //  write the rest of the message.

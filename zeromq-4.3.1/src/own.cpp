@@ -115,8 +115,6 @@ void zmq::own_t::terminate()
     //  so it has to terminate itself.
     // 如果它是拥有树的根节点，没有节点可以来结束它，只有它自己结束自己
 
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
-
     if (_owner == NULL) 
     {
         // 客户端socket_base
@@ -126,8 +124,6 @@ void zmq::own_t::terminate()
 
         return;
     }
-
-    printf("%s %s %d\n", __FILE__, __FUNCTION__, __LINE__);
 
     // 对服务端的session_base而言，它的父节点是tcp_listener_t
 
@@ -171,7 +167,7 @@ void zmq::own_t::unregister_term_ack()
     _term_acks--;
 
     //  This may be a last ack we are waiting for before termination...
-    check_term_acks ();
+    check_term_acks();
 }
 
 void zmq::own_t::process_term_ack()
@@ -192,7 +188,7 @@ void zmq::own_t::check_term_acks()
             send_term_ack(_owner);
 
         //  Deallocate the resources.
-        process_destroy ();
+        process_destroy();
     }
 }
 

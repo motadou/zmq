@@ -10,10 +10,10 @@ namespace zmq
 class i_mailbox
 {
 public:
-    virtual ~i_mailbox () {}
+    virtual ~i_mailbox () { }
 
-    virtual void send (const command_t &cmd_) = 0;
-    virtual int  recv (command_t *cmd_, int timeout_) = 0;
+    virtual void send(const command_t &cmd_) = 0;
+    virtual int  recv(command_t *cmd_, int timeout_) = 0;
 
     // close the file descriptors in the signaller. This is used in a forked
     // child process to close the file descriptors so that they do not interfere

@@ -12,7 +12,7 @@ class mutex_t
 public:
     inline mutex_t()
     {
-        int rc = pthread_mutexattr_init (&_attr);
+        int rc = pthread_mutexattr_init(&_attr);
         posix_assert (rc);
 
         rc = pthread_mutexattr_settype(&_attr, PTHREAD_MUTEX_RECURSIVE);
